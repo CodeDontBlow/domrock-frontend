@@ -47,13 +47,13 @@ onBeforeUnmount(() => consultaCelular?.removeEventListener('change', acompanharL
 const menuItems = computed<MenuItem[]> (() => {
     if (profile.value === 'ADMIN') {
       return [
-        { id: 'usuarios', label: 'Usuários', icon: 'bi bi-people' },
+        { id: 'usuarios', label: 'Usuários', icon: 'bi bi-people', rota: '/admin' },
       ]
     }
 
     return [
       //pluscircle  
-      { id: 'nova-campanha', label: 'Nova Campanha', icon: 'bi bi-plus-circle', rota: '/ '},
+      { id: 'nova-campanha', label: 'Nova Campanha', icon: 'bi bi-plus-circle', rota: '/'},
       //piggybank. Supervisor cai na fila de aprovação; Gerente, em "Minhas campanhas" (decisão do PO, 26/10).
       { id: 'campanhas', label: 'Campanhas', icon: 'bi bi-piggy-bank', rota: profile.value === 'SUPERVISOR' ? '/campanha' : '/campanhas' },
       //calendar4event
@@ -74,7 +74,31 @@ const user = ref<User>({
   cargo: profile.value,
 })
 
-const activeItem = ref<string>('nova-campanha')
+
+const activeItem = computed(() => {
+  const path = route.path
+
+  const item = [...menuItems.value]
+    .filter((menuItem) => {
+      if (!menuItem.rota) return false
+
+      if (menuItem.rota === '/') {
+        return path === '/'
+      }
+
+      return (
+        path === menuItem.rota ||
+        path.startsWith(`${menuItem.rota}/`)
+      )
+    })
+    .sort(
+      (a, b) =>
+        (b.rota?.length ?? 0) -
+        (a.rota?.length ?? 0)
+    )[0]
+
+  return item?.id ?? 'nova-campanha'
+})
 
 function navegarParaCampanha(id: number): void {
   router.push({ name: 'chat', query: { campanha: id } })
@@ -82,7 +106,6 @@ function navegarParaCampanha(id: number): void {
 }
 
 function selectItem(item: MenuItem): void {
-  activeItem.value = item.id
   if (item.id === 'nova-campanha') useChatStore().novaConversa()
   if (item.rota) router.push(item.rota)
   if (isMobile.value) isCollapsed.value = true
@@ -95,21 +118,6 @@ watch(
   },
 )
 
-watch(
-  () => route?.path,
-  (path) => {
-    if (!path) return
-    // '/campanha' cobre também '/campanhas' e '/campanhas/:id'
-    if (path.startsWith('/campanha')) {
-      activeItem.value = 'campanhas'
-    } else if (path.startsWith('/admin')) {
-      activeItem.value = 'usuarios'
-    } else if (path === '/') {
-      activeItem.value = 'nova-campanha'
-    }
-  },
-  { immediate: true },
-)
 </script>
 
 <template>

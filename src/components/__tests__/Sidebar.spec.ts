@@ -1,3 +1,4 @@
+import { nextTick, reactive } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -10,13 +11,17 @@ const rotasNavegadas: unknown[] = []
 const mockPush = vi.fn((rota: unknown) => {
   rotasNavegadas.push(rota)
 })
+const rotaAtual = reactive({
+  path: '/',
+  fullPath: '/',
+})
 
 vi.mock('vue-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('vue-router')>()
   return {
     ...actual,
     useRouter: () => ({ push: mockPush }),
-    useRoute: () => ({ path: '/', fullPath: '/' }),
+    useRoute: () => rotaAtual,
   }
 })
 
@@ -28,6 +33,10 @@ describe('Sidebar.vue (Item 6 e 7)', () => {
     rotasNavegadas.length = 0
     mockPush.mockClear()
     localStorage.clear()
+
+    rotaAtual.path = '/'
+    rotaAtual.fullPath = '/'
+
     servico = new FakeServicoCampanhas()
     definirServicoSeusChats(servico)
 
@@ -106,4 +115,41 @@ describe('Sidebar.vue (Item 6 e 7)', () => {
     await botaoNova?.trigger('click')
     expect(spyNovaConversa).toHaveBeenCalled()
   })
+
+  it.each([
+    ['/vigente', 'Vigente', 'GERENTE'],
+    ['/relatorios', 'Relatórios', 'GERENTE'],
+    ['/importar', 'Importar base', 'SUPERVISOR'],
+    ['/configuracoes', 'Configurações', 'GERENTE'],
+    ['/campanhas', 'Campanhas', 'GERENTE'],
+    ['/campanha', 'Campanhas', 'SUPERVISOR'],
+  ])('marca "%s" como item ativo', async (path, label, perfil) => {
+    localStorage.setItem('perfil', perfil)
+    rotaAtual.path = path
+    rotaAtual.fullPath = path
+
+    const wrapper = mount(Sidebar)
+    await flushPromises()
+
+    expect(wrapper.find('.menu-item.active').text()).toContain(label)
+  })
+
+  it('atualiza o item ativo quando a rota muda', async () => {
+    localStorage.setItem('perfil', 'GERENTE')
+
+    const wrapper = mount(Sidebar)
+
+    rotaAtual.path = '/vigente'
+    rotaAtual.fullPath = '/vigente'
+    await nextTick()
+
+    expect(wrapper.find('.menu-item.active').text()).toContain('Vigente')
+
+    rotaAtual.path = '/relatorios'
+    rotaAtual.fullPath = '/relatorios'
+    await nextTick()
+
+    expect(wrapper.find('.menu-item.active').text()).toContain('Relatórios')
+  })
+
 })
