@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
-  dataLocal, formatarCelula, formatarData, formatarMilhares, formatarPercentual, formatarPercentualFixo,
-  formatarTrecho, lerDecimal, lerReaisInteiros, saudacao,
+  dataLocal,
+  formatarCelula,
+  formatarData,
+  formatarMilhares,
+  formatarPercentual,
+  formatarPercentualFixo,
+  formatarTrecho,
+  lerDecimal,
+  lerReaisInteiros,
+  saudacao,
 } from '../formatacao'
 
 describe('formatação dos campos da campanha', () => {

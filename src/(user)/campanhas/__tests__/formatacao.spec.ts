@@ -3,7 +3,9 @@ import { custoDaCampanha, diaDaCampanha, periodoDaCampanha, valorDoParametro } f
 import type { ParametroRegra, ValorParametro } from '../../chat/types'
 
 function parametro(
-  value: ValorParametro, options: ParametroRegra['options'] = null, type: ParametroRegra['type'] = 'multi_select',
+  value: ValorParametro,
+  options: ParametroRegra['options'] = null,
+  type: ParametroRegra['type'] = 'multi_select',
 ): ParametroRegra {
   return { key: 'p', label: 'P', type, categoria: 'REGRA', value, options, required: true }
 }
@@ -14,7 +16,9 @@ describe('formatação de Minhas campanhas', () => {
   })
 
   it('período da campanha, ou "—" sem período', () => {
-    expect(periodoDaCampanha({ data_inicio: '2025-11-24', data_fim: '2025-11-30' })).toBe('24/11/2025 – 30/11/2025')
+    expect(periodoDaCampanha({ data_inicio: '2025-11-24', data_fim: '2025-11-30' })).toBe(
+      '24/11/2025 – 30/11/2025',
+    )
     expect(periodoDaCampanha(null)).toBe('—')
   })
 
@@ -30,13 +34,16 @@ describe('formatação de Minhas campanhas', () => {
   })
 
   it('parâmetro de período mostra as datas; incompleto, "—"', () => {
-    expect(valorDoParametro(parametro({ data_inicio: '2025-11-24', data_fim: '2025-11-30' })))
-      .toBe('24/11/2025 – 30/11/2025')
+    expect(valorDoParametro(parametro({ data_inicio: '2025-11-24', data_fim: '2025-11-30' }))).toBe(
+      '24/11/2025 – 30/11/2025',
+    )
     expect(valorDoParametro(parametro({ data_inicio: '2025-11-24', data_fim: null }))).toBe('—')
   })
 
   it('moeda e percentual seguem o `type` do parâmetro', () => {
-    expect(valorDoParametro(parametro(2000000, null, 'currency')).replace(/ /g, ' ')).toBe('R$ 2.000.000,00')
+    expect(valorDoParametro(parametro(2000000, null, 'currency')).replace(/ /g, ' ')).toBe(
+      'R$ 2.000.000,00',
+    )
     expect(valorDoParametro(parametro(1, null, 'percentage'))).toBe('1%')
   })
 

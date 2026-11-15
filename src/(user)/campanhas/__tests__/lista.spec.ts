@@ -21,10 +21,20 @@ describe('Minhas Campanhas (Lista)', () => {
     servico.lista = [
       resumoBlackFriday(),
       resumoBlackFriday({
-        id: 13, nome: 'Natal Premium', status: 'AGUARDANDO_APROVACAO', versao_atual: 2,
-        periodo: { data_inicio: '2025-12-20', data_fim: '2025-12-31' }, custo_adicional: 45200,
+        id: 13,
+        nome: 'Natal Premium',
+        status: 'AGUARDANDO_APROVACAO',
+        versao_atual: 2,
+        periodo: { data_inicio: '2025-12-20', data_fim: '2025-12-31' },
+        custo_adicional: 45200,
       }),
-      resumoBlackFriday({ id: 14, nome: 'Dia das Mães', status: 'APROVADA', versao_atual: 1, vigencia: 'ENCERRADA' }),
+      resumoBlackFriday({
+        id: 14,
+        nome: 'Dia das Mães',
+        status: 'APROVADA',
+        versao_atual: 1,
+        vigencia: 'ENCERRADA',
+      }),
     ]
     definirServicoCampanhas(servico)
     pushMock.mockClear()
@@ -56,7 +66,10 @@ describe('Minhas Campanhas (Lista)', () => {
     const wrapper = mount(CampanhasPage)
     await flushPromises()
 
-    await wrapper.findAll('.filtro-chip').find((c) => c.text() === 'Aprovada')!.trigger('click')
+    await wrapper
+      .findAll('.filtro-chip')
+      .find((c) => c.text() === 'Aprovada')!
+      .trigger('click')
     await flushPromises()
 
     expect(servico.filtrosPedidos).toEqual([undefined, 'APROVADA'])

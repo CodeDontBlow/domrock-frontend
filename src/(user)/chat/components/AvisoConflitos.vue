@@ -23,9 +23,11 @@ function chaveConflito(conflito: ConflitoCampanha): string {
   <div v-if="conflitos && conflitos.length > 0" class="avisos" role="status">
     <p v-for="conflito in conflitos" :key="chaveConflito(conflito)">
       <i class="bi bi-exclamation-triangle" aria-hidden="true" />
-      Esta campanha se sobrepõe a {{ conflito.nome }} ({{ statusLegivelConflito(conflito.status) }}) em
-      {{ formatarTrecho(conflito.sobreposicao.data_inicio, conflito.sobreposicao.data_fim) }} para marcas
-      {{ marcasFormatadas(conflito.marcas) }}, cargos {{ cargosFormatados(conflito.cargos) }}.
+      Esta campanha se sobrepõe a {{ conflito.nome }} ({{ statusLegivelConflito(conflito.status) }})
+      em
+      {{ formatarTrecho(conflito.sobreposicao.data_inicio, conflito.sobreposicao.data_fim) }} para
+      marcas {{ marcasFormatadas(conflito.marcas) }}, cargos
+      {{ cargosFormatados(conflito.cargos) }}.
     </p>
   </div>
 </template>

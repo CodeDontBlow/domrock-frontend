@@ -16,8 +16,13 @@ function efeito(cenario: CenarioAlternativo): string {
 </script>
 
 <template>
-  <section v-if="cenarios.length" class="cenarios" :class="{ 'cenarios--sem-titulo': !titulo }"
-    :aria-labelledby="titulo ? idTitulo : undefined" :aria-label="titulo ? undefined : 'Cenários'">
+  <section
+    v-if="cenarios.length"
+    class="cenarios"
+    :class="{ 'cenarios--sem-titulo': !titulo }"
+    :aria-labelledby="titulo ? idTitulo : undefined"
+    :aria-label="titulo ? undefined : 'Cenários'"
+  >
     <h3 v-if="titulo" :id="idTitulo" class="cenarios-titulo">{{ titulo }}</h3>
     <ul class="cenarios-lista">
       <li v-for="cenario in cenarios" :key="cenario.tipo" class="cenario">
@@ -29,13 +34,20 @@ function efeito(cenario: CenarioAlternativo): string {
         </div>
         <div class="cenario-custo">
           <span class="cenario-valor">{{ formatarMoeda(cenario.custo_incremental) }}</span>
-          <span v-if="cenario.cabe_no_orcamento !== null" class="cenario-situacao"
-            :class="cenario.cabe_no_orcamento ? 'positivo' : 'negativo'">
+          <span
+            v-if="cenario.cabe_no_orcamento !== null"
+            class="cenario-situacao"
+            :class="cenario.cabe_no_orcamento ? 'positivo' : 'negativo'"
+          >
             {{ cenario.cabe_no_orcamento ? 'Cabe' : 'Não cabe' }}
           </span>
         </div>
-        <button type="button" class="cenario-aplicar" :title="`Preencher o painel com: ${cenario.titulo}`"
-          @click="emit('aplicar', cenario)">
+        <button
+          type="button"
+          class="cenario-aplicar"
+          :title="`Preencher o painel com: ${cenario.titulo}`"
+          @click="emit('aplicar', cenario)"
+        >
           Usar no painel
         </button>
       </li>

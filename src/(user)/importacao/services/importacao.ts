@@ -12,7 +12,10 @@ function esperarDeVerdade(ms: number): Promise<void> {
  * Chamadas da importação da base do mês (contrato 7, só Supervisor). Recebe o cliente HTTP e a
  * espera do polling para ser testável. Ex.: await criarServicoImportacao(api).enviar(planilhasDeOutubro)
  */
-export function criarServicoImportacao(http: AxiosInstance, esperar: (ms: number) => Promise<void> = esperarDeVerdade) {
+export function criarServicoImportacao(
+  http: AxiosInstance,
+  esperar: (ms: number) => Promise<void> = esperarDeVerdade,
+) {
   async function buscar(id: number): Promise<JobImportacao> {
     const { data } = await http.get<JobImportacao>(`/api/importacao/${id}`)
     return data
@@ -39,7 +42,10 @@ export function criarServicoImportacao(http: AxiosInstance, esperar: (ms: number
      * Consulta o job até sair de PROCESSANDO. Sem limite de consultas: o backend encerra como FALHA
      * o job que ficou preso por um reinício. Ex.: await acompanhar(7, (job) => mostrar(job.status))
      */
-    async acompanhar(id: number, aoAtualizar: (job: JobImportacao) => void = () => {}): Promise<JobImportacao> {
+    async acompanhar(
+      id: number,
+      aoAtualizar: (job: JobImportacao) => void = () => {},
+    ): Promise<JobImportacao> {
       for (;;) {
         await esperar(INTERVALO_CONSULTA_MS)
         const job = await buscar(id)

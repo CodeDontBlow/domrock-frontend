@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
-  diferencaParaMeta, medidorDaMeta, medidorDoOrcamento, numerosDaComissao, numerosDaMeta, seloDaMeta,
-  seloDoOrcamento, textoDiferencaMeta, vereditoDoOrcamento,
+  diferencaParaMeta,
+  medidorDaMeta,
+  medidorDoOrcamento,
+  numerosDaComissao,
+  numerosDaMeta,
+  seloDaMeta,
+  seloDoOrcamento,
+  textoDiferencaMeta,
+  vereditoDoOrcamento,
 } from '../resultado'
 import { resultadoBlackFriday, resultadoDoCriterio } from './fakes'
 
@@ -39,7 +46,12 @@ describe('Bloco Meta', () => {
   })
 
   it('simulação anterior ao A6-72, sem `diferenca`, calcula a diferença pela venda e pela meta', () => {
-    const meta = { meta_vendas: 2_000_000, vendas_periodo: 2406125.93, pct_atingimento: 120.31, atingida: true }
+    const meta = {
+      meta_vendas: 2_000_000,
+      vendas_periodo: 2406125.93,
+      pct_atingimento: 120.31,
+      atingida: true,
+    }
 
     expect(diferencaParaMeta(meta)).toBe(406125.93)
   })
@@ -51,7 +63,11 @@ describe('Bloco Comissão', () => {
 
     const numeros = numerosDaComissao(totais, impacto)
 
-    expect(numeros.map((n) => n.rotulo)).toEqual(['Sem a campanha', 'Com a campanha', 'Recebem o acréscimo'])
+    expect(numeros.map((n) => n.rotulo)).toEqual([
+      'Sem a campanha',
+      'Com a campanha',
+      'Recebem o acréscimo',
+    ])
     expect(numeros[1]).toMatchObject({ apoio: '+4,94% na comissão', tomApoio: 'destaque' })
     expect(semNbsp(numeros[2]?.valor ?? '')).toBe('312 de 548 pessoas')
     expect(semNbsp(numeros[2]?.apoio ?? '')).toBe('média de R$ 76,08 cada')
@@ -64,7 +80,9 @@ describe('Bloco Orçamento', () => {
 
     expect(seloDoOrcamento(orcamento)).toEqual({ texto: 'Não cabe no orçamento', tom: 'negativo' })
     expect(medidorDoOrcamento(orcamento)).toEqual({ proporcao: 1, marca: null, tom: 'negativo' })
-    expect(semNbsp(vereditoDoOrcamento(orcamento))).toBe('Passa R$ 3.736,10 do orçamento de R$ 20.000,00.')
+    expect(semNbsp(vereditoDoOrcamento(orcamento))).toBe(
+      'Passa R$ 3.736,10 do orçamento de R$ 20.000,00.',
+    )
   })
 
   it('coube: selo verde e quanto sobra', () => {

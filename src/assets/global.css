@@ -1,19 +1,17 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @source inline("{text,bg,border,outline,ring,decoration,accent,caret,fill,stroke}-{red,orange,green,blue,purple,yellow}");
-
 
 @theme {
   /* ========================================
      FONTS
      ======================================== */
 
-  --font-inconsolata: "Inconsolata", monospace;
-  --font-source-code-pro: "Source Code Pro", monospace;
-  --font-raleway: "Raleway", sans-serif;
-  --font-forum: "Forum", serif;
-  --font-label: "Inconsolata", monospace;
-
+  --font-inconsolata: 'Inconsolata', monospace;
+  --font-source-code-pro: 'Source Code Pro', monospace;
+  --font-raleway: 'Raleway', sans-serif;
+  --font-forum: 'Forum', serif;
+  --font-label: 'Inconsolata', monospace;
 
   /* ========================================
      TYPOGRAPHY
@@ -52,7 +50,6 @@
   --text-epic-title: 96px;
   --text-epic-title--line-height: 100px;
 
-
   /* ========================================
      WHITE
      ======================================== */
@@ -60,7 +57,6 @@
   --color-white-bg1: var(--white-bg1);
   --color-white-bg2: var(--white-bg2);
   --color-white-txt1: var(--white-txt1);
-
 
   /* ========================================
      GRAY
@@ -71,7 +67,6 @@
   --color-gray-txt2-dark: var(--gray-txt2-dark);
   --color-gray-txt3-dark: var(--gray-txt3-dark);
 
-
   /* ========================================
      BLACK
      ======================================== */
@@ -80,13 +75,11 @@
   --color-black-bg1: var(--black-bg1);
   --color-black-bg2: var(--black-bg2);
 
-
   /* ========================================
      PURPLE
      ======================================== */
 
   --color-purple: var(--purple);
-
 
   /* ========================================
      BLUE
@@ -94,13 +87,11 @@
 
   --color-blue: var(--blue);
 
-
   /* ========================================
      GREEN
      ======================================== */
 
   --color-green: var(--green);
-
 
   /* ========================================
      ORANGE
@@ -108,13 +99,11 @@
 
   --color-orange: var(--orange);
 
-
   /* ========================================
      RED
      ======================================== */
 
   --color-red: var(--red);
-
 
   /* ========================================
      YELLOW - aviso de conflito, A6-75; o protótipo não tem amarelo
@@ -122,32 +111,27 @@
 
   --color-yellow: var(--yellow);
 
-
-   /* ========================================
+  /* ========================================
      ANIMATIONS
      ======================================== */
 
-   --animate-shake: shake 0.5s ease-in-out;
+  --animate-shake: shake 0.5s ease-in-out;
 }
-
 
 /* ==========================================
    LIGHT THEME
    ========================================== */
 
 :root {
-
   /* White */
 
-  --white-bg1: #FFFFFF;
-  --white-bg2: #F1F2F4;
-
+  --white-bg1: #ffffff;
+  --white-bg2: #f1f2f4;
 
   /* Gray */
 
-  --gray-txt2: #5D6169;
-  --gray-txt3: #7A7F87;
-
+  --gray-txt2: #5d6169;
+  --gray-txt3: #7a7f87;
 
   /* Black */
 
@@ -155,88 +139,72 @@
 
   /* Purple */
 
-  --purple: #6F42C1;
-
+  --purple: #6f42c1;
 
   /* Blue */
 
-  --blue: #008FC2;
-
+  --blue: #008fc2;
 
   /* Green */
 
-  --green: #398A49;
-
+  --green: #398a49;
 
   /* Orange */
 
-  --orange: #C66B1A;
-
+  --orange: #c66b1a;
 
   /* Red */
 
-  --red: #C83E3C;
-
+  --red: #c83e3c;
 
   /* Yellow - aviso de conflito, A6-75; o protótipo não tem amarelo */
 
-  --yellow: #EAB308;
+  --yellow: #eab308;
 }
-
 
 /* ==========================================
    DARK THEME
    ========================================== */
 
 .dark {
-
   /* White */
 
-  --white-txt1: #F1F3F5;
-
+  --white-txt1: #f1f3f5;
 
   /* Gray */
 
-  --gray-txt2-dark: #A9ADB5;
+  --gray-txt2-dark: #a9adb5;
   --gray-txt3-dark: #747981;
-
 
   /* Black */
 
   --black-bg1: #141416;
-  --black-bg2: #1B1C1E;
-
+  --black-bg2: #1b1c1e;
 
   /* Purple */
 
-  --purple: #9B6DFF;
-
+  --purple: #9b6dff;
 
   /* Blue */
 
-  --blue: #00B4F1;
-
+  --blue: #00b4f1;
 
   /* Green */
 
-  --green: #64C073;
-
+  --green: #64c073;
 
   /* Orange */
 
-  --orange: #FAA353;
-
+  --orange: #faa353;
 
   /* Red */
 
-  --red: #F06260;
-
+  --red: #f06260;
 
   /* Yellow - aviso de conflito, A6-75; o protótipo não tem amarelo */
 
-  --yellow: #FACC15;
+  --yellow: #facc15;
 }
-
 
 /* ==========================================
    BASE
@@ -252,7 +220,6 @@ body,
   min-height: 100%;
 }
 
-
 /* O app é sempre escuro (main.ts adiciona .dark), mas base.css só escurece o body com
    prefers-color-scheme: dark; num sistema em modo claro o texto branco sumia no fundo branco. */
 .dark body {
@@ -267,19 +234,22 @@ body {
   font-variant-numeric: lining-nums tabular-nums;
 }
 
-
-
 /* ========================================
 ANIMATIONS
 ======================================== */
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg);
   }
-  15%, 45%, 75% {
+  15%,
+  45%,
+  75% {
     transform: rotate(-2deg);
   }
-  30%, 60%, 90% {
+  30%,
+  60%,
+  90% {
     transform: rotate(2deg);
   }
 }

@@ -8,7 +8,10 @@ afterEach(() => localStorage.clear())
 
 describe('usuário da sessão', () => {
   it('devolve o usuário salvo no login', () => {
-    localStorage.setItem('usuario', JSON.stringify({ id: 1, nome: 'Gabriela', email: 'gabriela@camplana.com.br' }))
+    localStorage.setItem(
+      'usuario',
+      JSON.stringify({ id: 1, nome: 'Gabriela', email: 'gabriela@camplana.com.br' }),
+    )
 
     expect(usuarioLogado()?.nome).toBe('Gabriela')
   })

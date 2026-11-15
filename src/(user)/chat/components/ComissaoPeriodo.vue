@@ -38,7 +38,11 @@ function periodoCampanha(item: HistoricoComissaoTrecho): string {
 </script>
 
 <template>
-  <section v-if="linhas && linhas.length > 0" aria-label="% de comissão no período" class="comissoes">
+  <section
+    v-if="linhas && linhas.length > 0"
+    aria-label="% de comissão no período"
+    class="comissoes"
+  >
     <h3 class="comissoes-titulo">% de comissão no período</h3>
     <div class="rolagem">
       <table class="comissoes-tabela">
@@ -58,11 +62,15 @@ function periodoCampanha(item: HistoricoComissaoTrecho): string {
             <td class="col-cargo">{{ rotuloCargo(linha.cargo) }}</td>
             <td class="col-base">{{ formatarPercentualFixo(linha.pct_base) }}</td>
             <td class="col-comissao" :aria-label="celulaComTrecho(linha, linha.pct_vigente)">
-              <span class="celula-trecho">{{ formatarTrecho(linha.data_inicio, linha.data_fim) }}:</span>
+              <span class="celula-trecho"
+                >{{ formatarTrecho(linha.data_inicio, linha.data_fim) }}:</span
+              >
               <span class="celula-pct">{{ formatarPercentualFixo(linha.pct_vigente) }}</span>
             </td>
             <td class="col-comissao" :aria-label="celulaComTrecho(linha, linha.pct_com_campanha)">
-              <span class="celula-trecho">{{ formatarTrecho(linha.data_inicio, linha.data_fim) }}:</span>
+              <span class="celula-trecho"
+                >{{ formatarTrecho(linha.data_inicio, linha.data_fim) }}:</span
+              >
               <span class="celula-pct">{{ formatarPercentualFixo(linha.pct_com_campanha) }}</span>
             </td>
             <td class="col-porque">
@@ -76,10 +84,16 @@ function periodoCampanha(item: HistoricoComissaoTrecho): string {
                   <h4 class="historico-nome">{{ item.nome }}</h4>
                   <p class="historico-efeito">{{ descricaoTipo(item) }}</p>
                   <p class="historico-periodo">{{ periodoCampanha(item) }}</p>
-                  <p v-if="item.autor && item.aprovador && item.aprovada_em" class="historico-aprovacao">
-                    Sugerida por {{ item.autor }}, aprovada por {{ item.aprovador }} em {{ formatarData(item.aprovada_em) }}
+                  <p
+                    v-if="item.autor && item.aprovador && item.aprovada_em"
+                    class="historico-aprovacao"
+                  >
+                    Sugerida por {{ item.autor }}, aprovada por {{ item.aprovador }} em
+                    {{ formatarData(item.aprovada_em) }}
                   </p>
-                  <p v-if="item.justificativa" class="historico-justificativa">{{ item.justificativa }}</p>
+                  <p v-if="item.justificativa" class="historico-justificativa">
+                    {{ item.justificativa }}
+                  </p>
                 </article>
               </details>
               <span v-else>Nenhuma</span>

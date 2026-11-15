@@ -2,13 +2,21 @@ import { describe, expect, it } from 'vitest'
 import { resumoDaFila, temRelatorio } from '../andamento'
 import type { MesDaFila, SituacaoDoMes } from '../stores/importacao'
 
-function mes(competencia: string | null, situacao: SituacaoDoMes, jobId: number | null = 1): MesDaFila {
+function mes(
+  competencia: string | null,
+  situacao: SituacaoDoMes,
+  jobId: number | null = 1,
+): MesDaFila {
   return { competencia, arquivos: [], situacao, jobId }
 }
 
 describe('resumo da fila de meses', () => {
   it('rodando com vários meses: qual mês está indo', () => {
-    const fila = [mes('2025-07', 'CONCLUIDO'), mes('2025-08', 'PROCESSANDO'), mes('2025-09', 'NA_FILA', null)]
+    const fila = [
+      mes('2025-07', 'CONCLUIDO'),
+      mes('2025-08', 'PROCESSANDO'),
+      mes('2025-09', 'NA_FILA', null),
+    ]
 
     expect(resumoDaFila(fila, true)).toBe('Mês 2 de 3 · ago/2025')
   })
@@ -19,14 +27,19 @@ describe('resumo da fila de meses', () => {
   })
 
   it('rodando com a Comissão sozinha: "Comissão", porque esse envio nunca ganha mês', () => {
-    const comissao: MesDaFila = { ...mes(null, 'PROCESSANDO'), arquivos: [{ nome: 'BASE_COMMISS_FINAL.xlsx', tamanho: 9_000 }] }
+    const comissao: MesDaFila = {
+      ...mes(null, 'PROCESSANDO'),
+      arquivos: [{ nome: 'BASE_COMMISS_FINAL.xlsx', tamanho: 9_000 }],
+    }
 
     expect(resumoDaFila([comissao], true)).toBe('Comissão')
   })
 
   it('terminada: quantos meses em cada situação, no singular e no plural', () => {
     const fila = [
-      mes('2025-07', 'CONCLUIDO'), mes('2025-08', 'CONCLUIDO'), mes('2025-09', 'PENDENTE'),
+      mes('2025-07', 'CONCLUIDO'),
+      mes('2025-08', 'CONCLUIDO'),
+      mes('2025-09', 'PENDENTE'),
       mes('2025-10', 'NAO_ENVIADO', null),
     ]
 

@@ -4,7 +4,12 @@ import { formatarMilhares, lerReaisInteiros } from '../../formatacao'
 
 // Valor em reais inteiros com separador de milhar enquanto digita ("2000000" vira "2.000.000").
 // Meta e orçamento de campanha são valores redondos; centavos só atrapalhariam a leitura.
-const props = defineProps<{ modelValue: number | null; faltando: boolean; idCampo: string; rotulo: string }>()
+const props = defineProps<{
+  modelValue: number | null
+  faltando: boolean
+  idCampo: string
+  rotulo: string
+}>()
 const emit = defineEmits<{ 'update:modelValue': [valor: number | null] }>()
 
 const texto = computed(() => (props.modelValue === null ? '' : formatarMilhares(props.modelValue)))
@@ -21,8 +26,16 @@ function digitar(evento: Event): void {
 <template>
   <label class="moeda" :class="{ 'moeda--faltando': faltando }">
     <span class="moeda-prefixo" aria-hidden="true">R$</span>
-    <input :id="idCampo" :value="texto" type="text" inputmode="numeric" autocomplete="off" :aria-label="rotulo"
-      :placeholder="faltando ? 'Informe' : '0'" @input="digitar" />
+    <input
+      :id="idCampo"
+      :value="texto"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      :aria-label="rotulo"
+      :placeholder="faltando ? 'Informe' : '0'"
+      @input="digitar"
+    />
   </label>
 </template>
 

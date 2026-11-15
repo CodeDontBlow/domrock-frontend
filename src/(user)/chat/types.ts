@@ -234,7 +234,13 @@ export interface CampanhaSalva {
  * o custo simulado passa do orçamento; vai para aprovação mesmo assim, com aviso (decisão do PO, 26/10).
  */
 export type EtapaAprovacao =
-  | 'sem_simulacao' | 'desatualizada' | 'fora_do_orcamento' | 'pronta' | 'enviando' | 'enviada' | 'somente_leitura'
+  | 'sem_simulacao'
+  | 'desatualizada'
+  | 'fora_do_orcamento'
+  | 'pronta'
+  | 'enviando'
+  | 'enviada'
+  | 'somente_leitura'
 
 /** Etapas em que o botão "Enviar para aprovação" funciona. */
 export const ETAPAS_DE_ENVIO: readonly EtapaAprovacao[] = ['pronta', 'fora_do_orcamento']

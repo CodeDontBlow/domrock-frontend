@@ -31,12 +31,20 @@ function temAcao(acao: AcaoVersao): boolean {
 }
 
 const ocupado = computed(() => props.decidindo || Boolean(props.resimulando))
-const podeDevolver = computed(() => temAcao('REPROVAR') && comentario.value.trim().length > 0 && !ocupado.value)
-const podeAprovar = computed(() =>
-  temAcao('APROVAR') && props.campanha?.detalhe === 'pronto' && !ocupado.value && comentario.value.trim().length === 0,
+const podeDevolver = computed(
+  () => temAcao('REPROVAR') && comentario.value.trim().length > 0 && !ocupado.value,
+)
+const podeAprovar = computed(
+  () =>
+    temAcao('APROVAR') &&
+    props.campanha?.detalhe === 'pronto' &&
+    !ocupado.value &&
+    comentario.value.trim().length === 0,
 )
 
-const descricaoHtml = computed(() => (props.campanha?.descricao ? renderizarMarkdown(props.campanha.descricao) : ''))
+const descricaoHtml = computed(() =>
+  props.campanha?.descricao ? renderizarMarkdown(props.campanha.descricao) : '',
+)
 
 function estaMencionada(interferencia: Interferencia): boolean {
   return mencionadas.value.some((item) => item.id === interferencia.id)
@@ -127,7 +135,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
             <p class="resumo-periodo">
               De {{ campanha.inicio }} até {{ campanha.fim }}
               <span v-if="campanha.duracaoDias" class="metadado">
-                · {{ campanha.duracaoDias }} {{ campanha.duracaoDias === 1 ? 'Dia' : 'Dias' }} de duração.
+                · {{ campanha.duracaoDias }} {{ campanha.duracaoDias === 1 ? 'Dia' : 'Dias' }} de
+                duração.
               </span>
             </p>
 
@@ -148,7 +157,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
             Carregando a simulação desta versão…
           </p>
           <p v-else-if="campanha.detalhe === 'indisponivel'" class="bloco bloco-ajuda" role="alert">
-            Não foi possível carregar a simulação desta versão. Recarregue a página para tentar de novo.
+            Não foi possível carregar a simulação desta versão. Recarregue a página para tentar de
+            novo.
           </p>
 
           <AvisoConflitos v-if="campanha.detalhe === 'pronto'" :conflitos="campanha.conflitos" />
@@ -200,7 +210,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
           <section v-if="campanha.interferencias?.length" class="bloco">
             <h4>Interferências</h4>
             <p class="bloco-ajuda">
-              Clique em + para adicionar a interferência como menção no comentário de devolução da campanha.
+              Clique em + para adicionar a interferência como menção no comentário de devolução da
+              campanha.
             </p>
 
             <ul class="interferencias">
@@ -213,7 +224,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
                   :aria-label="`Mencionar ${interferencia.tipo.toLowerCase()}: ${interferencia.descricao}`"
                   @click="alternarMencao(interferencia)"
                 >
-                  <i :class="estaMencionada(interferencia) ? 'bi bi-check-circle' : 'bi bi-plus-circle'"></i>
+                  <i
+                    :class="
+                      estaMencionada(interferencia) ? 'bi bi-check-circle' : 'bi bi-plus-circle'
+                    "
+                  ></i>
                   {{ interferencia.tipo }}
                 </button>
                 <span class="interferencia-descricao" :title="interferencia.descricao">
@@ -243,7 +258,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
           <section v-if="temAcao('REPROVAR')" class="bloco">
             <h4><label for="painel-aprovacao-comentario">Devolver campanha</label></h4>
             <p class="bloco-ajuda">
-             Devolva a campanha caso algo precise mudar antes dela ser aprovada.
+              Devolva a campanha caso algo precise mudar antes dela ser aprovada.
             </p>
 
             <div class="comentario">
@@ -289,16 +304,31 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
 
         <!-- Arquivar é do autor (só em RASCUNHO/REPROVADA): o Supervisor aprova, devolve ou simula de novo. -->
         <footer class="painel-acoes">
-          <button v-if="temAcao('REPROVAR')" type="button" class="acao acao--devolver" :disabled="!podeDevolver"
-            @click="devolver">
+          <button
+            v-if="temAcao('REPROVAR')"
+            type="button"
+            class="acao acao--devolver"
+            :disabled="!podeDevolver"
+            @click="devolver"
+          >
             Devolver campanha
           </button>
-          <button v-if="temAcao('RESIMULAR')" type="button" class="acao acao--resimular" :disabled="ocupado"
-            @click="emit('resimular', campanha)">
+          <button
+            v-if="temAcao('RESIMULAR')"
+            type="button"
+            class="acao acao--resimular"
+            :disabled="ocupado"
+            @click="emit('resimular', campanha)"
+          >
             {{ resimulando ?? 'Simular de novo' }}
           </button>
-          <button v-if="temAcao('APROVAR')" type="button" class="acao acao--aprovar" :disabled="!podeAprovar"
-            @click="emit('aprovar', campanha)">
+          <button
+            v-if="temAcao('APROVAR')"
+            type="button"
+            class="acao acao--aprovar"
+            :disabled="!podeAprovar"
+            @click="emit('aprovar', campanha)"
+          >
             {{ decidindo ? 'Enviando…' : 'Aprovar campanha' }}
           </button>
         </footer>

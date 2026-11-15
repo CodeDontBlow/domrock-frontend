@@ -26,7 +26,10 @@ export interface MedidorResultado {
 
 // A escala da meta vai 5% além do maior entre a venda e a meta: a marca da meta nunca encosta na borda.
 const FOLGA_DA_ESCALA = 1.05
-const PERCENTUAL_DA_META = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const PERCENTUAL_DA_META = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
 
 /** Ex.: 80.2 -> "80,20%" (o critério do A6-72 mostra duas casas). */
 export function pctDaMeta(meta: AtingimentoMeta): string {
@@ -40,7 +43,9 @@ export function diferencaParaMeta(meta: AtingimentoMeta): number {
 
 export function seloDaMeta(meta: AtingimentoMeta): SeloResultado {
   // Histórico, não previsão: "acima da meta", nunca "atingida" (a venda do período já aconteceu).
-  return meta.atingida ? { texto: 'Acima da meta', tom: 'positivo' } : { texto: 'Abaixo da meta', tom: 'aviso' }
+  return meta.atingida
+    ? { texto: 'Acima da meta', tom: 'positivo' }
+    : { texto: 'Abaixo da meta', tom: 'aviso' }
 }
 
 /** Ex.: "R$ 406.125,93 acima da meta" */
@@ -51,27 +56,41 @@ export function textoDiferencaMeta(meta: AtingimentoMeta): string {
 
 export function medidorDaMeta(meta: AtingimentoMeta): MedidorResultado {
   const escala = Math.max(meta.pct_atingimento, 100) * FOLGA_DA_ESCALA
-  return { proporcao: meta.pct_atingimento / escala, marca: 100 / escala, tom: meta.atingida ? 'positivo' : 'aviso' }
+  return {
+    proporcao: meta.pct_atingimento / escala,
+    marca: 100 / escala,
+    tom: meta.atingida ? 'positivo' : 'aviso',
+  }
 }
 
 export function numerosDaMeta(meta: AtingimentoMeta): NumeroResultado[] {
   return [
-    { rotulo: 'Venda do período', valor: formatarMoeda(meta.vendas_periodo), apoio: 'marcas da campanha, todos os cargos' },
+    {
+      rotulo: 'Venda do período',
+      valor: formatarMoeda(meta.vendas_periodo),
+      apoio: 'marcas da campanha, todos os cargos',
+    },
     { rotulo: 'Meta', valor: formatarMoeda(meta.meta_vendas) },
   ]
 }
 
-export function numerosDaComissao(totais: TotaisSimulacao, impacto: ImpactoPessoas): NumeroResultado[] {
+export function numerosDaComissao(
+  totais: TotaisSimulacao,
+  impacto: ImpactoPessoas,
+): NumeroResultado[] {
   const recebem: NumeroResultado = {
     rotulo: 'Recebem o acréscimo',
     valor: `${impacto.pessoas_impactadas} de ${impacto.pessoas_total} pessoas`,
   }
-  if (impacto.pessoas_impactadas) recebem.apoio = `média de ${formatarMoeda(impacto.media_por_pessoa)} cada`
+  if (impacto.pessoas_impactadas)
+    recebem.apoio = `média de ${formatarMoeda(impacto.media_por_pessoa)} cada`
   return [
     { rotulo: 'Sem a campanha', valor: formatarMoeda(totais.baseline) },
     {
-      rotulo: 'Com a campanha', valor: formatarMoeda(totais.simulado),
-      apoio: `+${formatarPercentual(totais.diferenca_pct)} na comissão`, tomApoio: 'destaque',
+      rotulo: 'Com a campanha',
+      valor: formatarMoeda(totais.simulado),
+      apoio: `+${formatarPercentual(totais.diferenca_pct)} na comissão`,
+      tomApoio: 'destaque',
     },
     recebem,
   ]
@@ -87,13 +106,21 @@ export function seloDoOrcamento(orcamento: VereditoOrcamento): SeloResultado {
 export function medidorDoOrcamento(orcamento: VereditoOrcamento): MedidorResultado {
   const { custo_incremental: custo, orcamento_limite: limite } = orcamento
   const consumo = limite > 0 ? custo / limite : 1
-  return { proporcao: Math.min(consumo, 1), marca: null, tom: orcamento.cabe_no_orcamento ? 'positivo' : 'negativo' }
+  return {
+    proporcao: Math.min(consumo, 1),
+    marca: null,
+    tom: orcamento.cabe_no_orcamento ? 'positivo' : 'negativo',
+  }
 }
 
 /** Ex.: "Passa R$ 3.736,10 do orçamento de R$ 20.000,00." */
 export function vereditoDoOrcamento(orcamento: VereditoOrcamento): string {
   const limite = formatarMoeda(orcamento.orcamento_limite)
-  if (!orcamento.cabe_no_orcamento) return `Passa ${formatarMoeda(-orcamento.folga)} do orçamento de ${limite}.`
-  const uso = orcamento.orcamento_limite > 0 ? (orcamento.custo_incremental / orcamento.orcamento_limite) * 100 : 0
+  if (!orcamento.cabe_no_orcamento)
+    return `Passa ${formatarMoeda(-orcamento.folga)} do orçamento de ${limite}.`
+  const uso =
+    orcamento.orcamento_limite > 0
+      ? (orcamento.custo_incremental / orcamento.orcamento_limite) * 100
+      : 0
   return `Usa ${formatarPercentual(uso)} do orçamento de ${limite}. Sobram ${formatarMoeda(orcamento.folga)}.`
 }

@@ -18,7 +18,9 @@ const faltando = computed(() => props.parametro.required && estaVazio(props.para
 const selecionados = computed(() => (props.parametro.value as string[] | null) ?? [])
 const numero = computed(() => (props.parametro.value as number | null) ?? null)
 const idCampo = computed(() => `param-${props.parametro.key}`)
-const rotulo = computed(() => ROTULOS_CURTOS_PARAMETRO[props.parametro.key] ?? props.parametro.label)
+const rotulo = computed(
+  () => ROTULOS_CURTOS_PARAMETRO[props.parametro.key] ?? props.parametro.label,
+)
 
 // "Todas as marcas" é exclusivo: escolher uma marca específica desmarca o "Todas", e vice-versa.
 function alternarOpcao(id: string): void {
@@ -29,30 +31,63 @@ function alternarOpcao(id: string): void {
 </script>
 
 <template>
-  <div class="campo" :class="{ 'campo--faltando': faltando, 'campo--linha': parametro.type === 'percentage' }" role="group" :aria-labelledby="`${idCampo}-rotulo`">
+  <div
+    class="campo"
+    :class="{ 'campo--faltando': faltando, 'campo--linha': parametro.type === 'percentage' }"
+    role="group"
+    :aria-labelledby="`${idCampo}-rotulo`"
+  >
     <span :id="`${idCampo}-rotulo`" class="campo-rotulo" :title="parametro.label">
       {{ rotulo }}
       <span v-if="faltando" class="campo-pendente">pendente</span>
     </span>
 
-    <CampoPeriodo v-if="parametro.type === 'date_range'" :model-value="parametro.value as Periodo | null"
-      :faltando="faltando" :id-campo="idCampo" @update:model-value="emit('alterar', $event)" />
+    <CampoPeriodo
+      v-if="parametro.type === 'date_range'"
+      :model-value="parametro.value as Periodo | null"
+      :faltando="faltando"
+      :id-campo="idCampo"
+      @update:model-value="emit('alterar', $event)"
+    />
 
     <div v-else-if="parametro.type === 'multi_select'" class="campo-opcoes">
-      <button v-for="opcao in parametro.options ?? []" :key="opcao.id" type="button" class="opcao"
-        :title="opcao.label" :aria-pressed="selecionados.includes(opcao.id)" @click="alternarOpcao(opcao.id)">
+      <button
+        v-for="opcao in parametro.options ?? []"
+        :key="opcao.id"
+        type="button"
+        class="opcao"
+        :title="opcao.label"
+        :aria-pressed="selecionados.includes(opcao.id)"
+        @click="alternarOpcao(opcao.id)"
+      >
         {{ nomeDaOpcao(parametro.key, opcao.id, opcao.label) }}
       </button>
     </div>
 
-    <CampoPercentual v-else-if="parametro.type === 'percentage'" :model-value="numero" :faltando="faltando"
-      :id-campo="idCampo" :rotulo="parametro.label" @update:model-value="emit('alterar', $event)" />
+    <CampoPercentual
+      v-else-if="parametro.type === 'percentage'"
+      :model-value="numero"
+      :faltando="faltando"
+      :id-campo="idCampo"
+      :rotulo="parametro.label"
+      @update:model-value="emit('alterar', $event)"
+    />
 
     <div v-else class="campo-moeda-linha">
-      <CampoMoeda class="campo-moeda" :model-value="numero" :faltando="faltando" :id-campo="idCampo"
-        :rotulo="parametro.label" @update:model-value="emit('alterar', $event)" />
-      <BotaoIcone v-if="removivel" icone="bi bi-trash" :dica="`Tirar o ${rotulo.toLowerCase()}`"
-        @click="emit('remover')" />
+      <CampoMoeda
+        class="campo-moeda"
+        :model-value="numero"
+        :faltando="faltando"
+        :id-campo="idCampo"
+        :rotulo="parametro.label"
+        @update:model-value="emit('alterar', $event)"
+      />
+      <BotaoIcone
+        v-if="removivel"
+        icone="bi bi-trash"
+        :dica="`Tirar o ${rotulo.toLowerCase()}`"
+        @click="emit('remover')"
+      />
     </div>
   </div>
 </template>
@@ -119,7 +154,10 @@ function alternarOpcao(id: string): void {
   font-size: 13px;
   line-height: 18px;
   cursor: pointer;
-  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .opcao:hover {

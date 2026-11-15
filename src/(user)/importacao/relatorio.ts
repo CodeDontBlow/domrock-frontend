@@ -10,8 +10,11 @@ export interface NumeroDoResultado {
 }
 
 /** Ex.: contagemPorFiltro([impeditivo, aviso]) -> { TODAS: 2, IMPEDITIVO: 1, AVISO: 1 } */
-export function contagemPorFiltro(pendencias: PendenciaImportacao[]): Record<FiltroPendencias, number> {
-  const contar = (severidade: Severidade) => pendencias.filter((p) => p.severidade === severidade).length
+export function contagemPorFiltro(
+  pendencias: PendenciaImportacao[],
+): Record<FiltroPendencias, number> {
+  const contar = (severidade: Severidade) =>
+    pendencias.filter((p) => p.severidade === severidade).length
   return { TODAS: pendencias.length, IMPEDITIVO: contar('IMPEDITIVO'), AVISO: contar('AVISO') }
 }
 
@@ -20,7 +23,10 @@ export function filtroInicial(pendencias: PendenciaImportacao[]): FiltroPendenci
   return pendencias.some((p) => p.severidade === 'IMPEDITIVO') ? 'IMPEDITIVO' : 'TODAS'
 }
 
-export function filtrarPendencias(pendencias: PendenciaImportacao[], filtro: FiltroPendencias): PendenciaImportacao[] {
+export function filtrarPendencias(
+  pendencias: PendenciaImportacao[],
+  filtro: FiltroPendencias,
+): PendenciaImportacao[] {
   return filtro === 'TODAS' ? pendencias : pendencias.filter((p) => p.severidade === filtro)
 }
 
@@ -59,7 +65,11 @@ export function alertaDoEnvio(status: SituacaoJob): string | null {
   return ALERTA[status] ?? null
 }
 
-const ROTULO_DO_TOTAL: Array<[string, string]> = [['RH', 'RH'], ['VENDAS', 'Vendas'], ['COMISSAO', 'Comissão']]
+const ROTULO_DO_TOTAL: Array<[string, string]> = [
+  ['RH', 'RH'],
+  ['VENDAS', 'Vendas'],
+  ['COMISSAO', 'Comissão'],
+]
 
 /** Linhas lidas e gravadas; o total por planilha só existe quando o job gravou (CONCLUIDO). */
 export function numerosDoResultado(job: JobImportacao): NumeroDoResultado[] {
@@ -68,6 +78,9 @@ export function numerosDoResultado(job: JobImportacao): NumeroDoResultado[] {
     { rotulo: 'Linhas gravadas', valor: formatarMilhares(job.linhas_importadas) },
   ]
   if (job.status !== 'CONCLUIDO') return numeros
-  const totais = ROTULO_DO_TOTAL.map(([chave, rotulo]) => ({ rotulo, valor: formatarMilhares(job.totais?.[chave] ?? 0) }))
+  const totais = ROTULO_DO_TOTAL.map(([chave, rotulo]) => ({
+    rotulo,
+    valor: formatarMilhares(job.totais?.[chave] ?? 0),
+  }))
   return [...numeros, ...totais]
 }

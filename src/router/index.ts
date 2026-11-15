@@ -64,8 +64,8 @@ export const router = createRouter({
           path: 'importar/:id',
           name: 'importar-relatorio',
           component: RelatorioImportacaoPage,
-        }
-      ]
+        },
+      ],
     },
     {
       path: '/admin',
@@ -76,8 +76,8 @@ export const router = createRouter({
           path: '',
           name: 'users',
           component: AdminUsers,
-        }
-      ]
+        },
+      ],
     },
     {
       path: '/login',
@@ -86,15 +86,15 @@ export const router = createRouter({
     },
     {
       path: '/:pathMatch(.*)',
-      redirect: '/'
-    }
+      redirect: '/',
+    },
   ],
 })
 
 // NAVIGATION GUARDS
 router.beforeEach(async (to, from) => {
-  const token = localStorage.getItem("token")
-  const perfil = localStorage.getItem("perfil")
+  const token = localStorage.getItem('token')
+  const perfil = localStorage.getItem('perfil')
 
   // Sem token, só pode ficar em login
   if (!token && to.name !== 'login') {

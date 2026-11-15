@@ -1,6 +1,7 @@
 import type { ConflitoCampanha, RegraCampanha, ResultadoSimulacao } from '../chat/types'
 
-export type StatusCampanha = 'RASCUNHO' | 'AGUARDANDO_APROVACAO' | 'APROVADA' | 'REPROVADA' | 'ARQUIVADA'
+export type StatusCampanha =
+  'RASCUNHO' | 'AGUARDANDO_APROVACAO' | 'APROVADA' | 'REPROVADA' | 'ARQUIVADA'
 
 export type Decisao = 'APROVADA' | 'REPROVADA'
 
@@ -157,7 +158,6 @@ export interface PedidoDecisao {
   decisao: 'APROVAR' | 'REPROVAR'
   justificativa: string | null
 }
-
 
 export interface ItemDetalhe {
   rotulo: string

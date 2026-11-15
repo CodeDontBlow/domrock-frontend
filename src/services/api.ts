@@ -23,7 +23,9 @@ api.interceptors.request.use((config) => {
 })
 
 api.interceptors.response.use(
-  (response) => { return response },
+  (response) => {
+    return response
+  },
   (error) => {
     // Sem resposta (backend fora do ar, timeout) não há status: o erro original do axios segue
     // adiante, para a tela dizer "Sem resposta do servidor" em vez de cair num TypeError.
@@ -35,5 +37,5 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error)
-  }
+  },
 )
