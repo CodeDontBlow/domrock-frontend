@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import TabelaCampanhas, { type Tabela } from './components/TabelaCampanhas.vue'
 import AvisoCampanha from './components/AvisoCampanha.vue'
@@ -11,7 +10,12 @@ import { ehSupervisor } from '@/services/auth'
 import { descreverFalha } from '../chat/services/campanha'
 import { criarServicoCampanhas } from './services/campanhas'
 import {
-  cartaoDaFila, cartaoDeMinhas, comVersao, detalheAprovada, linhaAprovada, type DetalheAprovada,
+  cartaoDaFila,
+  cartaoDeMinhas,
+  comVersao,
+  detalheAprovada,
+  linhaAprovada,
+  type DetalheAprovada,
 } from './montagem'
 import type { CampanhaAprovacao, CampanhaAprovada, PedidoDecisao } from './types'
 
@@ -25,7 +29,9 @@ const carregandoFila = ref(true)
 const erroFila = ref<string | null>(null)
 
 function substituir(id: number, mudar: (campanha: CampanhaAprovacao) => CampanhaAprovacao) {
-  campanhasAprovacao.value = campanhasAprovacao.value.map((campanha) => (campanha.id === id ? mudar(campanha) : campanha))
+  campanhasAprovacao.value = campanhasAprovacao.value.map((campanha) =>
+    campanha.id === id ? mudar(campanha) : campanha,
+  )
 }
 
 async function carregarFila() {
@@ -34,7 +40,9 @@ async function carregarFila() {
   try {
     campanhasAprovacao.value = supervisor
       ? (await servico.fila()).map(cartaoDaFila)
-      : (await servico.minhas('AGUARDANDO_APROVACAO')).map((item) => cartaoDeMinhas(item, nomeLogado))
+      : (await servico.minhas('AGUARDANDO_APROVACAO')).map((item) =>
+          cartaoDeMinhas(item, nomeLogado),
+        )
   } catch (erro) {
     erroFila.value = descreverFalha(erro)
     return
@@ -42,15 +50,17 @@ async function carregarFila() {
     carregandoFila.value = false
   }
 
-  await Promise.allSettled(campanhasAprovacao.value.map(async (cartao) => {
-    if (cartao.versao === null) return
-    try {
-      const versao = await servico.versao(cartao.id, cartao.versao)
-      substituir(cartao.id, (atual) => comVersao(atual, versao))
-    } catch {
-      substituir(cartao.id, (atual) => ({ ...atual, detalhe: 'indisponivel' }))
-    }
-  }))
+  await Promise.allSettled(
+    campanhasAprovacao.value.map(async (cartao) => {
+      if (cartao.versao === null) return
+      try {
+        const versao = await servico.versao(cartao.id, cartao.versao)
+        substituir(cartao.id, (atual) => comVersao(atual, versao))
+      } catch {
+        substituir(cartao.id, (atual) => ({ ...atual, detalhe: 'indisponivel' }))
+      }
+    }),
+  )
 }
 
 onMounted(carregarFila)
@@ -72,7 +82,11 @@ function fecharCampanha() {
   erroDecisao.value = null
 }
 
-async function decidir(campanha: CampanhaAprovacao, decisao: PedidoDecisao['decisao'], justificativa: string | null) {
+async function decidir(
+  campanha: CampanhaAprovacao,
+  decisao: PedidoDecisao['decisao'],
+  justificativa: string | null,
+) {
   // Sem versão carregada não há o que decidir: o painel já deixa os botões inativos.
   if (campanha.versao === null) return
   decidindo.value = true
@@ -99,7 +113,9 @@ async function resimularCampanha(campanha: CampanhaAprovacao) {
   erroDecisao.value = null
   etapaResimulacao.value = 'Simulando…'
   try {
-    await servico.resimular(campanha.id, numero, (etapa) => { etapaResimulacao.value = `${etapa}…` })
+    await servico.resimular(campanha.id, numero, (etapa) => {
+      etapaResimulacao.value = `${etapa}…`
+    })
     const versao = await servico.versao(campanha.id, numero)
     substituir(campanha.id, (atual) => comVersao(atual, versao))
   } catch (erro) {
@@ -188,8 +204,8 @@ onMounted(carregarPassadas)
         <h2>Campanhas Passadas</h2>
 
         <p class="section-description">
-          Clique em uma campanha na tabela abaixo para ver informações
-          mais detalhadas e visualizar o chat que a gerou.
+          Clique em uma campanha na tabela abaixo para ver informações mais detalhadas e visualizar
+          o chat que a gerou.
         </p>
       </header>
 
@@ -197,10 +213,14 @@ onMounted(carregarPassadas)
 
       <div v-else-if="erroPassadas" class="estado-fila estado-fila--erro" role="alert">
         <span>{{ erroPassadas }}</span>
-        <button type="button" class="estado-fila-acao" @click="carregarPassadas">Tentar de novo</button>
+        <button type="button" class="estado-fila-acao" @click="carregarPassadas">
+          Tentar de novo
+        </button>
       </div>
 
-      <p v-else-if="campanhasPassadas.length === 0" class="estado-fila">Nenhuma campanha aprovada ainda.</p>
+      <p v-else-if="campanhasPassadas.length === 0" class="estado-fila">
+        Nenhuma campanha aprovada ainda.
+      </p>
 
       <TabelaCampanhas v-else :campanhas="campanhasPassadas" @selecionar="abrirPassada" />
     </section>

@@ -4,13 +4,21 @@ import { lerDecimal } from '../../formatacao'
 
 // Acréscimo em pontos percentuais com botões de ±0,1, como os steppers de apps de investimento:
 // o ajuste fino mais comum é "um pouco menos" ou "um pouco mais", sem precisar digitar.
-const props = defineProps<{ modelValue: number | null; faltando: boolean; idCampo: string; rotulo: string }>()
+const props = defineProps<{
+  modelValue: number | null
+  faltando: boolean
+  idCampo: string
+  rotulo: string
+}>()
 const emit = defineEmits<{ 'update:modelValue': [valor: number | null] }>()
 
 const PASSO = 0.1
 const MINIMO = 0.01
 const MAXIMO = 100
-const DECIMAL = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const DECIMAL = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
 
 const texto = computed(() => (props.modelValue === null ? '' : DECIMAL.format(props.modelValue)))
 
@@ -32,17 +40,36 @@ function confirmar(evento: Event): void {
 
 <template>
   <div class="percentual" :class="{ 'percentual--faltando': faltando }">
-    <button type="button" class="percentual-passo" :aria-label="`Diminuir ${rotulo} em 0,1 ponto`"
-      :disabled="modelValue !== null && modelValue <= MINIMO" @click="passo(-1)">
+    <button
+      type="button"
+      class="percentual-passo"
+      :aria-label="`Diminuir ${rotulo} em 0,1 ponto`"
+      :disabled="modelValue !== null && modelValue <= MINIMO"
+      @click="passo(-1)"
+    >
       <i class="bi bi-dash" aria-hidden="true" />
     </button>
     <label class="percentual-valor">
-      <input :id="idCampo" :value="texto" type="text" inputmode="decimal" autocomplete="off" :aria-label="rotulo"
-        :placeholder="faltando ? 'Informe' : '0,00'" @change="confirmar" @keydown.up.prevent="passo(1)"
-        @keydown.down.prevent="passo(-1)" />
+      <input
+        :id="idCampo"
+        :value="texto"
+        type="text"
+        inputmode="decimal"
+        autocomplete="off"
+        :aria-label="rotulo"
+        :placeholder="faltando ? 'Informe' : '0,00'"
+        @change="confirmar"
+        @keydown.up.prevent="passo(1)"
+        @keydown.down.prevent="passo(-1)"
+      />
       <span aria-hidden="true">%</span>
     </label>
-    <button type="button" class="percentual-passo" :aria-label="`Aumentar ${rotulo} em 0,1 ponto`" @click="passo(1)">
+    <button
+      type="button"
+      class="percentual-passo"
+      :aria-label="`Aumentar ${rotulo} em 0,1 ponto`"
+      @click="passo(1)"
+    >
       <i class="bi bi-plus" aria-hidden="true" />
     </button>
   </div>
@@ -73,7 +100,9 @@ function confirmar(evento: Event): void {
   color: var(--color-gray-txt2-dark);
   font-size: 16px;
   cursor: pointer;
-  transition: color 0.15s, background-color 0.15s;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
 }
 
 .percentual-passo:first-child {

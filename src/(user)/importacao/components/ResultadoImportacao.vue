@@ -26,7 +26,12 @@ const pendencias = computed(() => props.job.pendencias ?? [])
   <section class="flex flex-col gap-6 rounded-[10px] bg-black-bg2 p-5 md:p-[30px]">
     <div class="flex items-center justify-between gap-4">
       <h2 class="flex items-center gap-2.5 text-[24px] leading-7 font-medium!">
-        <i v-if="topo.icone" class="bi text-[22px] leading-none" :class="topo.icone" aria-hidden="true"></i>
+        <i
+          v-if="topo.icone"
+          class="bi text-[22px] leading-none"
+          :class="topo.icone"
+          aria-hidden="true"
+        ></i>
         {{ topo.titulo }}
       </h2>
       <SituacaoImportacao :situacao="props.job.status" />
@@ -47,7 +52,9 @@ const pendencias = computed(() => props.job.pendencias ?? [])
         <template #acao><slot name="acao" /></template>
       </TabelaPendencias>
       <div v-else class="flex flex-wrap items-center justify-between gap-4">
-        <p class="text-[16px] leading-5 text-gray-txt2-dark">Nenhuma pendência: todas as linhas foram gravadas.</p>
+        <p class="text-[16px] leading-5 text-gray-txt2-dark">
+          Nenhuma pendência: todas as linhas foram gravadas.
+        </p>
         <slot name="acao" />
       </div>
     </template>

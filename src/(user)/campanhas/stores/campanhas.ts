@@ -2,7 +2,11 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { api } from '@/services/api'
 import { descreverFalha } from '../../chat/services/campanha'
-import { criarServicoCampanhas, type AcaoSemCorpo, type ServicoCampanhas } from '../../campanha/services/campanhas'
+import {
+  criarServicoCampanhas,
+  type AcaoSemCorpo,
+  type ServicoCampanhas,
+} from '../../campanha/services/campanhas'
 import type { CampanhaDetalhe, CampanhaResumo, StatusCampanha } from '../../campanha/types'
 
 let servicoCampanhas: ServicoCampanhas = criarServicoCampanhas(api)
@@ -78,7 +82,16 @@ export const useCampanhasStore = defineStore('campanhas', () => {
   }
 
   return {
-    campanhas, campanhaAtual, carregando, agindo, filtroStatus, erro,
-    listar, filtrar, obter, agir, renomear,
+    campanhas,
+    campanhaAtual,
+    carregando,
+    agindo,
+    filtroStatus,
+    erro,
+    listar,
+    filtrar,
+    obter,
+    agir,
+    renomear,
   }
 })

@@ -56,13 +56,9 @@ function converterData(data: string): number {
 
 const campanhasOrdenadas = computed(() => {
   return [...props.campanhas].sort((a, b) => {
-    const dataA = converterData(
-      ordenarPor.value === 'inicio' ? a.inicio : a.fim,
-    )
+    const dataA = converterData(ordenarPor.value === 'inicio' ? a.inicio : a.fim)
 
-    const dataB = converterData(
-      ordenarPor.value === 'inicio' ? b.inicio : b.fim,
-    )
+    const dataB = converterData(ordenarPor.value === 'inicio' ? b.inicio : b.fim)
 
     if (Number.isNaN(dataA) || Number.isNaN(dataB)) {
       return 0
@@ -73,7 +69,6 @@ const campanhasOrdenadas = computed(() => {
     return ordem.value === 'crescente' ? resultado : -resultado
   })
 })
-
 
 const totalPaginas = computed(() => {
   return Math.ceil(campanhasOrdenadas.value.length / itensPorPagina)
@@ -106,11 +101,9 @@ const paginasVisiveis = computed<(number | string)[]>(() => {
   return [1, '...', atual, '...', total]
 })
 
-
 watch([ordenarPor, ordem], () => {
   paginaAtual.value = 1
 })
-
 
 watch(totalPaginas, (total) => {
   if (paginaAtual.value > total) {
@@ -144,11 +137,7 @@ function proximaPagina() {
       <div class="filter-group">
         <label for="ordenar-por">Ordenando por</label>
 
-        <select
-          id="ordenar-por"
-          v-model="ordenarPor"
-          class="filter-select"
-        >
+        <select id="ordenar-por" v-model="ordenarPor" class="filter-select">
           <option value="inicio">Data de Início</option>
           <option value="fim">Data de Término</option>
         </select>
@@ -247,20 +236,13 @@ function proximaPagina() {
           </tr>
 
           <tr v-if="campanhasOrdenadas.length === 0">
-            <td colspan="6" class="empty-state">
-              Nenhuma campanha encontrada.
-            </td>
+            <td colspan="6" class="empty-state">Nenhuma campanha encontrada.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-
-    <nav
-      v-if="totalPaginas > 1"
-      class="pagination"
-      aria-label="Paginação das campanhas"
-    >
+    <nav v-if="totalPaginas > 1" class="pagination" aria-label="Paginação das campanhas">
       <button
         type="button"
         class="pagination-button navigation-button"
@@ -272,16 +254,8 @@ function proximaPagina() {
       </button>
 
       <div class="pagination-pages">
-        <template
-          v-for="(pagina, index) in paginasVisiveis"
-          :key="`${pagina}-${index}`"
-        >
-          <span
-            v-if="pagina === '...'"
-            class="pagination-ellipsis"
-          >
-            ...
-          </span>
+        <template v-for="(pagina, index) in paginasVisiveis" :key="`${pagina}-${index}`">
+          <span v-if="pagina === '...'" class="pagination-ellipsis"> ... </span>
 
           <button
             v-else
@@ -457,7 +431,6 @@ function proximaPagina() {
   text-align: center;
   white-space: normal;
 }
-
 
 .pagination {
   display: flex;

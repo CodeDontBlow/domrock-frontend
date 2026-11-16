@@ -16,7 +16,12 @@ export function formatarCompetencia(competencia: string | null): string {
 /** O backend manda UTC; a tela mostra no fuso de quem usa. Ex.: '2026-10-20T04:37:00Z' -> '20/10/2026 01:37' */
 export function formatarDataHora(iso: string, fuso?: string): string {
   const partes = new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: fuso,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: fuso,
   }).formatToParts(new Date(iso))
   const parte = (tipo: Intl.DateTimeFormatPartTypes) => partes.find((p) => p.type === tipo)?.value
   return `${parte('day')}/${parte('month')}/${parte('year')} ${parte('hour')}:${parte('minute')}`
@@ -34,7 +39,9 @@ export function formatarTamanho(bytes: number): string {
 }
 
 /** Coluna "Linhas gravadas" do histórico. Ex.: { linhas_importadas: 5462, total_linhas: 5468 } -> '5.462 de 5.468' */
-export function linhasGravadas(envio: Pick<EnvioImportacao, 'status' | 'linhas_importadas' | 'total_linhas'>): string {
+export function linhasGravadas(
+  envio: Pick<EnvioImportacao, 'status' | 'linhas_importadas' | 'total_linhas'>,
+): string {
   if (envio.status === 'PROCESSANDO') return '—'
   return `${formatarMilhares(envio.linhas_importadas)} de ${formatarMilhares(envio.total_linhas)}`
 }

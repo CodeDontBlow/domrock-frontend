@@ -6,12 +6,17 @@ import { onBeforeUnmount, onMounted, useId } from 'vue'
 const props = defineProps<{
   titulo: string
   icone: string
-  corDoIcone: 'azul' | 'vermelho' | 'verde'
+  corDoIcone: 'azul' | 'vermelho' | 'verde' | 'laranja'
 }>()
 
 const emit = defineEmits<{ fechar: [] }>()
 
-const CLASSE_DA_COR = { azul: 'text-blue', vermelho: 'text-red', verde: 'text-green' } as const
+const CLASSE_DA_COR = {
+  azul: 'text-blue',
+  vermelho: 'text-red',
+  verde: 'text-green',
+  laranja: 'text-orange',
+} as const
 const idDoTitulo = useId()
 
 function fecharComEsc(evento: KeyboardEvent) {

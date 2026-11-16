@@ -36,8 +36,8 @@ const dataFormatada = computed<string>(() => {
   return props.data.startsWith('[') ? props.data : `[${props.data}]`
 })
 
-const podeCompartilhar = computed<boolean>(() =>
-  ETAPAS_DE_ENVIO.includes(props.etapaAprovacao) && !props.ocupado,
+const podeCompartilhar = computed<boolean>(
+  () => ETAPAS_DE_ENVIO.includes(props.etapaAprovacao) && !props.ocupado,
 )
 
 const motivoDesabilitado = computed<string | undefined>(() => {
@@ -50,8 +50,8 @@ const motivoDesabilitado = computed<string | undefined>(() => {
   return undefined
 })
 
-const mostrarBotao = computed<boolean>(() =>
-  props.etapaAprovacao !== 'somente_leitura' && props.etapaAprovacao !== 'enviada',
+const mostrarBotao = computed<boolean>(
+  () => props.etapaAprovacao !== 'somente_leitura' && props.etapaAprovacao !== 'enviada',
 )
 </script>
 
@@ -62,7 +62,9 @@ const mostrarBotao = computed<boolean>(() =>
         <h1 class="chat-header-nome" :title="nomeExibicao">{{ nomeExibicao }}</h1>
         <template v-if="campanha">
           <EtiquetaStatus :status="campanha.status" />
-          <span v-if="campanha.versao_atual !== null" class="chat-header-versao">v{{ campanha.versao_atual }}</span>
+          <span v-if="campanha.versao_atual !== null" class="chat-header-versao"
+            >v{{ campanha.versao_atual }}</span
+          >
         </template>
       </div>
       <p class="chat-header-data">{{ dataFormatada }}</p>
@@ -171,7 +173,9 @@ const mostrarBotao = computed<boolean>(() =>
 .chat-header-btn {
   border: none;
   cursor: pointer;
-  transition: opacity 0.15s, background-color 0.15s;
+  transition:
+    opacity 0.15s,
+    background-color 0.15s;
 }
 
 .chat-header-btn:focus-visible {

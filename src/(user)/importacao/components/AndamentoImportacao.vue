@@ -52,8 +52,14 @@ function planilhas(mes: MesDaFila): string {
         data-teste="mes-da-fila"
         class="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-gray-txt3-dark/35 px-1 py-3"
       >
-        <span class="w-[150px] text-[16px] leading-5">{{ formatarCompetencia(mes.competencia) }}</span>
-        <span v-if="mes.arquivos.length" class="w-[120px] font-label text-[14px] text-gray-txt2-dark">{{ planilhas(mes) }}</span>
+        <span class="w-[150px] text-[16px] leading-5">{{
+          formatarCompetencia(mes.competencia)
+        }}</span>
+        <span
+          v-if="mes.arquivos.length"
+          class="w-[120px] font-label text-[14px] text-gray-txt2-dark"
+          >{{ planilhas(mes) }}</span
+        >
         <SituacaoImportacao :situacao="mes.situacao" class="w-[170px]" />
         <!-- flex-1 e não ml-auto: o reset do base.css (* { margin: 0 }) vence as margens do Tailwind. -->
         <span class="flex-1 text-right">
@@ -70,10 +76,15 @@ function planilhas(mes: MesDaFila): string {
 
     <AlertaErro v-if="props.erro" :mensagem="props.erro" />
 
-    <p v-if="props.enviando" class="flex items-start gap-2 font-label text-[14px] text-gray-txt2-dark">
+    <p
+      v-if="props.enviando"
+      class="flex items-start gap-2 font-label text-[14px] text-gray-txt2-dark"
+    >
       <i class="bi bi-info-circle text-[16px] leading-4" aria-hidden="true"></i>
       {{ dicaDeSaida }}
     </p>
-    <BotaoTexto v-else variante="vazado" class="self-start" @click="emit('novaImportacao')">Nova importação</BotaoTexto>
+    <BotaoTexto v-else variante="vazado" class="self-start" @click="emit('novaImportacao')"
+      >Nova importação</BotaoTexto
+    >
   </section>
 </template>

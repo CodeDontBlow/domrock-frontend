@@ -3,12 +3,12 @@ import Sidebar from '../components/Sidebar.vue'
 </script>
 
 <template>
-    <Sidebar />
-    <main class="page-content">
-        <div class="content-container">
-            <RouterView />
-        </div>
-    </main>
+  <Sidebar />
+  <main class="page-content">
+    <div class="content-container">
+      <RouterView />
+    </div>
+  </main>
 </template>
 
 <style scoped>

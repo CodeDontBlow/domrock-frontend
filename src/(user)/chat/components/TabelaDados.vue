@@ -15,7 +15,12 @@ const colunas = computed(() => Object.keys(props.linhas[0] ?? {}))
     <table class="w-full text-left font-source-code-pro text-label text-white-txt1">
       <thead class="sticky top-0 bg-black-bg2 text-gray-txt3-dark">
         <tr>
-          <th v-for="coluna in colunas" :key="coluna" scope="col" class="px-2.5 py-1.5 font-normal whitespace-nowrap">
+          <th
+            v-for="coluna in colunas"
+            :key="coluna"
+            scope="col"
+            class="px-2.5 py-1.5 font-normal whitespace-nowrap"
+          >
             {{ coluna }}
           </th>
         </tr>

@@ -1,6 +1,12 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { enableAutoUnmount, flushPromises, mount, type DOMWrapper, type VueWrapper } from '@vue/test-utils'
+import {
+  enableAutoUnmount,
+  flushPromises,
+  mount,
+  type DOMWrapper,
+  type VueWrapper,
+} from '@vue/test-utils'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 import ImportacaoPage from '../Page.vue'
 import { criarServicoImportacao } from '../services/importacao'
@@ -20,7 +26,11 @@ beforeEach(async () => {
     history: createMemoryHistory(),
     routes: [
       { path: '/importar', name: 'importar', component: ImportacaoPage },
-      { path: '/importar/:id', name: 'importar-relatorio', component: { template: '<p>relatório</p>' } },
+      {
+        path: '/importar/:id',
+        name: 'importar-relatorio',
+        component: { template: '<p>relatório</p>' },
+      },
     ],
   })
   await router.push('/importar')
@@ -34,17 +44,35 @@ async function abrirTela(): Promise<VueWrapper> {
 
 async function escolher(tela: VueWrapper, ...nomes: string[]): Promise<void> {
   const entrada = tela.find('input[type="file"]')
-  Object.defineProperty(entrada.element, 'files', { value: nomes.map((n) => planilha(n, 62_464)), configurable: true })
+  Object.defineProperty(entrada.element, 'files', {
+    value: nomes.map((n) => planilha(n, 62_464)),
+    configurable: true,
+  })
   await entrada.trigger('change')
 }
 
-function botao(raiz: VueWrapper | DOMWrapper<Element>, texto: string): DOMWrapper<HTMLButtonElement> {
+function botao(
+  raiz: VueWrapper | DOMWrapper<Element>,
+  texto: string,
+): DOMWrapper<HTMLButtonElement> {
   const achado = raiz.findAll('button').find((b) => b.text() === texto)
-  if (!achado) throw new Error(`botão "${texto}" não existe; há: ${raiz.findAll('button').map((b) => b.text()).join(' | ')}`)
+  if (!achado)
+    throw new Error(
+      `botão "${texto}" não existe; há: ${raiz
+        .findAll('button')
+        .map((b) => b.text())
+        .join(' | ')}`,
+    )
   return achado
 }
 
-const DOIS_MESES = ['BASE RH_JUL25.xlsx', 'BASE_VENDAS_JUL25.xlsx', 'BASE_COMMISS_FINAL.xlsx', 'BASE RH_AGO25.xlsx', 'BASE_VENDAS_AGO25.xlsx']
+const DOIS_MESES = [
+  'BASE RH_JUL25.xlsx',
+  'BASE_VENDAS_JUL25.xlsx',
+  'BASE_COMMISS_FINAL.xlsx',
+  'BASE RH_AGO25.xlsx',
+  'BASE_VENDAS_AGO25.xlsx',
+]
 
 describe('tela "Importar base do mês" (A6-79)', () => {
   it('histórico mostra mês, situação, linhas gravadas e o link do relatório', async () => {
@@ -77,9 +105,9 @@ describe('tela "Importar base do mês" (A6-79)', () => {
     await tela.find('button[aria-label="Remover BASE RH_OUT25.xlsx"]').trigger('click')
 
     expect(tela.text()).toContain('Arquivos escolhidos (1)')
-    expect(tela.findAll('button[aria-label^="Remover"]').map((b) => b.attributes('aria-label'))).toEqual([
-      'Remover BASE_VENDAS_OUT25.xlsx',
-    ])
+    expect(
+      tela.findAll('button[aria-label^="Remover"]').map((b) => b.attributes('aria-label')),
+    ).toEqual(['Remover BASE_VENDAS_OUT25.xlsx'])
   })
 
   it('Importar pede confirmação mostrando os meses; Voltar fecha sem enviar', async () => {
@@ -88,7 +116,9 @@ describe('tela "Importar base do mês" (A6-79)', () => {
 
     await botao(tela, 'Importar').trigger('click')
     const modal = tela.find('[role="dialog"]')
-    expect(modal.text()).toMatch(/jul\/2025.*BASE RH_JUL25\.xlsx.*BASE_COMMISS_FINAL\.xlsx.*ago\/2025.*BASE_VENDAS_AGO25\.xlsx/)
+    expect(modal.text()).toMatch(
+      /jul\/2025.*BASE RH_JUL25\.xlsx.*BASE_COMMISS_FINAL\.xlsx.*ago\/2025.*BASE_VENDAS_AGO25\.xlsx/,
+    )
 
     await botao(modal, 'Voltar').trigger('click')
     expect(tela.find('[role="dialog"]').exists()).toBe(false)
@@ -126,7 +156,10 @@ describe('tela "Importar base do mês" (A6-79)', () => {
   })
 
   it('a Comissão sozinha pode ir: a confirmação fala dos percentuais e o envio leva só ela', async () => {
-    backend.programar(1, job(1, 'CONCLUIDO', { competencia: null, totais: { RH: 0, VENDAS: 0, COMISSAO: 30 } }))
+    backend.programar(
+      1,
+      job(1, 'CONCLUIDO', { competencia: null, totais: { RH: 0, VENDAS: 0, COMISSAO: 30 } }),
+    )
     const tela = await abrirTela()
     await escolher(tela, 'BASE_COMMISS_FINAL.xlsx')
 
@@ -139,7 +172,9 @@ describe('tela "Importar base do mês" (A6-79)', () => {
     await botao(modal, 'Importar').trigger('click')
     await flushPromises()
 
-    expect(backend.pedidos.filter((p) => p.metodo === 'post').map((p) => p.arquivos)).toEqual([['BASE_COMMISS_FINAL.xlsx']])
+    expect(backend.pedidos.filter((p) => p.metodo === 'post').map((p) => p.arquivos)).toEqual([
+      ['BASE_COMMISS_FINAL.xlsx'],
+    ])
     expect(router.currentRoute.value.fullPath).toBe('/importar/1')
   })
 

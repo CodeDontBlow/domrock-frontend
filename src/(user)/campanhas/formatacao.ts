@@ -2,7 +2,11 @@ import { formatarCelula, formatarMoeda, formatarPercentual } from '../chat/forma
 import type { ParametroRegra } from '../chat/types'
 import type { PeriodoCampanha } from '../campanha/types'
 
-const DIA_MES_ANO = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+const DIA_MES_ANO = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+})
 
 /**
  * Data sem hora do backend ("2025-11-24"). Lida como texto: `new Date` a trataria como meia-noite
@@ -39,7 +43,11 @@ export function valorDoParametro(parametro: ParametroRegra): string {
   if (typeof value === 'number' && type === 'currency') return formatarMoeda(value)
   if (typeof value === 'number' && type === 'percentage') return formatarPercentual(value)
   if (Array.isArray(value)) {
-    return value.map((codigo) => options?.find((opcao) => opcao.id === codigo)?.label ?? codigo).join(', ') || '—'
+    return (
+      value
+        .map((codigo) => options?.find((opcao) => opcao.id === codigo)?.label ?? codigo)
+        .join(', ') || '—'
+    )
   }
   if (value !== null && typeof value === 'object') {
     const { data_inicio, data_fim } = value

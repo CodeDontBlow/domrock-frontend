@@ -42,9 +42,17 @@ const linhas = computed(() => linhasPorAba.value[aba.value])
 <template>
   <div class="detalhe">
     <div class="detalhe-abas" role="tablist" aria-label="Ver o custo extra por">
-      <button v-for="item in ABAS" :key="item.id" type="button" role="tab" class="detalhe-aba"
-        :class="{ 'detalhe-aba--ativa': aba === item.id }" :aria-selected="aba === item.id"
-        :disabled="!linhasPorAba[item.id].length" @click="aba = item.id">
+      <button
+        v-for="item in ABAS"
+        :key="item.id"
+        type="button"
+        role="tab"
+        class="detalhe-aba"
+        :class="{ 'detalhe-aba--ativa': aba === item.id }"
+        :aria-selected="aba === item.id"
+        :disabled="!linhasPorAba[item.id].length"
+        @click="aba = item.id"
+      >
         {{ item.rotulo }}
       </button>
     </div>

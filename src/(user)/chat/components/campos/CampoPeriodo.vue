@@ -31,7 +31,12 @@ function paraIntervalo(periodo: Periodo | null): string[] | null {
 // Com auto-apply, o intervalo precisa de partialRange: false; sem isso o menu fecha no 1º clique
 // (docs, "auto-apply"). O painel só recebe o período com as duas datas escolhidas.
 const intervalo = ref<string[] | null>(paraIntervalo(props.modelValue))
-watch(() => props.modelValue, (periodo) => { intervalo.value = paraIntervalo(periodo) })
+watch(
+  () => props.modelValue,
+  (periodo) => {
+    intervalo.value = paraIntervalo(periodo)
+  },
+)
 
 function alterar(valor: string[] | null): void {
   const [inicio, fim] = valor ?? []

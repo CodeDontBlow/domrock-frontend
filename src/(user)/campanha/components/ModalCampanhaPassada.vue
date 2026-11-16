@@ -37,11 +37,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div
-        v-if="campanha"
-        class="modal-fundo"
-        @click.self="emit('fechar')"
-      >
+      <div v-if="campanha" class="modal-fundo" @click.self="emit('fechar')">
         <div
           class="modal"
           role="dialog"
@@ -61,10 +57,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
           <div class="modal-conteudo">
             <ListaCampanha v-bind="campanha" />
 
-            <RouterLink
-              class="link-chat"
-              :to="{ name: 'chat', query: { campanha: campanha.id } }"
-            >
+            <RouterLink class="link-chat" :to="{ name: 'chat', query: { campanha: campanha.id } }">
               <i class="bi bi-chat-left-text-fill"></i>
               Link para o chat
             </RouterLink>
@@ -109,11 +102,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
   box-sizing: border-box;
 }
 
-
 .modal-conteudo > :deep(*) {
   max-width: 100%;
 }
-
 
 .link-chat {
   display: flex;
@@ -177,7 +168,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
 .modal-leave-to {
   opacity: 0;
 }
-
 
 @media (max-width: 600px) {
   .modal-fundo {

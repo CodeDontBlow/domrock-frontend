@@ -1,23 +1,39 @@
-import axios, { AxiosError, type AxiosInstance, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios'
 import type { EnvioImportacao, JobImportacao, PendenciaImportacao, SituacaoJob } from '../types'
 
 export { FakeEspera } from '../../chat/__tests__/fakes'
 
-export function pendencia(severidade: PendenciaImportacao['severidade'], motivo: string, linha = 0): PendenciaImportacao {
+export function pendencia(
+  severidade: PendenciaImportacao['severidade'],
+  motivo: string,
+  linha = 0,
+): PendenciaImportacao {
   return { origem: 'BASE RH_OUT25.xlsx', linha, campo: 'Matricula', motivo, severidade }
 }
 
 /** Job no formato completo do contrato 7.2 (out/2025 do dataset, concluído com um aviso). */
-export function job(id: number, status: SituacaoJob, mudar: Partial<JobImportacao> = {}): JobImportacao {
+export function job(
+  id: number,
+  status: SituacaoJob,
+  mudar: Partial<JobImportacao> = {},
+): JobImportacao {
   const processando = status === 'PROCESSANDO'
   return {
-    id, status,
+    id,
+    status,
     competencia: processando ? null : '2025-10',
     usuario: 'Sérgio',
     total_linhas: processando ? 0 : 5469,
     linhas_importadas: status === 'CONCLUIDO' ? 5467 : 0,
     totais: status === 'CONCLUIDO' ? { RH: 469, VENDAS: 4998, COMISSAO: 0 } : {},
-    pendencias: processando ? [] : [pendencia('AVISO', 'matrícula MATRIC-207 não encontrada no RH da competência', 681)],
+    pendencias: processando
+      ? []
+      : [pendencia('AVISO', 'matrícula MATRIC-207 não encontrada no RH da competência', 681)],
     criada_em: '2026-10-20T04:38:00Z',
     concluida_em: processando ? null : '2026-10-20T04:39:00Z',
     ...mudar,
@@ -25,7 +41,11 @@ export function job(id: number, status: SituacaoJob, mudar: Partial<JobImportaca
 }
 
 /** Linha do histórico (7.2, sem totais e pendências). */
-export function envio(id: number, status: SituacaoJob, competencia: string | null): EnvioImportacao {
+export function envio(
+  id: number,
+  status: SituacaoJob,
+  competencia: string | null,
+): EnvioImportacao {
   const { totais: _totais, pendencias: _pendencias, ...resto } = job(id, status, { competencia })
   return resto
 }
@@ -54,7 +74,9 @@ export class FakeBackendImportacao {
   }
 
   http(): AxiosInstance {
-    return axios.create({ adapter: (config) => this.responder(config as InternalAxiosRequestConfig) })
+    return axios.create({
+      adapter: (config) => this.responder(config as InternalAxiosRequestConfig),
+    })
   }
 
   private async responder(config: InternalAxiosRequestConfig): Promise<AxiosResponse> {
@@ -85,7 +107,11 @@ function nomesDoMultipart(corpo: unknown): string[] {
   return corpo.getAll('arquivos').map((parte) => (parte as File).name)
 }
 
-function resposta(config: InternalAxiosRequestConfig, status: number, data: unknown): AxiosResponse {
+function resposta(
+  config: InternalAxiosRequestConfig,
+  status: number,
+  data: unknown,
+): AxiosResponse {
   return { status, statusText: '', headers: {}, config, data }
 }
 

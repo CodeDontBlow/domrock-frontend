@@ -33,7 +33,8 @@ function aoSoltar(evento: DragEvent): void {
       Arraste as planilhas aqui ou clique para escolher
     </span>
     <span class="font-label text-[14px] text-gray-txt2-dark">
-      Só .xlsx. O nome diz o tipo e o mês: BASE RH_OUT25.xlsx · BASE_VENDAS_OUT25.xlsx · BASE_COMMISS_OUT25.xlsx
+      Só .xlsx. O nome diz o tipo e o mês: BASE RH_OUT25.xlsx · BASE_VENDAS_OUT25.xlsx ·
+      BASE_COMMISS_OUT25.xlsx
     </span>
     <input type="file" multiple accept=".xlsx" class="sr-only" @change="aoEscolher" />
   </label>

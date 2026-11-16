@@ -118,7 +118,12 @@ describe('página do chat', () => {
     setActivePinia(pinia)
     const chat = useChatStore()
     chat.abertaPelaCampanha = false
-    chat.campanha = { id: 25, nome: 'Minha Campanha', status: 'AGUARDANDO_APROVACAO', versao_atual: 1 }
+    chat.campanha = {
+      id: 25,
+      nome: 'Minha Campanha',
+      status: 'AGUARDANDO_APROVACAO',
+      versao_atual: 1,
+    }
     chat.mensagens = [{ id: 1, chave: 'l-1', papel: 'usuario', texto: 'Criada no chat' }]
     const spyNova = vi.spyOn(chat, 'novaConversa')
 

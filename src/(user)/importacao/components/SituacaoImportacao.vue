@@ -16,8 +16,14 @@ const VISUAL: Record<SituacaoDoMes, { rotulo: string; ponto: string }> = {
 </script>
 
 <template>
-  <span class="inline-flex items-center gap-2 font-label text-[14px] whitespace-nowrap text-gray-txt2-dark">
-    <span class="size-2 shrink-0 rounded-full" :class="VISUAL[props.situacao].ponto" aria-hidden="true"></span>
+  <span
+    class="inline-flex items-center gap-2 font-label text-[14px] whitespace-nowrap text-gray-txt2-dark"
+  >
+    <span
+      class="size-2 shrink-0 rounded-full"
+      :class="VISUAL[props.situacao].ponto"
+      aria-hidden="true"
+    ></span>
     {{ VISUAL[props.situacao].rotulo }}
   </span>
 </template>
