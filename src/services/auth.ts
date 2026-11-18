@@ -1,4 +1,5 @@
 import { api } from './api'
+import { atualizarPerfil, lerPerfil } from '@/composables/usePerfil'
 import { router } from '@/router/index'
 
 export interface LoginResponse {
@@ -21,7 +22,7 @@ export function usuarioLogado(): UsuarioLogado | null {
 
 /** Perfil salvo no login decide o que a tela mostra. Ex.: ehSupervisor() -> true para o Sérgio */
 export function ehSupervisor(): boolean {
-  return localStorage.getItem('perfil') === 'SUPERVISOR'
+  return lerPerfil() === 'SUPERVISOR'
 }
 
 export async function login(email: string, senha: string): Promise<LoginResponse> {
@@ -32,6 +33,7 @@ export async function login(email: string, senha: string): Promise<LoginResponse
   localStorage.setItem('token', data.token)
   localStorage.setItem('usuario', JSON.stringify(data.usuario))
   localStorage.setItem('perfil', data.perfil)
+  atualizarPerfil()
 
   return data
 }
@@ -40,6 +42,7 @@ export function encerrarSessao() {
   localStorage.removeItem('token')
   localStorage.removeItem('usuario')
   localStorage.removeItem('perfil')
+  atualizarPerfil()
 
   router.push('/login')
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { usePerfil } from '@/composables/usePerfil'
 import type { EventoAgente } from '../types'
 import TabelaDados from './TabelaDados.vue'
 
@@ -10,10 +11,7 @@ defineProps<{
 const aberto = ref(false)
 const ferramentasAbertas = ref<Record<number, boolean>>({})
 
-const isSupervisor = computed(() => {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem('perfil') === 'SUPERVISOR'
-})
+const { ehSupervisor: isSupervisor } = usePerfil()
 
 function alternarFerramenta(index: number): void {
   ferramentasAbertas.value[index] = !ferramentasAbertas.value[index]

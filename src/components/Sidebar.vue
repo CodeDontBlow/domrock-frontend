@@ -5,6 +5,7 @@ import logo from '@/assets/logo.svg'
 import type { MenuItem, User } from '@/types/sidebar'
 
 import { encerrarSessao } from '@/services/auth'
+import { usePerfil } from '@/composables/usePerfil'
 import { useSeusChats } from '@/(user)/campanhas/useSeusChats'
 import { useChatStore } from '@/(user)/chat/stores/chat'
 
@@ -14,7 +15,7 @@ const route = useRoute()
 // Abaixo desta largura a barra começa recolhida e, aberta, fica por cima do conteúdo.
 const CONSULTA_CELULAR = '(max-width: 900px)'
 
-const profile = ref(localStorage.getItem('perfil') ?? '')
+const { perfil: profile, ehAuditor } = usePerfil()
 const usuario = ref(JSON.parse(localStorage.getItem('usuario') ?? 'null'))
 const username = ref(usuario.value?.nome ?? 'Usuário')
 
@@ -37,12 +38,18 @@ onMounted(() => {
   consultaCelular = window.matchMedia(CONSULTA_CELULAR)
   acompanharLargura(consultaCelular)
   consultaCelular.addEventListener('change', acompanharLargura)
-  if (profile.value !== 'ADMIN') carregarChats()
+  if (profile.value !== 'ADMIN' && !ehAuditor.value) carregarChats()
 })
 
 onBeforeUnmount(() => consultaCelular?.removeEventListener('change', acompanharLargura))
 
 const menuItems = computed<MenuItem[]>(() => {
+  if (ehAuditor.value) {
+    return [
+      { id: 'auditoria', label: 'Auditoria', icon: 'bi bi-journal-check', rota: '/auditoria' },
+    ]
+  }
+
   if (profile.value === 'ADMIN') {
     return [{ id: 'usuarios', label: 'Usuários', icon: 'bi bi-people' }]
   }
@@ -79,7 +86,7 @@ const menuItems = computed<MenuItem[]>(() => {
 
 const user = ref<User>({
   nome: username.value,
-  cargo: profile.value,
+  cargo: profile.value ?? '',
 })
 
 const activeItem = ref<string>('nova-campanha')
@@ -99,7 +106,7 @@ function selectItem(item: MenuItem): void {
 watch(
   () => route?.fullPath,
   () => {
-    if (profile.value !== 'ADMIN') carregarChats()
+    if (profile.value !== 'ADMIN' && !ehAuditor.value) carregarChats()
   },
 )
 
@@ -108,7 +115,9 @@ watch(
   (path) => {
     if (!path) return
     // '/campanha' cobre também '/campanhas' e '/campanhas/:id'
-    if (path.startsWith('/campanha')) {
+    if (path.startsWith('/auditoria')) {
+      activeItem.value = 'auditoria'
+    } else if (path.startsWith('/campanha')) {
       activeItem.value = 'campanhas'
     } else if (path.startsWith('/admin')) {
       activeItem.value = 'usuarios'
@@ -164,7 +173,7 @@ watch(
       </button>
     </nav>
 
-    <div v-if="chats.length > 0" class="sidebar-chats">
+    <div v-if="!ehAuditor && chats.length > 0" class="sidebar-chats">
       <div class="chats-header">
         <span class="chats-title">Seus Chats</span>
         <i class="chats-sort-icon bi bi-arrow-down-up"></i>

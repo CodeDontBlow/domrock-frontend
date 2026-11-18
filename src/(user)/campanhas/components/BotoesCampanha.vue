@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { usePerfil } from '@/composables/usePerfil'
+const { ehAuditor } = usePerfil()
 import { configAcao } from '../acoes'
 import type { AcaoCampanha, StatusCampanha } from '../../campanha/types'
 
@@ -15,7 +17,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="botoes-campanha">
+  <div v-if="!ehAuditor" class="botoes-campanha">
     <button
       v-for="acao in acoes"
       :key="acao"

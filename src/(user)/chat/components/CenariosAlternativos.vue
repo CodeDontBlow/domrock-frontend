@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { usePerfil } from '@/composables/usePerfil'
+const { ehAuditor } = usePerfil()
 import { useId } from 'vue'
 import { formatarMoeda, formatarPercentual } from '../formatacao'
 import type { CenarioAlternativo } from '../types'
@@ -44,6 +46,7 @@ function efeito(cenario: CenarioAlternativo): string {
         </div>
         <button
           type="button"
+          v-if="!ehAuditor"
           class="cenario-aplicar"
           :title="`Preencher o painel com: ${cenario.titulo}`"
           @click="emit('aplicar', cenario)"

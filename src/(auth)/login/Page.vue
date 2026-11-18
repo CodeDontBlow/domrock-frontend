@@ -4,6 +4,7 @@ import { ref, computed, nextTick } from 'vue'
 import { isAxiosError } from 'axios'
 import { router } from '@/router/index'
 import { login } from '@/services/auth.ts'
+import { rotaInicial } from '@/composables/usePerfil'
 
 // AUTH
 // ==============================
@@ -22,14 +23,9 @@ const submeterLogin = async () => {
 
   isLoading.value = true
   try {
-    const dados = await login(email.value, senha.value)
+    await login(email.value, senha.value)
 
-    // Redirecionamento explícito que resolve o bug do F5
-    if (dados.perfil === 'ADMIN') {
-      await router.push('/admin')
-    } else {
-      await router.push('/')
-    }
+    await router.push({ name: rotaInicial() })
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
       await nextTick()
