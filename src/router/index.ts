@@ -12,6 +12,7 @@ import RelatoriosPage from '../(user)/relatorios/Page.vue'
 import ConfiguracoesPage from '../(user)/configuracoes/Page.vue'
 import ImportacaoPage from '../(user)/importacao/Page.vue'
 import RelatorioImportacaoPage from '../(user)/importacao/relatorio/Page.vue'
+import FilaAlteracoesPage from '../(user)/fila-alteracoes/Page.vue'
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -64,6 +65,12 @@ export const router = createRouter({
           path: 'importar/:id',
           name: 'importar-relatorio',
           component: RelatorioImportacaoPage,
+        },
+        {
+          path: 'fila-alteracoes',
+          alias: ['alteracoes', 'fila'],
+          name: 'fila-alteracoes',
+          component: FilaAlteracoesPage,
         }
       ]
     },
