@@ -7,10 +7,12 @@ import {
   numerosDaMeta,
   seloDaMeta,
   seloDoOrcamento,
+  textoCustoNaMeta,
   textoDiferencaMeta,
+  tomCustoNaMeta,
   vereditoDoOrcamento,
 } from '../resultado'
-import { resultadoBlackFriday, resultadoDoCriterio } from './fakes'
+import { resultadoBlackFriday, resultadoDoCriterio, simulacaoNaMetaFake } from './fakes'
 
 // Intl.NumberFormat separa "R$" do número com espaço não separável (U+00A0).
 const semNbsp = (texto: string) => texto.replace(/ /g, ' ')
@@ -90,5 +92,37 @@ describe('Bloco Orçamento', () => {
 
     expect(seloDoOrcamento(orcamento)).toEqual({ texto: 'Cabe no orçamento', tom: 'positivo' })
     expect(semNbsp(vereditoDoOrcamento(orcamento))).toContain('Sobram R$ 6.263,83')
+  })
+})
+
+describe('Linha de custo na meta (A6-93)', () => {
+  it('sem orçamento: mostra valores da meta e do custo sem menção a orçamento e tom neutro', () => {
+    const { meta } = resultadoDoCriterio('meta_3_milhoes')
+    const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: null })
+
+    expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34.',
+    )
+    expect(tomCustoNaMeta(naMeta)).toBeNull()
+  })
+
+  it('com orçamento que cabe: informa que cabe no orçamento e tom neutro', () => {
+    const { meta } = resultadoDoCriterio('meta_3_milhoes')
+    const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: true })
+
+    expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34. Esse custo cabe no orçamento.',
+    )
+    expect(tomCustoNaMeta(naMeta)).toBeNull()
+  })
+
+  it('com orçamento que não cabe: informa que passa do orçamento e tom de aviso', () => {
+    const { meta } = resultadoDoCriterio('meta_3_milhoes')
+    const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: false })
+
+    expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34. Esse custo passa do orçamento.',
+    )
+    expect(tomCustoNaMeta(naMeta)).toBe('aviso')
   })
 })

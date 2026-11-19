@@ -9,7 +9,9 @@ import {
   pctDaMeta,
   seloDaMeta,
   seloDoOrcamento,
+  textoCustoNaMeta,
   textoDiferencaMeta,
+  tomCustoNaMeta,
   vereditoDoOrcamento,
 } from '../resultado'
 import type { CenarioAlternativo, ResultadoSimulacao } from '../types'
@@ -29,6 +31,8 @@ const emit = defineEmits<{ 'aplicar-cenario': [cenario: CenarioAlternativo] }>()
 
 const meta = computed(() => props.resultado.meta)
 const orcamento = computed(() => props.resultado.orcamento)
+// Custo da campanha se a venda do período chegar à meta (A6-93).
+const naMeta = computed(() => props.resultado.na_meta)
 // O maior % que cabe fica no bloco Orçamento; "Sem a marca X" continua no fim, com os outros cenários.
 const cenariosDoOrcamento = computed(() =>
   props.resultado.cenarios.filter((c) => c.tipo === 'ajustar_acrescimo'),
@@ -63,6 +67,13 @@ function aplicar(cenario: CenarioAlternativo): void {
         {{ textoDiferencaMeta(meta) }}
       </p>
       <NumerosResultado :itens="numerosDaMeta(meta)" />
+      <p
+        v-if="naMeta"
+        class="resultado-linha"
+        :class="tomCustoNaMeta(naMeta) === 'aviso' ? 'tom--aviso' : undefined"
+      >
+        {{ textoCustoNaMeta(meta, naMeta) }}
+      </p>
     </BlocoResultado>
 
     <BlocoResultado
