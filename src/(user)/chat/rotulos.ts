@@ -27,6 +27,8 @@ export const ROTULOS_CURTOS_PARAMETRO: Record<string, string> = {
   cargos_alvo: 'Cargos',
   meta_vendas: 'Meta de vendas',
   orcamento_limite: 'Orçamento',
+  competencia_referencia: 'Mês de referência',
+  pct_crescimento: '% de crescimento',
 }
 
 const NOMES_OPCAO: Record<string, Record<string, string>> = {

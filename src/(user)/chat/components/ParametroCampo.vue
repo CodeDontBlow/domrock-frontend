@@ -4,6 +4,8 @@ import BotaoIcone from '@/components/BotaoIcone.vue'
 import { estaVazio } from '../stores/chat'
 import { nomeDaOpcao, ROTULOS_CURTOS_PARAMETRO } from '../rotulos'
 import type { ParametroRegra, Periodo, ValorParametro } from '../types'
+import { CHAVE_CRESCIMENTO } from '../referencia'
+import CampoMes from './campos/CampoMes.vue'
 import CampoMoeda from './campos/CampoMoeda.vue'
 import CampoPercentual from './campos/CampoPercentual.vue'
 import CampoPeriodo from './campos/CampoPeriodo.vue'
@@ -18,6 +20,8 @@ const faltando = computed(() => props.parametro.required && estaVazio(props.para
 const selecionados = computed(() => (props.parametro.value as string[] | null) ?? [])
 const numero = computed(() => (props.parametro.value as number | null) ?? null)
 const idCampo = computed(() => `param-${props.parametro.key}`)
+// O crescimento sobre a referência (ADR-006) aceita 0%; o acréscimo começa em 0,01.
+const minimoPercentual = computed(() => (props.parametro.key === CHAVE_CRESCIMENTO ? 0 : undefined))
 const rotulo = computed(
   () => ROTULOS_CURTOS_PARAMETRO[props.parametro.key] ?? props.parametro.label,
 )
@@ -50,6 +54,14 @@ function alternarOpcao(id: string): void {
       @update:model-value="emit('alterar', $event)"
     />
 
+    <CampoMes
+      v-else-if="parametro.type === 'month'"
+      :model-value="parametro.value as string | null"
+      :faltando="faltando"
+      :id-campo="idCampo"
+      @update:model-value="emit('alterar', $event)"
+    />
+
     <div v-else-if="parametro.type === 'multi_select'" class="campo-opcoes">
       <button
         v-for="opcao in parametro.options ?? []"
@@ -70,6 +82,7 @@ function alternarOpcao(id: string): void {
       :faltando="faltando"
       :id-campo="idCampo"
       :rotulo="parametro.label"
+      :minimo="minimoPercentual"
       @update:model-value="emit('alterar', $event)"
     />
 

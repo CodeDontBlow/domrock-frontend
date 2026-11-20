@@ -1,6 +1,8 @@
 import { formatarCelula, formatarMoeda, formatarPercentual } from '../chat/formatacao'
+import { CHAVES_REFERENCIA } from '../chat/referencia'
 import type { ParametroRegra } from '../chat/types'
 import type { PeriodoCampanha } from '../campanha/types'
+import { formatarCompetencia } from '../importacao/formatacao'
 
 const DIA_MES_ANO = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -38,10 +40,16 @@ export function custoDaCampanha(valor: number | null): string {
  * Valor de um parâmetro da ficha (contrato 2.1) para leitura. Códigos viram o rótulo das `options`.
  * Ex.: marcas_alvo ['30'] com a opção { id: '30', label: 'AZUL' } -> 'AZUL'; meta_vendas 2000000 -> 'R$ 2.000.000,00'
  */
+/** Parâmetros da ficha para leitura: referência e crescimento só quando a campanha usou (ADR-006). */
+export function parametrosDaFicha(parametros: ParametroRegra[]): ParametroRegra[] {
+  return parametros.filter((p) => !CHAVES_REFERENCIA.includes(p.key) || p.value !== null)
+}
+
 export function valorDoParametro(parametro: ParametroRegra): string {
   const { value, options, type } = parametro
   if (typeof value === 'number' && type === 'currency') return formatarMoeda(value)
   if (typeof value === 'number' && type === 'percentage') return formatarPercentual(value)
+  if (typeof value === 'string' && type === 'month') return formatarCompetencia(value)
   if (Array.isArray(value)) {
     return (
       value
