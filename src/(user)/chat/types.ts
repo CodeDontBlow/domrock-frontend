@@ -241,6 +241,26 @@ export const ETAPAS_DE_ENVIO: readonly EtapaAprovacao[] = ['pronta', 'fora_do_or
 
 export type PapelMensagem = 'usuario' | 'agente' | 'resultado' | 'erro' | 'sistema'
 
+
+export interface SolicitacaoCorrecaoChat {
+  id?: string | number
+  tipo: string
+  tipo_alteracao?: string
+  matricula?: string
+  matriculas: string[]
+  competencia: string
+  competencia_iso?: string
+  valorAnterior: string
+  valorAposMudanca: string
+  valor_antes?: string
+  valor_depois?: string
+  motivo: string
+  sql?: string
+  enviada?: boolean
+  statusEnvio?: 'pendente' | 'enviando' | 'sucesso' | 'erro'
+  erroEnvio?: string | null
+}
+
 export interface MensagemChat {
   id: number | string
   chave: string
@@ -251,6 +271,7 @@ export interface MensagemChat {
   criada_em?: string
   resultado?: ResultadoSimulacao
   events?: EventoAgente[]
+  solicitacao?: SolicitacaoCorrecaoChat | null
 }
 
 // Contrato 2.3 (A6-74 e A6-75): histórico de campanhas e sobreposição no período simulado.

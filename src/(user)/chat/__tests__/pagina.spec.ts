@@ -127,4 +127,36 @@ describe('página do chat', () => {
     expect(spyNova).not.toHaveBeenCalled()
     expect(pagina.text()).toContain('Criada no chat')
   })
+
+  it('renderiza CardSolicitacaoCorrecaoBase quando mensagem possui solicitacao', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const chat = useChatStore()
+    chat.mensagens = [
+      { id: 1, chave: 'l-1', papel: 'usuario', texto: 'mudar loja' },
+      {
+        id: 2,
+        chave: 'l-2',
+        papel: 'agente',
+        texto: 'Abri o ticket para você revisar.',
+        solicitacao: {
+          tipo: 'Transferência de loja',
+          matriculas: ['MATRIC-38'],
+          competencia: '10/2025',
+          valorAnterior: 'MATRIC-38 na loja 5',
+          valorAposMudanca: 'MATRIC-38 na loja 8',
+          motivo: 'Transferência aprovada',
+          enviada: false,
+        },
+      },
+    ]
+
+    const pagina = mount(ChatPage, { global: { plugins: [pinia] } })
+
+    expect(pagina.text()).toContain('Solicitação de Correção de Dados')
+    expect(pagina.text()).toContain('MATRIC-38 na loja 5')
+    expect(pagina.text()).toContain('MATRIC-38 na loja 8')
+    expect(pagina.text()).toContain('Transferência de loja')
+    expect(pagina.text()).toContain('MATRIC-38')
+  })
 })

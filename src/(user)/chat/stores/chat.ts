@@ -1,3 +1,49 @@
+
+export function normalizarCompetenciaParaIso(comp: string): string {
+  const c = comp.trim()
+  if (c.includes('/')) {
+    const [mes, ano] = c.split('/')
+    if (mes && ano) return `${ano}-${mes.padStart(2, '0')}`
+  }
+  return c
+}
+
+export function extrairSolicitacaoDeEventos(events?: EventoAgente[]): SolicitacaoCorrecaoChat | null {
+  if (!events || !Array.isArray(events)) return null
+  for (let i = events.length - 1; i >= 0; i--) {
+    const ev = events[i]
+    if (!ev) continue
+    const evObj = ev as unknown as Record<string, unknown>
+    if (ev.ferramenta === 'registrar_solicitacao_correcao' || evObj.tool === 'registrar_solicitacao_correcao') {
+      const res = ((ev.result as Record<string, unknown> | undefined)?.solicitacao ?? evObj.solicitacao) as Record<string, unknown> | undefined
+      if (res && typeof res === 'object') {
+        const rawMats = res.matriculas ?? res.matricula
+        const matriculas: string[] = Array.isArray(rawMats)
+          ? (rawMats as string[])
+          : rawMats ? [String(rawMats)] : []
+
+        return {
+          id: res.id as string | number | undefined,
+          tipo: (res.tipo as string) || 'Atualização',
+          tipo_alteracao: res.tipo_alteracao as string | undefined,
+          matricula: res.matricula as string | undefined,
+          matriculas,
+          competencia: (res.competencia as string) || '',
+          competencia_iso: res.competencia_iso as string | undefined,
+          valorAnterior: (res.antes as string) || (res.valor_antes as string) || '',
+          valorAposMudanca: (res.depois as string) || (res.valor_depois as string) || '',
+          valor_antes: res.valor_antes as string | undefined,
+          valor_depois: res.valor_depois as string | undefined,
+          motivo: (res.motivo as string) || '',
+          sql: res.sql as string | undefined,
+          enviada: false,
+          statusEnvio: 'pendente',
+        }
+      }
+    }
+  }
+  return null
+}
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { api } from '@/services/api'
@@ -11,9 +57,9 @@ import { criarServicoCampanha, descreverFalha, type ServicoCampanha } from '../s
 import { dataLocal } from '../formatacao'
 import {
   ETAPAS_DE_ENVIO,
-  type CampanhaSalva, type CenarioAlternativo, type ConversaGravada, type EtapaAprovacao, type MensagemChat,
-  type MensagemGravada,
-  type PapelMensagem, type RegraCampanha, type ResultadoSimulacao, type ValorParametro,
+  type CampanhaSalva, type CenarioAlternativo, type ConversaGravada, type EtapaAprovacao, type EventoAgente,
+  type MensagemChat, type MensagemGravada,
+  type PapelMensagem, type RegraCampanha, type ResultadoSimulacao, type SolicitacaoCorrecaoChat, type ValorParametro,
 } from '../types'
 
 let servicoCampanha: ServicoCampanha = criarServicoCampanha(api)
@@ -131,7 +177,8 @@ export const useChatStore = defineStore('chat', () => {
       const resposta = await servicoCampanha.conversar(chatId.value, texto, regra.value)
       if (geracao.value !== gen) return
       adicionarMensagensSistema(resposta.mensagens_sistema)
-      adicionar('agente', resposta.response, { events: resposta.events })
+      const solicitacao = extrairSolicitacaoDeEventos(resposta.events)
+      adicionar('agente', resposta.response, { events: resposta.events, solicitacao })
       if (resposta.regra) regra.value = resposta.regra
     } catch (erro) {
       if (geracao.value !== gen) return
@@ -368,11 +415,49 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+
+  async function enviarSolicitacaoCorrecao(mensagem: MensagemChat, motivo: string): Promise<void> {
+    if (!mensagem.solicitacao) return
+    mensagem.solicitacao.motivo = motivo
+    mensagem.solicitacao.statusEnvio = 'enviando'
+    try {
+      const payload = {
+        tipo: mensagem.solicitacao.tipo_alteracao || 'TRANSFERENCIA_LOJA',
+        matricula: mensagem.solicitacao.matricula || mensagem.solicitacao.matriculas[0] || '',
+        competencia: mensagem.solicitacao.competencia_iso || normalizarCompetenciaParaIso(mensagem.solicitacao.competencia),
+        antes: mensagem.solicitacao.valor_antes || mensagem.solicitacao.valorAnterior,
+        depois: mensagem.solicitacao.valor_depois || mensagem.solicitacao.valorAposMudanca,
+        motivo,
+        origem: 'USUARIO',
+      }
+      await api.post('/api/correcoes', payload)
+      mensagem.solicitacao.enviada = true
+      mensagem.solicitacao.statusEnvio = 'sucesso'
+      adicionar('sistema', 'Solicitação de correção na base de dados enviada com sucesso para aprovação dos supervisores.')
+    } catch (erro: unknown) {
+      mensagem.solicitacao.statusEnvio = 'erro'
+      const falha = descreverFalha(erro)
+      mensagem.solicitacao.erroEnvio = falha
+      adicionar('erro', `Erro ao enviar solicitação de correção: ${falha}`)
+    }
+  }
+
+  function cancelarSolicitacaoCorrecao(mensagem: MensagemChat): void {
+    mensagem.solicitacao = null
+  }
+
+  function atualizarMotivoSolicitacao(mensagem: MensagemChat, novoMotivo: string): void {
+    if (mensagem.solicitacao) {
+      mensagem.solicitacao.motivo = novoMotivo
+    }
+  }
+
   return {
     geracao, dataInicio, erroEnvio, chatId, mensagens, regra, aguardandoLana, simulando, etapaSimulacao,
     ocupado, camposVazios, podeSimular, etapaAprovacao, somenteLeitura, podeVoltarRascunho, editandoCampanha,
     simulacoesCarregando, abertaPelaCampanha, campanha, ultimoResultado, simulacaoId, regraSimulada, cabeNoOrcamento,
     enviar, atualizarParametro, aplicarCenario, simular, enviarParaAprovacao,
+    enviarSolicitacaoCorrecao, cancelarSolicitacaoCorrecao, atualizarMotivoSolicitacao,
     novaConversa, abrirCampanha, restaurarSessaoSeVazio, carregarResultadoSimulacao, editarCampanhaReprovada,
   }
 })

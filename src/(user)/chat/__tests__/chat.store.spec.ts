@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { api } from '@/services/api'
 import { createPinia, setActivePinia } from 'pinia'
 import { AxiosError, AxiosHeaders } from 'axios'
 import { definirServicoCampanha, definirServicoCampanhas, useChatStore } from '../stores/chat'
@@ -639,5 +640,140 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
 
     expect(chat.simulacoesCarregando).not.toContain(345)
     expect(chat.mensagens[0]?.resultado).toBeDefined()
+  })
+
+})
+
+describe('solicitação de correção na base de dados (HITL)', () => {
+  let servico: FakeServicoCampanha
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    servico = new FakeServicoCampanha()
+    definirServicoCampanha(servico)
+  })
+
+  it('extrai solicitação de correção retornada pela Lana e anexa ao card na mensagem', async () => {
+    servico.respostaChat = {
+      chat_id: 'chat-correcao-teste',
+      response: 'Abri a solicitação para avaliação.',
+      regra: null,
+      events: [
+        {
+          ferramenta: 'registrar_solicitacao_correcao',
+          descricao_legivel: 'Registrando proposta de correção',
+          tempo: 100,
+          situacao: 'ok',
+          result: {
+            situacao: 'ok',
+            solicitacao: {
+              id: 'solic-123',
+              tipo: 'Transferência de loja',
+              tipo_alteracao: 'TRANSFERENCIA_LOJA',
+              matricula: 'MATRIC-38',
+              competencia: '10/2025',
+              competencia_iso: '2025-10',
+              antes: 'MATRIC-38 na loja 5',
+              depois: 'MATRIC-38 na loja 8',
+              valor_antes: '5',
+              valor_depois: '8',
+              motivo: 'Transferência solicitada pelo chat',
+              origem: 'LANA',
+              status: 'PENDENTE_APROVACAO',
+              sql: 'UPDATE funcionario_loja...',
+            },
+          },
+        },
+      ],
+    }
+
+    const chat = useChatStore()
+    await chat.enviar('transfira a MATRIC-38 para a loja 8')
+
+    const msgLana = chat.mensagens.find((m) => m.papel === 'agente')
+    expect(msgLana).toBeDefined()
+    expect(msgLana?.solicitacao).toBeDefined()
+    expect(msgLana?.solicitacao?.tipo).toBe('Transferência de loja')
+    expect(msgLana?.solicitacao?.matriculas).toEqual(['MATRIC-38'])
+    expect(msgLana?.solicitacao?.valorAnterior).toBe('MATRIC-38 na loja 5')
+    expect(msgLana?.solicitacao?.valorAposMudanca).toBe('MATRIC-38 na loja 8')
+    expect(msgLana?.solicitacao?.enviada).toBe(false)
+  })
+
+  it('enviarSolicitacaoCorrecao chama a rota /api/correcoes e marca como enviada', async () => {
+    const postSpy = vi.spyOn(api, 'post').mockResolvedValue({ data: { id: 1, status: 'PENDENTE' } })
+
+    const chat = useChatStore()
+    chat.mensagens = [
+      {
+        id: 1,
+        chave: 'm-1',
+        papel: 'agente',
+        texto: 'Aqui está a proposta',
+        solicitacao: {
+          id: 'solic-123',
+          tipo: 'Transferência de loja',
+          tipo_alteracao: 'TRANSFERENCIA_LOJA',
+          matricula: 'MATRIC-38',
+          matriculas: ['MATRIC-38'],
+          competencia: '10/2025',
+          competencia_iso: '2025-10',
+          valorAnterior: 'MATRIC-38 na loja 5',
+          valorAposMudanca: 'MATRIC-38 na loja 8',
+          valor_antes: '5',
+          valor_depois: '8',
+          motivo: 'Motivo inicial',
+          enviada: false,
+          statusEnvio: 'pendente',
+        },
+      },
+    ]
+
+    const msg = chat.mensagens[0]!
+    await chat.enviarSolicitacaoCorrecao(msg, 'Novo motivo aprovado pelo gerente')
+
+    expect(postSpy).toHaveBeenCalledWith('/api/correcoes', {
+      tipo: 'TRANSFERENCIA_LOJA',
+      matricula: 'MATRIC-38',
+      competencia: '2025-10',
+      antes: '5',
+      depois: '8',
+      motivo: 'Novo motivo aprovado pelo gerente',
+      origem: 'USUARIO',
+    })
+
+    expect(msg.solicitacao?.enviada).toBe(true)
+    expect(msg.solicitacao?.statusEnvio).toBe('sucesso')
+    expect(chat.mensagens.some((m) => m.papel === 'sistema' && m.texto.includes('enviada com sucesso'))).toBe(true)
+
+    postSpy.mockRestore()
+  })
+
+  it('cancelarSolicitacaoCorrecao e atualizarMotivoSolicitacao alteram a solicitacao da mensagem', () => {
+    const chat = useChatStore()
+    chat.mensagens = [
+      {
+        id: 1,
+        chave: 'm-1',
+        papel: 'agente',
+        texto: 'Proposta',
+        solicitacao: {
+          tipo: 'Atualização',
+          matriculas: ['MAT-1'],
+          competencia: '10/2025',
+          valorAnterior: 'antes',
+          valorAposMudanca: 'depois',
+          motivo: 'motivo antigo',
+          enviada: false,
+        },
+      },
+    ]
+
+    const msg = chat.mensagens[0]!
+    chat.atualizarMotivoSolicitacao(msg, 'motivo novo')
+    expect(msg.solicitacao?.motivo).toBe('motivo novo')
+
+    chat.cancelarSolicitacaoCorrecao(msg)
+    expect(msg.solicitacao).toBeNull()
   })
 })

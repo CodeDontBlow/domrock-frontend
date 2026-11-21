@@ -12,6 +12,7 @@ import ResultadoSimulacao from './components/ResultadoSimulacao.vue'
 import FerramentasDropdown from './components/FerramentasDropdown.vue'
 import ChatHeader from './components/ChatHeader.vue'
 import CompartilharCampanhaModal from './components/CompartilharCampanhaModal.vue'
+import CardSolicitacaoCorrecaoBase from './components/CardSolicitacaoCorrecaoBase.vue'
 import { montarConferencia } from './conferencia'
 import { useChatStore } from './stores/chat'
 
@@ -160,7 +161,26 @@ watch(() => mensagens.value.length, async () => {
               :resultado="mensagem.resultado"
               @aplicar-cenario="chat.aplicarCenario"
             />
-            <SpeechBubble v-else :message="mensagem.texto" :papel="mensagem.papel" />
+            <div v-else class="mensagem-item">
+              <SpeechBubble :message="mensagem.texto" :papel="mensagem.papel" />
+              <CardSolicitacaoCorrecaoBase
+                v-if="mensagem.solicitacao && !mensagem.solicitacao.enviada"
+                :valor-anterior="mensagem.solicitacao.valorAnterior"
+                :valor-apos-mudanca="mensagem.solicitacao.valorAposMudanca"
+                :tipo="mensagem.solicitacao.tipo"
+                :matriculas="mensagem.solicitacao.matriculas"
+                :competencia="mensagem.solicitacao.competencia"
+                :motivo="mensagem.solicitacao.motivo"
+                :mensagem-intro="''"
+                @solicitar="(motivo) => chat.enviarSolicitacaoCorrecao(mensagem, motivo)"
+                @cancelar="() => chat.cancelarSolicitacaoCorrecao(mensagem)"
+                @salvar-motivo="(novoMotivo) => chat.atualizarMotivoSolicitacao(mensagem, novoMotivo)"
+              />
+              <div v-else-if="mensagem.solicitacao?.enviada" class="solicitacao-enviada-box">
+                <i class="bi bi-check-circle-fill icone-sucesso" />
+                <span>Solicitação de alteração enviada com sucesso para a supervisão!</span>
+              </div>
+            </div>
           </template>
           <p v-if="aguardandoLana" class="pensando">A Lana está escrevendo…</p>
           <p v-if="simulando" class="pensando">
@@ -412,4 +432,31 @@ watch(() => mensagens.value.length, async () => {
   font-size: 14px;
   font-style: italic;
 }
+
+.mensagem-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.solicitacao-enviada-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  padding: 12px 20px;
+  background-color: var(--color-black-bg2);
+  border: 1px solid var(--color-green);
+  border-radius: 8px;
+  color: var(--color-white-txt1);
+  font-family: var(--font-raleway);
+  font-size: 14px;
+}
+
+.icone-sucesso {
+  color: var(--color-green);
+  font-size: 18px;
+}
+
 </style>
