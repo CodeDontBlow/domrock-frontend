@@ -16,6 +16,7 @@ import {
 } from '../reabrir'
 import { criarServicoCampanha, descreverFalha, type ServicoCampanha } from '../services/campanha'
 import { dataLocal } from '../formatacao'
+import { CHAVE_CRESCIMENTO, CHAVE_REFERENCIA, referenciaParaOPeriodo } from '../referencia'
 import {
   ETAPAS_DE_ENVIO,
   type CampanhaSalva,
@@ -25,6 +26,7 @@ import {
   type MensagemChat,
   type MensagemGravada,
   type PapelMensagem,
+  type Periodo,
   type RegraCampanha,
   type ResultadoSimulacao,
   type ValorParametro,
@@ -167,7 +169,24 @@ export const useChatStore = defineStore('chat', () => {
   function atualizarParametro(key: string, valor: ValorParametro): void {
     if (somenteLeitura.value) return
     const parametro = regra.value?.parametros.find((p) => p.key === key)
-    if (parametro) parametro.value = valor
+    if (!parametro) return
+    const anterior = parametro.value as Periodo | null
+    parametro.value = valor
+    if (key === 'periodo' && valor && !estaVazio(valor)) ajustarReferencia(anterior, valor as Periodo)
+  }
+
+  /** Período futuro calcula sobre um mês histórico (ADR-006): sugere a referência e 0% de crescimento. */
+  function ajustarReferencia(anterior: Periodo | null, atual: Periodo): void {
+    const parametros = regra.value?.parametros ?? []
+    const referencia = parametros.find((p) => p.key === CHAVE_REFERENCIA)
+    const crescimento = parametros.find((p) => p.key === CHAVE_CRESCIMENTO)
+    if (!referencia || !crescimento) return
+    const novos = referenciaParaOPeriodo(anterior, atual, {
+      referencia: (referencia.value as string | null) ?? null,
+      crescimento: (crescimento.value as number | null) ?? null,
+    })
+    referencia.value = novos.referencia
+    crescimento.value = novos.crescimento
   }
 
   /** Leva o cenário calculado ao painel; a simulação continua sendo decisão do usuário. */
@@ -452,6 +471,7 @@ export const useChatStore = defineStore('chat', () => {
 export function estaVazio(valor: ValorParametro): boolean {
   if (valor === null || valor === undefined) return true
   if (Array.isArray(valor)) return valor.length === 0
+  if (typeof valor === 'string') return valor === ''
   if (typeof valor === 'object') return !valor.data_inicio || !valor.data_fim
   return Number.isNaN(valor)
 }

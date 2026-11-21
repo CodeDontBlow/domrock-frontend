@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { custoDaCampanha, diaDaCampanha, periodoDaCampanha, valorDoParametro } from '../formatacao'
+import {
+  custoDaCampanha,
+  diaDaCampanha,
+  parametrosDaFicha,
+  periodoDaCampanha,
+  valorDoParametro,
+} from '../formatacao'
 import type { ParametroRegra, ValorParametro } from '../../chat/types'
 
 function parametro(
@@ -51,5 +57,18 @@ describe('formatação de Minhas campanhas', () => {
     expect(valorDoParametro(parametro(1.5))).toBe('1,5')
     expect(valorDoParametro(parametro(null))).toBe('—')
     expect(valorDoParametro(parametro([]))).toBe('—')
+  })
+
+  it('mês de referência aparece por extenso e só quando a campanha usou (ADR-006)', () => {
+    const referencia = { ...parametro('2025-11', null, 'month'), key: 'competencia_referencia' }
+    const semReferencia = { ...referencia, value: null }
+    const meta = { ...parametro(2000000, null, 'currency'), key: 'meta_vendas' }
+
+    expect(valorDoParametro(referencia)).toBe('nov/2025')
+    expect(parametrosDaFicha([meta, referencia]).map((p) => p.key)).toEqual([
+      'meta_vendas',
+      'competencia_referencia',
+    ])
+    expect(parametrosDaFicha([meta, semReferencia]).map((p) => p.key)).toEqual(['meta_vendas'])
   })
 })

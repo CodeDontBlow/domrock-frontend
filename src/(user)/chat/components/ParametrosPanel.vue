@@ -2,8 +2,9 @@
 import { computed, ref } from 'vue'
 import ParametroCampo from './ParametroCampo.vue'
 import { ROTULOS_CURTOS_PARAMETRO } from '../rotulos'
+import { parametroVisivel } from '../referencia'
 import { estaVazio } from '../stores/chat'
-import type { ParametroRegra, RegraCampanha, ValorParametro } from '../types'
+import type { ParametroRegra, Periodo, RegraCampanha, ValorParametro } from '../types'
 
 // Painel de simulação da campanha (tab-simulacao, nós 641:1848 e 641:1860; Leo, 28/10).
 // O cabeçalho passa a se chamar "Simulação" com botão X de fechar (28x28).
@@ -22,7 +23,15 @@ const emit = defineEmits<{
 }>()
 
 const comandoAberto = ref(false)
-const regras = computed(() => props.regra.parametros.filter((p) => p.categoria === 'REGRA'))
+// Mês de referência e % de crescimento só aparecem com o período futuro (ADR-006).
+const periodo = computed(
+  () => props.regra.parametros.find((p) => p.key === 'periodo')?.value as Periodo | null,
+)
+const regras = computed(() =>
+  props.regra.parametros.filter(
+    (p) => p.categoria === 'REGRA' && parametroVisivel(p, periodo.value),
+  ),
+)
 const limites = computed(() => props.regra.parametros.filter((p) => p.categoria === 'CONSTRAINT'))
 
 // Orçamento é opcional (A6-72): entra por "Adicionar orçamento" em Extras, como no Figma do time.

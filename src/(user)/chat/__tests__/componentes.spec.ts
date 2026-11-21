@@ -5,7 +5,12 @@ import ParametrosPanel from '../components/ParametrosPanel.vue'
 import ResultadoSimulacao from '../components/ResultadoSimulacao.vue'
 import SecaoExpansivel from '../components/SecaoExpansivel.vue'
 import SpeechBubble from '../components/SpeechBubble.vue'
-import { regraBlackFriday, resultadoBlackFriday, resultadoDoCriterio } from './fakes'
+import {
+  regraBlackFriday,
+  resultadoBlackFriday,
+  resultadoComNaMeta,
+  resultadoDoCriterio,
+} from './fakes'
 
 const SEM_SIMULACAO = { ocupado: false } as const
 
@@ -235,6 +240,50 @@ describe('ResultadoSimulacao (A6-72)', () => {
     expect(wrapper.text()).not.toContain('def aplicar_regra')
     expect(wrapper.text()).not.toContain('Código Python')
     expect(wrapper.html()).not.toContain(resultado.codigo)
+  })
+
+  it('mostra a linha de custo na meta quando na_meta existe, com tom de aviso quando passa do orçamento (A6-93)', () => {
+    const resultado = resultadoComNaMeta({ cabe_no_orcamento: false })
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).toContain(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo passa do orçamento.',
+    )
+    const linhas = blocoMeta.findAll('.resultado-linha')
+    expect(linhas).toHaveLength(2)
+    expect(linhas[1]!.classes()).toContain('tom--aviso')
+  })
+
+  it('mostra a linha de custo na meta sem tom de aviso quando cabe no orçamento (A6-93)', () => {
+    const resultado = resultadoComNaMeta({ cabe_no_orcamento: true })
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).toContain(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo cabe no orçamento.',
+    )
+    const linhas = blocoMeta.findAll('.resultado-linha')
+    expect(linhas).toHaveLength(2)
+    expect(linhas[1]!.classes()).not.toContain('tom--aviso')
+  })
+
+  it('não mostra a linha de custo na meta quando na_meta é null (A6-93)', () => {
+    const resultado = { ...resultadoDoCriterio('sem_orcamento'), na_meta: null }
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).not.toContain('Se a venda chegar à meta')
+    expect(blocoMeta.findAll('.resultado-linha')).toHaveLength(1)
+  })
+
+  it('não mostra a linha de custo na meta sem o campo na_meta de resultado antigo (A6-93)', () => {
+    const resultado = resultadoDoCriterio('sem_orcamento')
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).not.toContain('Se a venda chegar à meta')
+    expect(blocoMeta.findAll('.resultado-linha')).toHaveLength(1)
   })
 })
 

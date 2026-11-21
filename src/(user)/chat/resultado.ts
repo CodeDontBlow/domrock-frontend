@@ -1,7 +1,13 @@
 // Textos e números dos blocos do resultado (A6-72): Meta → Comissão → Orçamento.
 // Só formata o que a Lana calculou; a única conta aqui é a escala das barras.
 import { formatarMoeda, formatarPercentual } from './formatacao'
-import type { AtingimentoMeta, ImpactoPessoas, TotaisSimulacao, VereditoOrcamento } from './types'
+import type {
+  AtingimentoMeta,
+  ImpactoPessoas,
+  SimulacaoNaMeta,
+  TotaisSimulacao,
+  VereditoOrcamento,
+} from './types'
 
 export type TomResultado = 'positivo' | 'aviso' | 'negativo' | 'destaque'
 
@@ -72,6 +78,26 @@ export function numerosDaMeta(meta: AtingimentoMeta): NumeroResultado[] {
     },
     { rotulo: 'Meta', valor: formatarMoeda(meta.meta_vendas) },
   ]
+}
+
+/** Linha explicativa do custo adicional caso a venda chegue à meta (A6-93). */
+export function textoCustoNaMeta(meta: AtingimentoMeta, naMeta: SimulacaoNaMeta): string {
+  const base = `Se a venda chegar à meta de ${formatarMoeda(meta.meta_vendas)}, o custo adicional fica em ${formatarMoeda(naMeta.custo_adicional)}.`
+  if (naMeta.cabe_no_orcamento === true) {
+    return `${base} Esse custo cabe no orçamento.`
+  }
+  if (naMeta.cabe_no_orcamento === false) {
+    return `${base} Esse custo passa do orçamento.`
+  }
+  return base
+}
+
+/** Tom de destaque da linha de custo na meta: aviso se estourar o orçamento (A6-93). */
+export function tomCustoNaMeta(naMeta: SimulacaoNaMeta): TomResultado | null {
+  if (naMeta.cabe_no_orcamento === false) {
+    return 'aviso'
+  }
+  return null
 }
 
 export function numerosDaComissao(

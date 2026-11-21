@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import { formatarMoeda } from '../../chat/formatacao'
 import { useCampanhasStore } from '../stores/campanhas'
 import { useStatusCampanha } from '../useStatusCampanha'
-import { diaDoInstante, periodoDaCampanha, valorDoParametro } from '../formatacao'
+import { diaDoInstante, parametrosDaFicha, periodoDaCampanha, valorDoParametro } from '../formatacao'
 import EtiquetaStatus from '../components/EtiquetaStatus.vue'
 import BotoesCampanha from '../components/BotoesCampanha.vue'
 import ModalRenomearCampanha from '../components/ModalRenomearCampanha.vue'
@@ -122,7 +122,11 @@ watch(
             <section class="secao">
               <h2 class="secao-titulo">Parâmetros</h2>
               <dl class="params-lista">
-                <div v-for="p in simulacao.regra.parametros" :key="p.key" class="param-item">
+                <div
+                  v-for="p in parametrosDaFicha(simulacao.regra.parametros)"
+                  :key="p.key"
+                  class="param-item"
+                >
                   <dt class="param-label">{{ p.label }}</dt>
                   <dd class="param-valor">{{ valorDoParametro(p) }}</dd>
                 </div>

@@ -17,6 +17,7 @@ import type {
   SimulacaoAndamento,
   SimulacaoConcluida,
   SimulacaoCriada,
+  SimulacaoNaMeta,
 } from '../types'
 
 export function regraBlackFriday(
@@ -174,6 +175,29 @@ export function resultadoDoCriterio(caso: CasoDoCriterio): ResultadoSimulacao {
         }
       : null,
     cenarios: comOrcamento ? [maiorQueCabe, semMarca] : [semMarca],
+  }
+}
+
+/** Projeção do custo se a venda atingir a meta (A6-93). */
+export function simulacaoNaMetaFake(sobrescrever: Partial<SimulacaoNaMeta> = {}): SimulacaoNaMeta {
+  return {
+    fator: 1.2468,
+    vendas_na_meta: 3_000_000,
+    comissao_sem_campanha: 118210.55,
+    comissao_com_campanha: 147722.89,
+    custo_adicional: 29512.34,
+    cabe_no_orcamento: false,
+    ...sobrescrever,
+  }
+}
+
+/** Resultado de simulação com projeção na meta (A6-93). */
+export function resultadoComNaMeta(
+  sobrescreverNaMeta: Partial<SimulacaoNaMeta> = {},
+): ResultadoSimulacao {
+  return {
+    ...resultadoDoCriterio('meta_3_milhoes'),
+    na_meta: simulacaoNaMetaFake(sobrescreverNaMeta),
   }
 }
 
