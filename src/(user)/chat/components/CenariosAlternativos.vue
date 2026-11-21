@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { usePerfil } from '@/composables/usePerfil'
-const { ehAuditor } = usePerfil()
 import { useId } from 'vue'
+import { usePerfil } from '@/composables/usePerfil'
 import { formatarMoeda, formatarPercentual } from '../formatacao'
 import type { CenarioAlternativo } from '../types'
+
+const { ehAuditor } = usePerfil()
 
 // Sem `titulo`, a lista entra direto num bloco que já tem título (o maior % que cabe, no Orçamento).
 defineProps<{ cenarios: CenarioAlternativo[]; titulo?: string }>()

@@ -31,5 +31,9 @@ export function usePerfil() {
     perfil: computed(() => perfil.value),
     ehAuditor: computed(() => perfil.value === 'AUDITOR'),
     ehSupervisor: computed(() => perfil.value === 'SUPERVISOR'),
+    // SQL e código gerado: Supervisor e Auditor (US-20, A6-106; o backend já filtra para os outros).
+    podeVerCodigoGerado: computed(
+      () => perfil.value === 'SUPERVISOR' || perfil.value === 'AUDITOR',
+    ),
   }
 }

@@ -32,6 +32,15 @@ describe('perfil centralizado', () => {
     expect(perfil.perfil.value).toBeNull()
     expect(perfil.ehAuditor.value).toBe(false)
   })
+  it.each([
+    ['SUPERVISOR', true],
+    ['AUDITOR', true],
+    ['GERENTE', false],
+    ['ADMIN', false],
+  ] as const)('SQL e código gerado: %s vê = %s (US-20)', (valor, esperado) => {
+    localStorage.setItem('perfil', valor)
+    expect(usePerfil().podeVerCodigoGerado.value).toBe(esperado)
+  })
   it('destino inicial respeita o perfil', () => {
     expect(rotaInicial('AUDITOR')).toBe('auditoria')
     expect(rotaInicial('ADMIN')).toBe('users')

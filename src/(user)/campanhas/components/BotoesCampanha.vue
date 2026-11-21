@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { usePerfil } from '@/composables/usePerfil'
-const { ehAuditor } = usePerfil()
 import { configAcao } from '../acoes'
 import type { AcaoCampanha, StatusCampanha } from '../../campanha/types'
+
+const { ehAuditor } = usePerfil()
 
 defineProps<{
   /** As `acoes` da Campanha (contrato 5.2): um botão por item, na ordem do backend. */
