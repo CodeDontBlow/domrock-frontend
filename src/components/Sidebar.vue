@@ -51,12 +51,12 @@ const menuItems = computed<MenuItem[]>(() => {
   }
 
   if (profile.value === 'ADMIN') {
-    return [{ id: 'usuarios', label: 'Usuários', icon: 'bi bi-people' }]
+    return [{ id: 'usuarios', label: 'Usuários', icon: 'bi bi-people', rota: '/admin' }]
   }
 
   return [
     //pluscircle
-    { id: 'nova-campanha', label: 'Nova Campanha', icon: 'bi bi-plus-circle', rota: '/ ' },
+    { id: 'nova-campanha', label: 'Nova Campanha', icon: 'bi bi-plus-circle', rota: '/' },
     //piggybank. Supervisor cai na fila de aprovação; Gerente, em "Minhas campanhas" (decisão do PO, 26/10).
     {
       id: 'campanhas',
@@ -89,7 +89,25 @@ const user = ref<User>({
   cargo: profile.value ?? '',
 })
 
-const activeItem = ref<string>('nova-campanha')
+// Além da própria `rota`: o Supervisor entra pela fila (/campanha) e abre o detalhe em
+// /campanhas/:id, que continua sendo "Campanhas" (A6-123).
+const ROTAS_EXTRAS: Record<string, string[]> = { campanhas: ['/campanha', '/campanhas'] }
+
+function casaRota(path: string, rota: string): boolean {
+  if (rota === '/') return path === '/'
+  return path === rota || path.startsWith(`${rota}/`)
+}
+
+/** Item da rota atual, pelo prefixo mais longo, para valer também no F5 e no voltar (A6-123). */
+const activeItem = computed(() => {
+  const candidatos = menuItems.value.flatMap((item) =>
+    [item.rota, ...(ROTAS_EXTRAS[item.id] ?? [])]
+      .filter((rota): rota is string => !!rota && casaRota(route.path, rota))
+      .map((rota) => ({ id: item.id, tamanho: rota.length })),
+  )
+  candidatos.sort((a, b) => b.tamanho - a.tamanho)
+  return candidatos[0]?.id ?? 'nova-campanha'
+})
 
 function navegarParaCampanha(id: number): void {
   router.push({ name: 'chat', query: { campanha: id } })
@@ -97,7 +115,6 @@ function navegarParaCampanha(id: number): void {
 }
 
 function selectItem(item: MenuItem): void {
-  activeItem.value = item.id
   if (item.id === 'nova-campanha') useChatStore().novaConversa()
   if (item.rota) router.push(item.rota)
   if (isMobile.value) isCollapsed.value = true
@@ -108,24 +125,6 @@ watch(
   () => {
     if (profile.value !== 'ADMIN' && !ehAuditor.value) carregarChats()
   },
-)
-
-watch(
-  () => route?.path,
-  (path) => {
-    if (!path) return
-    // '/campanha' cobre também '/campanhas' e '/campanhas/:id'
-    if (path.startsWith('/auditoria')) {
-      activeItem.value = 'auditoria'
-    } else if (path.startsWith('/campanha')) {
-      activeItem.value = 'campanhas'
-    } else if (path.startsWith('/admin')) {
-      activeItem.value = 'usuarios'
-    } else if (path === '/') {
-      activeItem.value = 'nova-campanha'
-    }
-  },
-  { immediate: true },
 )
 </script>
 
