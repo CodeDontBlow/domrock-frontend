@@ -3,7 +3,10 @@ import { marked } from 'marked'
 
 const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 const PERCENTUAL = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
-const PERCENTUAL_FIXO = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const PERCENTUAL_FIXO = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
 
 /** Ex.: formatarMoeda(1668.33) -> "R$ 1.668,33" */
 export function formatarMoeda(valor: number): string {
@@ -61,7 +64,8 @@ const NUMERO_DA_TABELA = new Intl.NumberFormat('pt-BR', { maximumFractionDigits:
  */
 export function formatarCelula(valor: unknown): string {
   if (valor === null || valor === undefined) return '—'
-  if (typeof valor === 'number') return Number.isInteger(valor) ? String(valor) : NUMERO_DA_TABELA.format(valor)
+  if (typeof valor === 'number')
+    return Number.isInteger(valor) ? String(valor) : NUMERO_DA_TABELA.format(valor)
   if (typeof valor === 'object') return JSON.stringify(valor)
   return String(valor)
 }

@@ -2,7 +2,8 @@
 
 import type { StatusCampanha } from '../campanha/types'
 
-export type TipoParametro = 'date_range' | 'percentage' | 'multi_select' | 'currency'
+/** `month`: competência "YYYY-MM", como o mês de referência da campanha futura (ADR-006). */
+export type TipoParametro = 'date_range' | 'percentage' | 'multi_select' | 'currency' | 'month'
 
 export interface OpcaoParametro {
   id: string
@@ -14,7 +15,7 @@ export interface Periodo {
   data_fim: string | null
 }
 
-export type ValorParametro = Periodo | number | string[] | null
+export type ValorParametro = Periodo | number | string | string[] | null
 
 export interface ParametroRegra {
   key: string
@@ -156,6 +157,17 @@ export interface AtingimentoMeta {
   diferenca?: number
 }
 
+/** Custo da campanha se a venda do período chegar à meta (A6-93). */
+export interface SimulacaoNaMeta {
+  fator: number
+  vendas_na_meta: number
+  comissao_sem_campanha: number
+  comissao_com_campanha: number
+  custo_adicional: number
+  /** null quando a ficha não tem orçamento (A6-93). */
+  cabe_no_orcamento: boolean | null
+}
+
 export interface ResultadoSimulacao {
   comissao_periodo?: ComissaoNoTrecho[]
   conflitos?: ConflitoCampanha[]
@@ -178,6 +190,8 @@ export interface ResultadoSimulacao {
   explicacao: string
   observacao?: string
   trilha?: TrilhaChat | null
+  /** Ausente nas simulações anteriores ao A6-93; null quando a meta não passa da venda. */
+  na_meta?: SimulacaoNaMeta | null
 }
 
 export interface FalhaSimulacao {
@@ -234,7 +248,13 @@ export interface CampanhaSalva {
  * o custo simulado passa do orçamento; vai para aprovação mesmo assim, com aviso (decisão do PO, 26/10).
  */
 export type EtapaAprovacao =
-  | 'sem_simulacao' | 'desatualizada' | 'fora_do_orcamento' | 'pronta' | 'enviando' | 'enviada' | 'somente_leitura'
+  | 'sem_simulacao'
+  | 'desatualizada'
+  | 'fora_do_orcamento'
+  | 'pronta'
+  | 'enviando'
+  | 'enviada'
+  | 'somente_leitura'
 
 /** Etapas em que o botão "Enviar para aprovação" funciona. */
 export const ETAPAS_DE_ENVIO: readonly EtapaAprovacao[] = ['pronta', 'fora_do_orcamento']

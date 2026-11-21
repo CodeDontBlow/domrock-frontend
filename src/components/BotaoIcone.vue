@@ -35,7 +35,9 @@ const emit = defineEmits<{ click: [] }>()
   color: var(--color-gray-txt2-dark);
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .botao-icone:hover,

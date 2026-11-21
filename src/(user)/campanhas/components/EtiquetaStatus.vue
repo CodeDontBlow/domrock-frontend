@@ -19,7 +19,11 @@ const desc = computed(() => descreverStatus(props.status))
       <i :class="desc.icone" aria-hidden="true" />
       {{ desc.label }}
     </span>
-    <span v-if="vigencia" class="etiqueta etiqueta--vigencia" :class="vigencia === 'Vigente' ? 'etiqueta--vigente' : 'etiqueta--encerrada'">
+    <span
+      v-if="vigencia"
+      class="etiqueta etiqueta--vigencia"
+      :class="vigencia === 'Vigente' ? 'etiqueta--vigente' : 'etiqueta--encerrada'"
+    >
       {{ vigencia }}
     </span>
   </span>

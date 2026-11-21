@@ -1,0 +1,221 @@
+.auditoria {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: var(--color-white-txt1);
+  font-family: var(--font-raleway);
+}
+.auditoria h1 {
+  font-size: 28px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.auditoria h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.auditoria h3 {
+  font-weight: 600;
+}
+.auditoria-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.auditoria-cabecalho p {
+  color: var(--color-gray-txt2-dark);
+  margin: 8px 0;
+}
+.auditoria .somente-leitura {
+  white-space: nowrap;
+  color: var(--color-blue);
+  padding: 8px 12px;
+  border: 1px solid var(--color-black-bg2);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.auditoria .abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-black-bg2);
+  margin: 24px 0;
+  padding-bottom: 12px;
+}
+.auditoria .abas button,
+.auditoria .estado button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--color-black-bg2);
+  cursor: pointer;
+}
+.auditoria .abas button[aria-pressed='true'] {
+  color: var(--color-blue);
+  box-shadow: inset 0 -2px var(--color-blue);
+}
+.auditoria .filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 20px 0;
+}
+.auditoria .filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 200px;
+  font-size: 14px;
+}
+.auditoria input,
+.auditoria select {
+  min-width: 0;
+  width: 100%;
+  background: var(--color-black-bg2);
+  border: 1px solid var(--color-gray-txt3-dark);
+  border-radius: 6px;
+  padding: 10px;
+  color: var(--color-white-txt1);
+}
+.auditoria option {
+  background: var(--color-black-bg1);
+}
+.auditoria :is(button, a, input, select):focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 3px;
+}
+.auditoria .tabela-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-black-bg2);
+  border-radius: 8px;
+  margin-top: 16px;
+}
+.auditoria table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 720px;
+  text-align: left;
+  font-size: 14px;
+}
+.auditoria th,
+.auditoria td {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-black-bg2);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  max-width: 300px;
+}
+.auditoria thead {
+  color: var(--color-gray-txt2-dark);
+  background: var(--color-black-bg2);
+}
+.auditoria small {
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 400;
+}
+.auditoria a {
+  color: var(--color-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auditoria .voltar {
+  display: inline-block;
+  margin-bottom: 20px;
+}
+.auditoria .estado {
+  padding: 20px 0;
+  color: var(--color-gray-txt2-dark);
+}
+.auditoria .estado button {
+  margin-top: 12px;
+  color: var(--color-white-txt1);
+}
+.auditoria .erro {
+  color: var(--color-red);
+}
+.auditoria .contagem {
+  font-size: 13px;
+  color: var(--color-gray-txt2-dark);
+}
+.auditoria .ficha,
+.auditoria .comparacao,
+.auditoria .decisao {
+  padding: 20px;
+  border: 1px solid var(--color-black-bg2);
+  border-radius: 8px;
+  margin: 16px 0;
+}
+.auditoria .ficha dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.auditoria dt {
+  font-size: 13px;
+  color: var(--color-gray-txt2-dark);
+}
+.auditoria dd {
+  margin-top: 4px;
+}
+.auditoria .comparacao li {
+  margin: 8px 0;
+}
+.auditoria mark {
+  background: color-mix(in srgb, var(--color-blue) 14%, transparent);
+  color: var(--color-blue);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.auditoria .justificativa {
+  white-space: pre-wrap;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+.auditoria .conversa {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  list-style: none;
+  padding: 0;
+}
+.auditoria .mensagem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.auditoria .mensagem-autor {
+  font-size: 12px;
+  color: var(--color-gray-txt2-dark);
+}
+.auditoria .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 900px) {
+  .auditoria {
+    padding-top: 64px;
+  }
+}
+@media (max-width: 560px) {
+  .auditoria {
+    padding-inline: 16px;
+  }
+  .auditoria-cabecalho {
+    flex-direction: column;
+  }
+  .auditoria h1 {
+    font-size: 24px;
+  }
+}

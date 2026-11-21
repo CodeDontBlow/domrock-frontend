@@ -9,20 +9,26 @@ vi.mock('../auth', () => ({ encerrarSessao: vi.fn() }))
 
 /** Backend fora do ar: o axios falha sem resposta, como numa queda de rede ou timeout. */
 const adaptadorSemResposta: AxiosAdapter = (config) =>
-  Promise.reject(new AxiosError('Network Error', AxiosError.ERR_NETWORK, config as InternalAxiosRequestConfig))
+  Promise.reject(
+    new AxiosError('Network Error', AxiosError.ERR_NETWORK, config as InternalAxiosRequestConfig),
+  )
 
 /** Backend no ar respondendo com o status pedido. */
 function adaptadorComStatus(status: number): AxiosAdapter {
   return (config) => {
     const pedido = config as InternalAxiosRequestConfig
     const resposta = { status, statusText: '', headers: {}, config: pedido, data: {} }
-    return Promise.reject(new AxiosError('Falhou', AxiosError.ERR_BAD_REQUEST, pedido, null, resposta))
+    return Promise.reject(
+      new AxiosError('Falhou', AxiosError.ERR_BAD_REQUEST, pedido, null, resposta),
+    )
   }
 }
 
 async function falhaDe(promessa: Promise<unknown>): Promise<unknown> {
   return promessa.then(
-    () => { throw new Error('esperava falha, a requisição deu certo') },
+    () => {
+      throw new Error('esperava falha, a requisição deu certo')
+    },
     (erro: unknown) => erro,
   )
 }
@@ -36,7 +42,9 @@ describe('interceptor de resposta da API', () => {
     const erro = await falhaDe(api.get('/api/chat', { adapter: adaptadorSemResposta }))
 
     expect(isAxiosError(erro)).toBe(true)
-    expect(descreverFalha(erro)).toBe('Sem resposta do servidor. Confira se o backend e a Lana estão no ar.')
+    expect(descreverFalha(erro)).toBe(
+      'Sem resposta do servidor. Confira se o backend e a Lana estão no ar.',
+    )
     expect(encerrarSessao).not.toHaveBeenCalled()
   })
 

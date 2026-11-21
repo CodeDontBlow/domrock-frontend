@@ -5,11 +5,19 @@ import type { StatusConflito } from './types'
 
 export const NOMES_MARCA: Record<string, string> = {
   ALL: 'Todas',
-  '10': 'Preto', '20': 'Branco', '30': 'Azul', '40': 'Vermelho', '50': 'Amarelo', '60': 'Cinza',
+  '10': 'Preto',
+  '20': 'Branco',
+  '30': 'Azul',
+  '40': 'Vermelho',
+  '50': 'Amarelo',
+  '60': 'Cinza',
 }
 
 export const NOMES_CARGO: Record<string, string> = {
-  '100': 'Vendedor loja', '150': 'Gerente', '200': 'Vendedor balcão', '300': 'Assistente de vendas',
+  '100': 'Vendedor loja',
+  '150': 'Gerente',
+  '200': 'Vendedor balcão',
+  '300': 'Assistente de vendas',
 }
 
 export const ROTULOS_CURTOS_PARAMETRO: Record<string, string> = {
@@ -19,6 +27,8 @@ export const ROTULOS_CURTOS_PARAMETRO: Record<string, string> = {
   cargos_alvo: 'Cargos',
   meta_vendas: 'Meta de vendas',
   orcamento_limite: 'Orçamento',
+  competencia_referencia: 'Mês de referência',
+  pct_crescimento: '% de crescimento',
 }
 
 const NOMES_OPCAO: Record<string, Record<string, string>> = {

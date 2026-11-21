@@ -4,16 +4,32 @@ import { api } from '@/services/api'
 import { criarServicoCampanhas, type ServicoCampanhas } from '../../campanha/services/campanhas'
 import type { CampanhaDetalhe, UltimaSimulacao } from '../../campanha/types'
 import {
-  acharUltimaRegraLana, acharUltimoSimulacaoId, converterHistorico, determinarPermissoesCampanha,
-  extrairFichaEEstadoSimulacao, extrairSimulacaoConcluida, extrairStatusHttp, guardarChatId, lerChatIdGuardado,
+  acharUltimaRegraLana,
+  acharUltimoSimulacaoId,
+  converterHistorico,
+  determinarPermissoesCampanha,
+  extrairFichaEEstadoSimulacao,
+  extrairSimulacaoConcluida,
+  extrairStatusHttp,
+  guardarChatId,
+  lerChatIdGuardado,
 } from '../reabrir'
 import { criarServicoCampanha, descreverFalha, type ServicoCampanha } from '../services/campanha'
 import { dataLocal } from '../formatacao'
+import { CHAVE_CRESCIMENTO, CHAVE_REFERENCIA, referenciaParaOPeriodo } from '../referencia'
 import {
   ETAPAS_DE_ENVIO,
-  type CampanhaSalva, type CenarioAlternativo, type ConversaGravada, type EtapaAprovacao, type MensagemChat,
+  type CampanhaSalva,
+  type CenarioAlternativo,
+  type ConversaGravada,
+  type EtapaAprovacao,
+  type MensagemChat,
   type MensagemGravada,
-  type PapelMensagem, type RegraCampanha, type ResultadoSimulacao, type ValorParametro,
+  type PapelMensagem,
+  type Periodo,
+  type RegraCampanha,
+  type ResultadoSimulacao,
+  type ValorParametro,
 } from '../types'
 
 let servicoCampanha: ServicoCampanha = criarServicoCampanha(api)
@@ -66,12 +82,17 @@ export const useChatStore = defineStore('chat', () => {
   const enviadaParaAprovacao = ref(false)
 
   const camposVazios = computed(() =>
-    (regra.value?.parametros ?? []).filter((p) => p.required && estaVazio(p.value)).map((p) => p.key),
+    (regra.value?.parametros ?? [])
+      .filter((p) => p.required && estaVazio(p.value))
+      .map((p) => p.key),
   )
-  const ocupado = computed(() =>
-    aguardandoLana.value || simulando.value || enviandoAprovacao.value || somenteLeitura.value,
+  const ocupado = computed(
+    () =>
+      aguardandoLana.value || simulando.value || enviandoAprovacao.value || somenteLeitura.value,
   )
-  const podeSimular = computed(() => regra.value !== null && camposVazios.value.length === 0 && !ocupado.value)
+  const podeSimular = computed(
+    () => regra.value !== null && camposVazios.value.length === 0 && !ocupado.value,
+  )
   const etapaAprovacao = computed<EtapaAprovacao>(() => {
     if (somenteLeitura.value) return 'somente_leitura'
     if (enviadaParaAprovacao.value) return 'enviada'
@@ -90,7 +111,11 @@ export const useChatStore = defineStore('chat', () => {
     return null
   })
 
-  function adicionar(papel: PapelMensagem, texto: string, extras: Partial<MensagemChat> = {}): void {
+  function adicionar(
+    papel: PapelMensagem,
+    texto: string,
+    extras: Partial<MensagemChat> = {},
+  ): void {
     contadorLocal.value++
     const chave = extras.chave ?? `l-${contadorLocal.value}`
     mensagens.value.push({ id: extras.id ?? contadorLocal.value, chave, papel, texto, ...extras })
@@ -144,7 +169,24 @@ export const useChatStore = defineStore('chat', () => {
   function atualizarParametro(key: string, valor: ValorParametro): void {
     if (somenteLeitura.value) return
     const parametro = regra.value?.parametros.find((p) => p.key === key)
-    if (parametro) parametro.value = valor
+    if (!parametro) return
+    const anterior = parametro.value as Periodo | null
+    parametro.value = valor
+    if (key === 'periodo' && valor && !estaVazio(valor)) ajustarReferencia(anterior, valor as Periodo)
+  }
+
+  /** Período futuro calcula sobre um mês histórico (ADR-006): sugere a referência e 0% de crescimento. */
+  function ajustarReferencia(anterior: Periodo | null, atual: Periodo): void {
+    const parametros = regra.value?.parametros ?? []
+    const referencia = parametros.find((p) => p.key === CHAVE_REFERENCIA)
+    const crescimento = parametros.find((p) => p.key === CHAVE_CRESCIMENTO)
+    if (!referencia || !crescimento) return
+    const novos = referenciaParaOPeriodo(anterior, atual, {
+      referencia: (referencia.value as string | null) ?? null,
+      crescimento: (crescimento.value as number | null) ?? null,
+    })
+    referencia.value = novos.referencia
+    crescimento.value = novos.crescimento
   }
 
   /** Leva o cenário calculado ao painel; a simulação continua sendo decisão do usuário. */
@@ -152,7 +194,10 @@ export const useChatStore = defineStore('chat', () => {
     if (!regra.value || somenteLeitura.value) return
     atualizarParametro('pct_acrescimo', cenario.pct_acrescimo)
     atualizarParametro('marcas_alvo', [...cenario.marcas_alvo])
-    adicionar('agente', `Coloquei no painel o cenário "${cenario.titulo}". Confira e clique em Simular campanha.`)
+    adicionar(
+      'agente',
+      `Coloquei no painel o cenário "${cenario.titulo}". Confira e clique em Simular campanha.`,
+    )
   }
 
   async function simular(): Promise<void> {
@@ -161,9 +206,13 @@ export const useChatStore = defineStore('chat', () => {
     const gen = geracao.value
     const regraEnviada = JSON.stringify(regra.value)
     try {
-      const { id, resultado } = await servicoCampanha.simular(chatId.value, regra.value, (etapa) => {
-        if (geracao.value === gen) etapaSimulacao.value = etapa
-      })
+      const { id, resultado } = await servicoCampanha.simular(
+        chatId.value,
+        regra.value,
+        (etapa) => {
+          if (geracao.value === gen) etapaSimulacao.value = etapa
+        },
+      )
       if (geracao.value !== gen) return
       simulacaoId.value = id
       regraSimulada.value = regraEnviada
@@ -187,16 +236,28 @@ export const useChatStore = defineStore('chat', () => {
    * Fora do orçamento também vai: quem decide é o supervisor (decisão do PO, 26/10).
    */
   async function enviarParaAprovacao(nome: string): Promise<void> {
-    if (!ETAPAS_DE_ENVIO.includes(etapaAprovacao.value) || ocupado.value || simulacaoId.value === null || !nome.trim()) {
+    if (
+      !ETAPAS_DE_ENVIO.includes(etapaAprovacao.value) ||
+      ocupado.value ||
+      simulacaoId.value === null ||
+      !nome.trim()
+    ) {
       return
     }
     erroEnvio.value = null
     enviandoAprovacao.value = true
     try {
-      campanha.value ??= await servicoCampanha.salvarCampanha(chatId.value, simulacaoId.value, nome.trim())
+      campanha.value ??= await servicoCampanha.salvarCampanha(
+        chatId.value,
+        simulacaoId.value,
+        nome.trim(),
+      )
       campanha.value = await servicoCampanha.submeter(campanha.value.id)
       enviadaParaAprovacao.value = true
-      adicionar('agente', `Enviei "${nome.trim()}" para aprovação. Ela aparece em Campanhas, na aba Aguardando Aprovação.`)
+      adicionar(
+        'agente',
+        `Enviei "${nome.trim()}" para aprovação. Ela aparece em Campanhas, na aba Aguardando Aprovação.`,
+      )
     } catch (erro) {
       const falha = descreverFalha(erro)
       erroEnvio.value = falha
@@ -305,7 +366,9 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  async function carregarUltimaSimulacaoSeHouver(id: number | null): Promise<UltimaSimulacao | null> {
+  async function carregarUltimaSimulacaoSeHouver(
+    id: number | null,
+  ): Promise<UltimaSimulacao | null> {
     if (id === null) return null
     const sim = await servicoCampanha.buscarSimulacao(id)
     const restaurada = extrairSimulacaoConcluida(sim)
@@ -369,17 +432,46 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   return {
-    geracao, dataInicio, erroEnvio, chatId, mensagens, regra, aguardandoLana, simulando, etapaSimulacao,
-    ocupado, camposVazios, podeSimular, etapaAprovacao, somenteLeitura, podeVoltarRascunho, editandoCampanha,
-    simulacoesCarregando, abertaPelaCampanha, campanha, ultimoResultado, simulacaoId, regraSimulada, cabeNoOrcamento,
-    enviar, atualizarParametro, aplicarCenario, simular, enviarParaAprovacao,
-    novaConversa, abrirCampanha, restaurarSessaoSeVazio, carregarResultadoSimulacao, editarCampanhaReprovada,
+    geracao,
+    dataInicio,
+    erroEnvio,
+    chatId,
+    mensagens,
+    regra,
+    aguardandoLana,
+    simulando,
+    etapaSimulacao,
+    ocupado,
+    camposVazios,
+    podeSimular,
+    etapaAprovacao,
+    somenteLeitura,
+    podeVoltarRascunho,
+    editandoCampanha,
+    simulacoesCarregando,
+    abertaPelaCampanha,
+    campanha,
+    ultimoResultado,
+    simulacaoId,
+    regraSimulada,
+    cabeNoOrcamento,
+    enviar,
+    atualizarParametro,
+    aplicarCenario,
+    simular,
+    enviarParaAprovacao,
+    novaConversa,
+    abrirCampanha,
+    restaurarSessaoSeVazio,
+    carregarResultadoSimulacao,
+    editarCampanhaReprovada,
   }
 })
 
 export function estaVazio(valor: ValorParametro): boolean {
   if (valor === null || valor === undefined) return true
   if (Array.isArray(valor)) return valor.length === 0
+  if (typeof valor === 'string') return valor === ''
   if (typeof valor === 'object') return !valor.data_inicio || !valor.data_fim
   return Number.isNaN(valor)
 }

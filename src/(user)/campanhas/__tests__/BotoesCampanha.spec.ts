@@ -8,17 +8,25 @@ describe('BotoesCampanha', () => {
       props: { acoes: ['RENOMEAR', 'SUBMETER', 'ARQUIVAR'], status: 'RASCUNHO', agindo: false },
     })
 
-    expect(wrapper.findAll('button').map((b) => b.text())).toEqual(['Renomear', 'Submeter para aprovação', 'Arquivar'])
+    expect(wrapper.findAll('button').map((b) => b.text())).toEqual([
+      'Renomear',
+      'Submeter para aprovação',
+      'Arquivar',
+    ])
   })
 
   it('sem `acoes` não mostra botão (só leitura)', () => {
-    const wrapper = mount(BotoesCampanha, { props: { acoes: [], status: 'AGUARDANDO_APROVACAO', agindo: false } })
+    const wrapper = mount(BotoesCampanha, {
+      props: { acoes: [], status: 'AGUARDANDO_APROVACAO', agindo: false },
+    })
 
     expect(wrapper.findAll('button')).toHaveLength(0)
   })
 
   it('emite a ação clicada', async () => {
-    const wrapper = mount(BotoesCampanha, { props: { acoes: ['EDITAR', 'ARQUIVAR'], status: 'REPROVADA', agindo: false } })
+    const wrapper = mount(BotoesCampanha, {
+      props: { acoes: ['EDITAR', 'ARQUIVAR'], status: 'REPROVADA', agindo: false },
+    })
 
     await wrapper.findAll('button')[0]!.trigger('click')
 
@@ -26,13 +34,17 @@ describe('BotoesCampanha', () => {
   })
 
   it('desativa os botões enquanto uma ação está em andamento', () => {
-    const wrapper = mount(BotoesCampanha, { props: { acoes: ['EDITAR'], status: 'REPROVADA', agindo: true } })
+    const wrapper = mount(BotoesCampanha, {
+      props: { acoes: ['EDITAR'], status: 'REPROVADA', agindo: true },
+    })
 
     expect(wrapper.find('button').attributes('disabled')).toBeDefined()
   })
 
   it('APROVADA mostra "Solicitar cancelamento", que não emite nada até o A6-88', async () => {
-    const wrapper = mount(BotoesCampanha, { props: { acoes: [], status: 'APROVADA', agindo: false } })
+    const wrapper = mount(BotoesCampanha, {
+      props: { acoes: [], status: 'APROVADA', agindo: false },
+    })
 
     await wrapper.find('button').trigger('click')
 

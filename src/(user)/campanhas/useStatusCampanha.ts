@@ -37,7 +37,10 @@ const DESCRICOES: Record<StatusCampanha, DescricaoStatus> = {
 }
 
 // A vigência vem do backend (contrato 5.2); a campanha FUTURA ainda não ganha etiqueta (card A6-67).
-const ETIQUETAS_DE_VIGENCIA: Record<NonNullable<CampanhaResumo['vigencia']>, EtiquetaVigencia | null> = {
+const ETIQUETAS_DE_VIGENCIA: Record<
+  NonNullable<CampanhaResumo['vigencia']>,
+  EtiquetaVigencia | null
+> = {
   FUTURA: null,
   VIGENTE: 'Vigente',
   ENCERRADA: 'Encerrada',
@@ -49,7 +52,9 @@ export function useStatusCampanha() {
   }
 
   /** Ex.: etiquetaVigencia({ status: 'APROVADA', vigencia: 'VIGENTE' }) -> 'Vigente' */
-  function etiquetaVigencia(campanha: Pick<CampanhaResumo, 'status' | 'vigencia'>): EtiquetaVigencia | null {
+  function etiquetaVigencia(
+    campanha: Pick<CampanhaResumo, 'status' | 'vigencia'>,
+  ): EtiquetaVigencia | null {
     if (campanha.status !== 'APROVADA' || campanha.vigencia === null) return null
     return ETIQUETAS_DE_VIGENCIA[campanha.vigencia]
   }

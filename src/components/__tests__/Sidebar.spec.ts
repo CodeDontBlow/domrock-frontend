@@ -123,6 +123,11 @@ describe('Sidebar.vue (Item 6 e 7)', () => {
     ['/configuracoes', 'Configurações', 'GERENTE'],
     ['/campanhas', 'Campanhas', 'GERENTE'],
     ['/campanha', 'Campanhas', 'SUPERVISOR'],
+    // Regressão: o detalhe aberto pela fila do Supervisor fica em /campanhas/:id.
+    ['/campanhas/12', 'Campanhas', 'SUPERVISOR'],
+    ['/importar/3', 'Importar base', 'SUPERVISOR'],
+    ['/auditoria/campanhas/7', 'Auditoria', 'AUDITOR'],
+    ['/admin', 'Usuários', 'ADMIN'],
   ])('marca "%s" como item ativo', async (path, label, perfil) => {
     localStorage.setItem('perfil', perfil)
     rotaAtual.path = path
@@ -151,5 +156,4 @@ describe('Sidebar.vue (Item 6 e 7)', () => {
 
     expect(wrapper.find('.menu-item.active').text()).toContain('Relatórios')
   })
-
 })

@@ -1,28 +1,28 @@
-export type Perfil = 'GERENTE' | 'SUPERVISOR' | 'ADMIN';
+export type Perfil = 'GERENTE' | 'SUPERVISOR' | 'ADMIN'
 
 export interface Usuario {
-  id: number;
-  nome: string;
-  email: string;
-  perfil: Perfil;
-  ativo: boolean;
+  id: number
+  nome: string
+  email: string
+  perfil: Perfil
+  ativo: boolean
 }
 
 export interface PostUsuarioDTO {
-    nome: string;
-    email: string;
-    senha: string;
-    perfil: Perfil;
+  nome: string
+  email: string
+  senha: string
+  perfil: Perfil
 }
 
-export interface PutUsuarioDTO{
-    nome: string;
-    email: string;
-    perfil: Perfil;
+export interface PutUsuarioDTO {
+  nome: string
+  email: string
+  perfil: Perfil
 }
 
 export interface ResumoUsuarios {
-  total: number;
-  ativos: number;
-  desativados: number;
+  total: number
+  ativos: number
+  desativados: number
 }

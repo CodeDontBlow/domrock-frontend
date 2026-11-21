@@ -17,7 +17,9 @@ const job = ref<JobImportacao | null>(null)
 const falhou = ref(false)
 
 const alerta = computed(() => (job.value ? alertaDoEnvio(job.value.status) : null))
-const podeEnviarDeNovo = computed(() => job.value?.status === 'PENDENTE' || job.value?.status === 'FALHA')
+const podeEnviarDeNovo = computed(
+  () => job.value?.status === 'PENDENTE' || job.value?.status === 'FALHA',
+)
 
 async function carregar(): Promise<void> {
   falhou.value = false
@@ -32,7 +34,9 @@ onMounted(carregar)
 </script>
 
 <template>
-  <div class="mx-auto flex w-full flex-col gap-[30px] px-4 py-10 font-raleway text-white-txt1 lg:px-32 lg:py-20">
+  <div
+    class="mx-auto flex w-full flex-col gap-[30px] px-4 py-10 font-raleway text-white-txt1 lg:px-32 lg:py-20"
+  >
     <header class="flex flex-col gap-3">
       <RouterLink
         :to="{ name: 'importar' }"
@@ -48,20 +52,31 @@ onMounted(carregar)
     </header>
 
     <div v-if="falhou" role="alert" class="flex flex-col items-start gap-3">
-      <p class="text-[16px] leading-5">Não foi possível abrir o relatório deste envio. Confira a conexão e tente de novo.</p>
+      <p class="text-[16px] leading-5">
+        Não foi possível abrir o relatório deste envio. Confira a conexão e tente de novo.
+      </p>
       <BotaoTexto variante="vazado" @click="carregar">Tentar de novo</BotaoTexto>
     </div>
     <p v-else-if="!job" class="font-label text-[14px] text-gray-txt2-dark">Carregando...</p>
 
     <template v-else>
-      <div v-if="alerta" role="alert" class="flex items-center gap-3 rounded-[3px] border border-red bg-black-bg2 px-4 py-3.5">
-        <i class="bi bi-exclamation-triangle-fill text-[18px] leading-none text-red" aria-hidden="true"></i>
+      <div
+        v-if="alerta"
+        role="alert"
+        class="flex items-center gap-3 rounded-[3px] border border-red bg-black-bg2 px-4 py-3.5"
+      >
+        <i
+          class="bi bi-exclamation-triangle-fill text-[18px] leading-none text-red"
+          aria-hidden="true"
+        ></i>
         <p class="flex-1 text-[16px] leading-5">{{ alerta }}</p>
       </div>
 
       <ResultadoImportacao :job="job">
         <template #acao>
-          <BotaoTexto v-if="podeEnviarDeNovo" @click="router.push({ name: 'importar' })">Enviar novamente</BotaoTexto>
+          <BotaoTexto v-if="podeEnviarDeNovo" @click="router.push({ name: 'importar' })"
+            >Enviar novamente</BotaoTexto
+          >
         </template>
       </ResultadoImportacao>
     </template>

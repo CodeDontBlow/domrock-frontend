@@ -12,7 +12,10 @@ const CORES: Record<Severidade, string> = {
 </script>
 
 <template>
-  <span class="inline-flex items-center rounded-[3px] border px-2 py-[3px] font-label text-[14px]" :class="CORES[props.severidade]">
+  <span
+    class="inline-flex items-center rounded-[3px] border px-2 py-[3px] font-label text-[14px]"
+    :class="CORES[props.severidade]"
+  >
     {{ props.severidade }}
   </span>
 </template>

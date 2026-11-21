@@ -16,8 +16,8 @@ defineProps<{
       <strong>{{ destaque || 'campanhas em vigência' }}</strong>
       atualmente, consulte a página
       <a :href="href || '/vigente'" class="aviso-link">
-        {{ textoLink || 'Vigente' }}
-      </a>.
+        {{ textoLink || 'Vigente' }} </a
+      >.
     </p>
   </div>
 </template>

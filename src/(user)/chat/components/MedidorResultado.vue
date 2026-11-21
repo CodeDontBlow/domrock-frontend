@@ -6,11 +6,18 @@ import type { MedidorResultado } from '../resultado'
 const props = defineProps<{ medidor: MedidorResultado; descricao: string }>()
 
 const largura = computed(() => `${props.medidor.proporcao * 100}%`)
-const posicaoMarca = computed(() => (props.medidor.marca === null ? null : `${props.medidor.marca * 100}%`))
+const posicaoMarca = computed(() =>
+  props.medidor.marca === null ? null : `${props.medidor.marca * 100}%`,
+)
 </script>
 
 <template>
-  <div class="medidor" :class="{ 'medidor--com-marca': posicaoMarca }" role="img" :aria-label="descricao">
+  <div
+    class="medidor"
+    :class="{ 'medidor--com-marca': posicaoMarca }"
+    role="img"
+    :aria-label="descricao"
+  >
     <div class="medidor-trilho">
       <div class="medidor-preenchido" :class="`tom--${medidor.tom}`" :style="{ width: largura }" />
     </div>

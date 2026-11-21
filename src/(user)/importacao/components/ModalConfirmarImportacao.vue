@@ -24,24 +24,44 @@ const aviso = computed(() =>
 </script>
 
 <template>
-  <JanelaModal titulo="Confirmar importação" icone="bi-cloud-arrow-up" cor-do-icone="azul" @fechar="emit('voltar')">
+  <JanelaModal
+    titulo="Confirmar importação"
+    icone="bi-cloud-arrow-up"
+    cor-do-icone="azul"
+    @fechar="emit('voltar')"
+  >
     <template #descricao>
-      <template v-if="soComissao">Confira se esta é a planilha de Comissão certa antes de enviar:</template>
-      <template v-else-if="props.lotes.length === 1">Confira se estas são as planilhas do mês certo antes de enviar:</template>
-      <template v-else>Confira os meses antes de enviar. Cada mês é um envio, um depois do outro:</template>
+      <template v-if="soComissao"
+        >Confira se esta é a planilha de Comissão certa antes de enviar:</template
+      >
+      <template v-else-if="props.lotes.length === 1"
+        >Confira se estas são as planilhas do mês certo antes de enviar:</template
+      >
+      <template v-else
+        >Confira os meses antes de enviar. Cada mês é um envio, um depois do outro:</template
+      >
     </template>
 
     <div class="flex max-h-[40vh] flex-col gap-4 overflow-y-auto">
-      <section v-for="lote in props.lotes" :key="lote.competencia ?? 'comissao'" class="flex flex-col gap-2.5">
+      <section
+        v-for="lote in props.lotes"
+        :key="lote.competencia ?? 'comissao'"
+        class="flex flex-col gap-2.5"
+      >
         <h4 v-if="props.lotes.length > 1" class="font-label text-[14px] text-gray-txt3-dark">
           {{ formatarCompetencia(lote.competencia) }}
         </h4>
-        <ArquivoItem v-for="arquivo in lote.arquivos" :key="arquivo.name" :nome="arquivo.name" :tamanho="arquivo.size" />
+        <ArquivoItem
+          v-for="arquivo in lote.arquivos"
+          :key="arquivo.name"
+          :nome="arquivo.name"
+          :tamanho="arquivo.size"
+        />
       </section>
     </div>
 
     <div class="flex flex-col gap-5">
-      <AlertaErro :mensagem="aviso" />
+      <AlertaErro tipo="aviso" :mensagem="aviso" />
       <div class="flex flex-col gap-[15px] sm:flex-row">
         <BotaoTexto variante="vazado" class="flex-1" @click="emit('voltar')">Voltar</BotaoTexto>
         <BotaoTexto class="flex-1" @click="emit('confirmar')">Importar</BotaoTexto>

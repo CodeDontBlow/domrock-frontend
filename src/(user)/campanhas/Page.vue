@@ -92,8 +92,12 @@ onMounted(() => store.listar())
             <td class="td">
               <EtiquetaStatus :status="c.status" :vigencia="etiquetaVigencia(c)" />
             </td>
-            <td class="td td--ocultar-mobile">{{ c.versao_atual === null ? '—' : `v${c.versao_atual}` }}</td>
-            <td class="td td--moeda td--ocultar-mobile-inline">{{ custoDaCampanha(c.custo_adicional) }}</td>
+            <td class="td td--ocultar-mobile">
+              {{ c.versao_atual === null ? '—' : `v${c.versao_atual}` }}
+            </td>
+            <td class="td td--moeda td--ocultar-mobile-inline">
+              {{ custoDaCampanha(c.custo_adicional) }}
+            </td>
             <td class="td td--ocultar-mobile">{{ diaDoInstante(c.atualizada_em) }}</td>
           </tr>
         </tbody>

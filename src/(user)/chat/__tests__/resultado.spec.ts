@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import {
-  diferencaParaMeta, medidorDaMeta, medidorDoOrcamento, numerosDaComissao, numerosDaMeta, seloDaMeta,
-  seloDoOrcamento, textoDiferencaMeta, vereditoDoOrcamento,
+  diferencaParaMeta,
+  medidorDaMeta,
+  medidorDoOrcamento,
+  numerosDaComissao,
+  numerosDaMeta,
+  seloDaMeta,
+  seloDoOrcamento,
+  textoCustoNaMeta,
+  textoDiferencaMeta,
+  tomCustoNaMeta,
+  vereditoDoOrcamento,
 } from '../resultado'
-import { resultadoBlackFriday, resultadoDoCriterio } from './fakes'
+import { resultadoBlackFriday, resultadoDoCriterio, simulacaoNaMetaFake } from './fakes'
 
 // Intl.NumberFormat separa "R$" do número com espaço não separável (U+00A0).
 const semNbsp = (texto: string) => texto.replace(/ /g, ' ')
@@ -39,7 +48,12 @@ describe('Bloco Meta', () => {
   })
 
   it('simulação anterior ao A6-72, sem `diferenca`, calcula a diferença pela venda e pela meta', () => {
-    const meta = { meta_vendas: 2_000_000, vendas_periodo: 2406125.93, pct_atingimento: 120.31, atingida: true }
+    const meta = {
+      meta_vendas: 2_000_000,
+      vendas_periodo: 2406125.93,
+      pct_atingimento: 120.31,
+      atingida: true,
+    }
 
     expect(diferencaParaMeta(meta)).toBe(406125.93)
   })
@@ -51,7 +65,11 @@ describe('Bloco Comissão', () => {
 
     const numeros = numerosDaComissao(totais, impacto)
 
-    expect(numeros.map((n) => n.rotulo)).toEqual(['Sem a campanha', 'Com a campanha', 'Recebem o acréscimo'])
+    expect(numeros.map((n) => n.rotulo)).toEqual([
+      'Sem a campanha',
+      'Com a campanha',
+      'Recebem o acréscimo',
+    ])
     expect(numeros[1]).toMatchObject({ apoio: '+4,94% na comissão', tomApoio: 'destaque' })
     expect(semNbsp(numeros[2]?.valor ?? '')).toBe('312 de 548 pessoas')
     expect(semNbsp(numeros[2]?.apoio ?? '')).toBe('média de R$ 76,08 cada')
@@ -64,7 +82,9 @@ describe('Bloco Orçamento', () => {
 
     expect(seloDoOrcamento(orcamento)).toEqual({ texto: 'Não cabe no orçamento', tom: 'negativo' })
     expect(medidorDoOrcamento(orcamento)).toEqual({ proporcao: 1, marca: null, tom: 'negativo' })
-    expect(semNbsp(vereditoDoOrcamento(orcamento))).toBe('Passa R$ 3.736,10 do orçamento de R$ 20.000,00.')
+    expect(semNbsp(vereditoDoOrcamento(orcamento))).toBe(
+      'Passa R$ 3.736,10 do orçamento de R$ 20.000,00.',
+    )
   })
 
   it('coube: selo verde e quanto sobra', () => {
@@ -72,5 +92,37 @@ describe('Bloco Orçamento', () => {
 
     expect(seloDoOrcamento(orcamento)).toEqual({ texto: 'Cabe no orçamento', tom: 'positivo' })
     expect(semNbsp(vereditoDoOrcamento(orcamento))).toContain('Sobram R$ 6.263,83')
+  })
+})
+
+describe('Linha de custo na meta (A6-93)', () => {
+  it('sem orçamento: mostra valores da meta e do custo sem menção a orçamento e tom neutro', () => {
+    const { meta } = resultadoDoCriterio('meta_3_milhoes')
+    const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: null })
+
+    expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34.',
+    )
+    expect(tomCustoNaMeta(naMeta)).toBeNull()
+  })
+
+  it('com orçamento que cabe: informa que cabe no orçamento e tom neutro', () => {
+    const { meta } = resultadoDoCriterio('meta_3_milhoes')
+    const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: true })
+
+    expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo cabe no orçamento.',
+    )
+    expect(tomCustoNaMeta(naMeta)).toBeNull()
+  })
+
+  it('com orçamento que não cabe: informa que passa do orçamento e tom de aviso', () => {
+    const { meta } = resultadoDoCriterio('meta_3_milhoes')
+    const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: false })
+
+    expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo passa do orçamento.',
+    )
+    expect(tomCustoNaMeta(naMeta)).toBe('aviso')
   })
 })

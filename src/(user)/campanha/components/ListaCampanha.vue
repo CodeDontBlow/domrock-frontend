@@ -13,7 +13,6 @@ export interface ListaCampanha {
 }
 
 defineProps<ListaCampanha>()
-
 </script>
 
 <template>

@@ -11,13 +11,10 @@ describe('EtiquetaStatus', () => {
     ['APROVADA', 'status--aprovada'],
     ['REPROVADA', 'status--reprovada'],
     ['ARQUIVADA', 'status--arquivada'],
-  ] as [StatusCampanha, string][])(
-    'status %s tem a classe CSS %s',
-    (status, classeEsperada) => {
-      const wrapper = mount(EtiquetaStatus, { props: { status } })
-      expect(wrapper.find(`.${classeEsperada}`).exists()).toBe(true)
-    },
-  )
+  ] as [StatusCampanha, string][])('status %s tem a classe CSS %s', (status, classeEsperada) => {
+    const wrapper = mount(EtiquetaStatus, { props: { status } })
+    expect(wrapper.find(`.${classeEsperada}`).exists()).toBe(true)
+  })
 
   it('APROVADA com vigência Vigente mostra etiqueta Vigente', () => {
     const wrapper = mount(EtiquetaStatus, {

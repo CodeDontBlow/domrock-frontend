@@ -2,7 +2,12 @@ import { AxiosError, AxiosHeaders } from 'axios'
 import { regraBlackFriday, resultadoBlackFriday } from '../../chat/__tests__/fakes'
 import type { AcaoSemCorpo, ServicoCampanhas } from '../../campanha/services/campanhas'
 import type {
-  CampanhaAprovada, CampanhaDetalhe, CampanhaResumo, FilaCampanha, StatusCampanha, VersaoCampanha,
+  CampanhaAprovada,
+  CampanhaDetalhe,
+  CampanhaResumo,
+  FilaCampanha,
+  StatusCampanha,
+  VersaoCampanha,
 } from '../../campanha/types'
 import type { SimulacaoConcluida } from '../../chat/types'
 
@@ -41,17 +46,19 @@ export function campanhaReprovada(sobrescrever: Partial<CampanhaDetalhe> = {}): 
       resultado: resultadoBlackFriday(),
       concluida_em: '2026-10-21T12:59:02Z',
     },
-    versoes: [{
-      numero: 1,
-      status: 'REPROVADA',
-      submetida_em: '2026-10-21T13:05:00Z',
-      decisao: {
-        decisao: 'REPROVADA',
-        por: { id: 2, nome: 'Sérgio' },
-        em: '2026-10-21T14:20:00Z',
-        justificativa: 'a meta de R$ 2 milhões está abaixo da venda real do período',
+    versoes: [
+      {
+        numero: 1,
+        status: 'REPROVADA',
+        submetida_em: '2026-10-21T13:05:00Z',
+        decisao: {
+          decisao: 'REPROVADA',
+          por: { id: 2, nome: 'Sérgio' },
+          em: '2026-10-21T14:20:00Z',
+          justificativa: 'a meta de R$ 2 milhões está abaixo da venda real do período',
+        },
       },
-    }],
+    ],
     criada_em: '2026-10-21T13:00:12Z',
     atualizada_em: '2026-10-21T14:20:00Z',
     ...sobrescrever,
@@ -61,7 +68,13 @@ export function campanhaReprovada(sobrescrever: Partial<CampanhaDetalhe> = {}): 
 /** Resposta de erro do backend no formato de "Formato de erro" do contrato. */
 export function erroDoBackend(status: number, message: string): AxiosError {
   const config = { headers: new AxiosHeaders() }
-  return new AxiosError('falhou', 'ERR', config, null, { status, statusText: '', data: { message }, headers: {}, config })
+  return new AxiosError('falhou', 'ERR', config, null, {
+    status,
+    statusText: '',
+    data: { message },
+    headers: {},
+    config,
+  })
 }
 
 /** Backend de campanhas em memória: guarda o que a tela pediu para os testes conferirem. */

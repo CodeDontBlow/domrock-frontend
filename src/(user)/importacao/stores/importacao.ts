@@ -2,7 +2,11 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { api } from '@/services/api'
 import { separarPorMes } from '../planilhas'
-import { criarServicoImportacao, descreverFalhaDoEnvio, type ServicoImportacao } from '../services/importacao'
+import {
+  criarServicoImportacao,
+  descreverFalhaDoEnvio,
+  type ServicoImportacao,
+} from '../services/importacao'
 import type { EnvioImportacao, JobImportacao, SituacaoJob } from '../types'
 
 /** NA_FILA espera o mês anterior; NAO_ENVIADO quando a fila parou antes de mandar o mês. */
@@ -65,7 +69,12 @@ export const useImportacaoStore = defineStore('importacao', () => {
   async function importar(): Promise<void> {
     if (!podeImportar.value) return
     const lotes = separacao.value.lotes
-    fila.value = lotes.map((l) => ({ competencia: l.competencia, arquivos: l.arquivos.map(resumir), situacao: 'NA_FILA', jobId: null }))
+    fila.value = lotes.map((l) => ({
+      competencia: l.competencia,
+      arquivos: l.arquivos.map(resumir),
+      situacao: 'NA_FILA',
+      jobId: null,
+    }))
     escolhidas.value = []
     await rodarFila(lotes.map((l) => l.arquivos))
   }
@@ -75,7 +84,8 @@ export const useImportacaoStore = defineStore('importacao', () => {
     enviando.value = true
     erroDaFila.value = null
     try {
-      for (const [indice, planilhas] of planilhasPorMes.entries()) await enviarMes(fila.value[indice]!, planilhas)
+      for (const [indice, planilhas] of planilhasPorMes.entries())
+        await enviarMes(fila.value[indice]!, planilhas)
     } catch (erro) {
       erroDaFila.value = descreverFalhaDoEnvio(erro)
       fila.value.filter((m) => m.jobId === null).forEach((m) => (m.situacao = 'NAO_ENVIADO'))
@@ -115,7 +125,14 @@ export const useImportacaoStore = defineStore('importacao', () => {
     await buscarHistorico()
     const emAndamento = historico.value.find((e) => e.status === 'PROCESSANDO')
     if (!emAndamento || enviando.value) return
-    fila.value = [{ competencia: emAndamento.competencia, arquivos: [], situacao: 'PROCESSANDO', jobId: emAndamento.id }]
+    fila.value = [
+      {
+        competencia: emAndamento.competencia,
+        arquivos: [],
+        situacao: 'PROCESSANDO',
+        jobId: emAndamento.id,
+      },
+    ]
     await rodarAcompanhamento(fila.value[0]!)
   }
 
@@ -134,7 +151,10 @@ export const useImportacaoStore = defineStore('importacao', () => {
    * Relatório de um envio (GET /api/importacao/{id}); se ainda processa, acompanha até terminar.
    * Ex.: await abrirRelatorio(6, (job) => (mostrado.value = job))
    */
-  async function abrirRelatorio(id: number, aoAtualizar: (job: JobImportacao) => void): Promise<JobImportacao> {
+  async function abrirRelatorio(
+    id: number,
+    aoAtualizar: (job: JobImportacao) => void,
+  ): Promise<JobImportacao> {
     const job = await servico.buscar(id)
     aoAtualizar(job)
     if (job.status !== 'PROCESSANDO') return job
@@ -149,7 +169,20 @@ export const useImportacaoStore = defineStore('importacao', () => {
   }
 
   return {
-    escolhidas, separacao, podeImportar, fila, enviando, erroDaFila, historico, carregandoHistorico,
-    falhaNoHistorico, escolher, remover, importar, carregarHistorico, abrirRelatorio, fecharFila,
+    escolhidas,
+    separacao,
+    podeImportar,
+    fila,
+    enviando,
+    erroDaFila,
+    historico,
+    carregandoHistorico,
+    falhaNoHistorico,
+    escolher,
+    remover,
+    importar,
+    carregarHistorico,
+    abrirRelatorio,
+    fecharFila,
   }
 })

@@ -81,7 +81,14 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 
 <template>
   <Teleport to="body">
-    <div v-if="aberto" class="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" @click.self="cancelar">
+    <div
+      v-if="aberto"
+      class="overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-titulo"
+      @click.self="cancelar"
+    >
       <div id="modal-renomear" class="modal">
         <h2 id="modal-titulo" class="modal-titulo">Renomear campanha</h2>
 

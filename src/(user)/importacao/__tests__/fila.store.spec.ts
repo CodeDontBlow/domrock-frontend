@@ -14,12 +14,18 @@ beforeEach(() => {
 
 function escolherDoisMeses(): void {
   useImportacaoStore().escolher([
-    planilha('BASE_VENDAS_AGO25.xlsx'), planilha('BASE RH_AGO25.xlsx'),
-    planilha('BASE RH_JUL25.xlsx'), planilha('BASE_VENDAS_JUL25.xlsx'), planilha('BASE_COMMISS_FINAL.xlsx'),
+    planilha('BASE_VENDAS_AGO25.xlsx'),
+    planilha('BASE RH_AGO25.xlsx'),
+    planilha('BASE RH_JUL25.xlsx'),
+    planilha('BASE_VENDAS_JUL25.xlsx'),
+    planilha('BASE_COMMISS_FINAL.xlsx'),
   ])
 }
 
-const roteiro = () => backend.pedidos.map((p) => `${p.metodo} ${p.url}${p.arquivos.length ? ` ${p.arquivos.join(' + ')}` : ''}`)
+const roteiro = () =>
+  backend.pedidos.map(
+    (p) => `${p.metodo} ${p.url}${p.arquivos.length ? ` ${p.arquivos.join(' + ')}` : ''}`,
+  )
 
 describe('fila de importação, um mês por vez', () => {
   it('envia cada mês só depois que o anterior termina, em ordem cronológica', async () => {
@@ -30,9 +36,12 @@ describe('fila de importação, um mês por vez', () => {
 
     expect(roteiro()).toEqual([
       'post /api/importacao BASE RH_JUL25.xlsx + BASE_VENDAS_JUL25.xlsx + BASE_COMMISS_FINAL.xlsx',
-      'get /api/importacao/1', 'get /api/importacao/1', 'get /api/importacao',
+      'get /api/importacao/1',
+      'get /api/importacao/1',
+      'get /api/importacao',
       'post /api/importacao BASE RH_AGO25.xlsx + BASE_VENDAS_AGO25.xlsx',
-      'get /api/importacao/2', 'get /api/importacao',
+      'get /api/importacao/2',
+      'get /api/importacao',
     ])
   })
 
@@ -58,7 +67,9 @@ describe('fila de importação, um mês por vez', () => {
     await store.importar()
 
     expect(store.fila.map((m) => m.situacao)).toEqual(['NAO_ENVIADO', 'NAO_ENVIADO'])
-    expect(store.erroDaFila).toBe('Já existe uma importação em andamento. Espere ela terminar para enviar outra.')
+    expect(store.erroDaFila).toBe(
+      'Já existe uma importação em andamento. Espere ela terminar para enviar outra.',
+    )
     expect(roteiro().filter((p) => p.startsWith('post'))).toHaveLength(1)
   })
 
@@ -106,7 +117,10 @@ describe('histórico e importação que já estava rodando', () => {
 
     expect(store.fila.map((m) => [m.situacao, m.jobId])).toEqual([['CONCLUIDO', 9]])
     expect(roteiro()).toEqual([
-      'get /api/importacao', 'get /api/importacao/9', 'get /api/importacao/9', 'get /api/importacao',
+      'get /api/importacao',
+      'get /api/importacao/9',
+      'get /api/importacao/9',
+      'get /api/importacao',
     ])
   })
 

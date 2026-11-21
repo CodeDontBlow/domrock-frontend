@@ -2,8 +2,9 @@
 import { computed, ref } from 'vue'
 import ParametroCampo from './ParametroCampo.vue'
 import { ROTULOS_CURTOS_PARAMETRO } from '../rotulos'
+import { parametroVisivel } from '../referencia'
 import { estaVazio } from '../stores/chat'
-import type { ParametroRegra, RegraCampanha, ValorParametro } from '../types'
+import type { ParametroRegra, Periodo, RegraCampanha, ValorParametro } from '../types'
 
 // Painel de simulação da campanha (tab-simulacao, nós 641:1848 e 641:1860; Leo, 28/10).
 // O cabeçalho passa a se chamar "Simulação" com botão X de fechar (28x28).
@@ -22,7 +23,15 @@ const emit = defineEmits<{
 }>()
 
 const comandoAberto = ref(false)
-const regras = computed(() => props.regra.parametros.filter((p) => p.categoria === 'REGRA'))
+// Mês de referência e % de crescimento só aparecem com o período futuro (ADR-006).
+const periodo = computed(
+  () => props.regra.parametros.find((p) => p.key === 'periodo')?.value as Periodo | null,
+)
+const regras = computed(() =>
+  props.regra.parametros.filter(
+    (p) => p.categoria === 'REGRA' && parametroVisivel(p, periodo.value),
+  ),
+)
 const limites = computed(() => props.regra.parametros.filter((p) => p.categoria === 'CONSTRAINT'))
 
 // Orçamento é opcional (A6-72): entra por "Adicionar orçamento" em Extras, como no Figma do time.
@@ -92,12 +101,27 @@ const aviso = computed<string>(() => {
 
     <div class="ficha-corpo">
       <div class="ficha-grupo" aria-label="Regra">
-        <ParametroCampo v-for="p in regras" :key="p.key" :parametro="p" @alterar="emit('alterar', p.key, $event)" />
+        <ParametroCampo
+          v-for="p in regras"
+          :key="p.key"
+          :parametro="p"
+          @alterar="emit('alterar', p.key, $event)"
+        />
       </div>
       <div class="ficha-grupo ficha-grupo--limites" aria-label="Limites">
-        <ParametroCampo v-for="p in obrigatorios" :key="p.key" :parametro="p" @alterar="emit('alterar', p.key, $event)" />
+        <ParametroCampo
+          v-for="p in obrigatorios"
+          :key="p.key"
+          :parametro="p"
+          @alterar="emit('alterar', p.key, $event)"
+        />
 
-        <div v-if="opcionais.length" class="ficha-extras" role="group" aria-labelledby="ficha-extras-titulo">
+        <div
+          v-if="opcionais.length"
+          class="ficha-extras"
+          role="group"
+          aria-labelledby="ficha-extras-titulo"
+        >
           <p id="ficha-extras-titulo" class="ficha-extras-titulo">Extras</p>
           <div class="ficha-extras-botoes">
             <button
@@ -125,12 +149,7 @@ const aviso = computed<string>(() => {
 
     <!-- Rodapé: botão "Simular Campanha" preso embaixo (641:1860) -->
     <footer class="ficha-rodape">
-      <button
-        type="button"
-        class="ficha-simular"
-        :disabled="!podeSimular"
-        @click="emit('simular')"
-      >
+      <button type="button" class="ficha-simular" :disabled="!podeSimular" @click="emit('simular')">
         {{ simulando ? 'Simulando…' : 'Simular Campanha' }}
       </button>
       <p v-if="pendentes > 0 || simulando" class="ficha-aviso" aria-live="polite">{{ aviso }}</p>
@@ -180,7 +199,9 @@ const aviso = computed<string>(() => {
   font-size: 16px;
   cursor: pointer;
   padding: 0;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .ficha-fechar:hover {
@@ -316,7 +337,9 @@ const aviso = computed<string>(() => {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.15s, opacity 0.15s;
+  transition:
+    background-color 0.15s,
+    opacity 0.15s;
 }
 
 .ficha-simular:hover:not(:disabled) {

@@ -5,6 +5,7 @@ import logo from '@/assets/logo.svg'
 import type { MenuItem, User } from '@/types/sidebar'
 
 import { encerrarSessao } from '@/services/auth'
+import { usePerfil } from '@/composables/usePerfil'
 import { useSeusChats } from '@/(user)/campanhas/useSeusChats'
 import { useChatStore } from '@/(user)/chat/stores/chat'
 
@@ -14,10 +15,8 @@ const route = useRoute()
 // Abaixo desta largura a barra começa recolhida e, aberta, fica por cima do conteúdo.
 const CONSULTA_CELULAR = '(max-width: 900px)'
 
-const profile = ref(localStorage.getItem("perfil") ?? '')
-const usuario = ref(
-  JSON.parse(localStorage.getItem('usuario') ?? 'null')
-)
+const { perfil: profile, ehAuditor } = usePerfil()
+const usuario = ref(JSON.parse(localStorage.getItem('usuario') ?? 'null'))
 const username = ref(usuario.value?.nome ?? 'Usuário')
 
 const isCollapsed = ref(false)
@@ -39,65 +38,75 @@ onMounted(() => {
   consultaCelular = window.matchMedia(CONSULTA_CELULAR)
   acompanharLargura(consultaCelular)
   consultaCelular.addEventListener('change', acompanharLargura)
-  if (profile.value !== 'ADMIN') carregarChats()
+  if (profile.value !== 'ADMIN' && !ehAuditor.value) carregarChats()
 })
 
 onBeforeUnmount(() => consultaCelular?.removeEventListener('change', acompanharLargura))
 
-const menuItems = computed<MenuItem[]> (() => {
-    if (profile.value === 'ADMIN') {
-      return [
-        { id: 'usuarios', label: 'Usuários', icon: 'bi bi-people', rota: '/admin' },
-      ]
-    }
-
+const menuItems = computed<MenuItem[]>(() => {
+  if (ehAuditor.value) {
     return [
-      //pluscircle  
-      { id: 'nova-campanha', label: 'Nova Campanha', icon: 'bi bi-plus-circle', rota: '/'},
-      //piggybank. Supervisor cai na fila de aprovação; Gerente, em "Minhas campanhas" (decisão do PO, 26/10).
-      { id: 'campanhas', label: 'Campanhas', icon: 'bi bi-piggy-bank', rota: profile.value === 'SUPERVISOR' ? '/campanha' : '/campanhas' },
-      //calendar4event
-      { id: 'vigente', label: 'Vigente', icon: 'bi bi-calendar4-event', rota: '/vigente' },
-      //clipboard
-      { id: 'relatorios', label: 'Relatórios', icon: 'bi bi-clipboard', rota: '/relatorios' },
-      //cloudarrowup: só o Supervisor importa a base do mês (A6-79)
-      ...(profile.value === 'SUPERVISOR'
-        ? [{ id: 'importar', label: 'Importar base', icon: 'bi bi-cloud-arrow-up', rota: '/importar' }]
-        : []),
-      //gear
-      { id: 'configuracoes', label: 'Configurações', icon: 'bi bi-gear', rota: '/configuracoes' }
+      { id: 'auditoria', label: 'Auditoria', icon: 'bi bi-journal-check', rota: '/auditoria' },
     ]
+  }
+
+  if (profile.value === 'ADMIN') {
+    return [{ id: 'usuarios', label: 'Usuários', icon: 'bi bi-people', rota: '/admin' }]
+  }
+
+  return [
+    //pluscircle
+    { id: 'nova-campanha', label: 'Nova Campanha', icon: 'bi bi-plus-circle', rota: '/' },
+    //piggybank. Supervisor cai na fila de aprovação; Gerente, em "Minhas campanhas" (decisão do PO, 26/10).
+    {
+      id: 'campanhas',
+      label: 'Campanhas',
+      icon: 'bi bi-piggy-bank',
+      rota: profile.value === 'SUPERVISOR' ? '/campanha' : '/campanhas',
+    },
+    //calendar4event
+    { id: 'vigente', label: 'Vigente', icon: 'bi bi-calendar4-event', rota: '/vigente' },
+    //clipboard
+    { id: 'relatorios', label: 'Relatórios', icon: 'bi bi-clipboard', rota: '/relatorios' },
+    //cloudarrowup: só o Supervisor importa a base do mês (A6-79)
+    ...(profile.value === 'SUPERVISOR'
+      ? [
+          {
+            id: 'importar',
+            label: 'Importar base',
+            icon: 'bi bi-cloud-arrow-up',
+            rota: '/importar',
+          },
+        ]
+      : []),
+    //gear
+    { id: 'configuracoes', label: 'Configurações', icon: 'bi bi-gear', rota: '/configuracoes' },
+  ]
 })
 
 const user = ref<User>({
   nome: username.value,
-  cargo: profile.value,
+  cargo: profile.value ?? '',
 })
 
+// Além da própria `rota`: o Supervisor entra pela fila (/campanha) e abre o detalhe em
+// /campanhas/:id, que continua sendo "Campanhas" (A6-123).
+const ROTAS_EXTRAS: Record<string, string[]> = { campanhas: ['/campanha', '/campanhas'] }
 
+function casaRota(path: string, rota: string): boolean {
+  if (rota === '/') return path === '/'
+  return path === rota || path.startsWith(`${rota}/`)
+}
+
+/** Item da rota atual, pelo prefixo mais longo, para valer também no F5 e no voltar (A6-123). */
 const activeItem = computed(() => {
-  const path = route.path
-
-  const item = [...menuItems.value]
-    .filter((menuItem) => {
-      if (!menuItem.rota) return false
-
-      if (menuItem.rota === '/') {
-        return path === '/'
-      }
-
-      return (
-        path === menuItem.rota ||
-        path.startsWith(`${menuItem.rota}/`)
-      )
-    })
-    .sort(
-      (a, b) =>
-        (b.rota?.length ?? 0) -
-        (a.rota?.length ?? 0)
-    )[0]
-
-  return item?.id ?? 'nova-campanha'
+  const candidatos = menuItems.value.flatMap((item) =>
+    [item.rota, ...(ROTAS_EXTRAS[item.id] ?? [])]
+      .filter((rota): rota is string => !!rota && casaRota(route.path, rota))
+      .map((rota) => ({ id: item.id, tamanho: rota.length })),
+  )
+  candidatos.sort((a, b) => b.tamanho - a.tamanho)
+  return candidatos[0]?.id ?? 'nova-campanha'
 })
 
 function navegarParaCampanha(id: number): void {
@@ -114,34 +123,38 @@ function selectItem(item: MenuItem): void {
 watch(
   () => route?.fullPath,
   () => {
-    if (profile.value !== 'ADMIN') carregarChats()
+    if (profile.value !== 'ADMIN' && !ehAuditor.value) carregarChats()
   },
 )
-
 </script>
 
 <template>
-  <div v-if="isMobile && !isCollapsed" class="sidebar-fundo" aria-hidden="true" @click="toggleSidebar" />
-  <aside 
+  <div
+    v-if="isMobile && !isCollapsed"
+    class="sidebar-fundo"
+    aria-hidden="true"
+    @click="toggleSidebar"
+  />
+  <aside
     class="sidebar"
     :class="{
       'sidebar--collapsed': isCollapsed,
       'sidebar--sobreposta': isMobile && !isCollapsed,
       'sidebar--flutuante': isMobile && isCollapsed,
-    }">
+    }"
+  >
     <div class="sidebar-header">
-      <span class="brand-name">
-        CAMP<strong class="brand-accent">LANA</strong>
-      </span>
+      <span class="brand-name"> CAMP<strong class="brand-accent">LANA</strong> </span>
 
       <img :src="logo" alt="Logo" class="logo" />
 
-      <button 
+      <button
         class="toggle-btn"
         type="button"
         aria-label="Alternar barra lateral"
         :aria-expanded="!isCollapsed"
-        @click="toggleSidebar">
+        @click="toggleSidebar"
+      >
         <i class="sidebar-icon bi bi-layout-sidebar"></i>
       </button>
     </div>
@@ -159,7 +172,7 @@ watch(
       </button>
     </nav>
 
-    <div v-if="chats.length > 0" class="sidebar-chats">
+    <div v-if="!ehAuditor && chats.length > 0" class="sidebar-chats">
       <div class="chats-header">
         <span class="chats-title">Seus Chats</span>
         <i class="chats-sort-icon bi bi-arrow-down-up"></i>
@@ -192,7 +205,6 @@ watch(
 </template>
 
 <style scoped>
-
 .logo {
   width: 32px;
   height: auto;
@@ -202,7 +214,7 @@ watch(
 
 .sidebar {
   border-right: 2px solid var(--color-black-bg2);
-  transition: 
+  transition:
     width 0.25s ease,
     flex-basis 0.25s ease,
     padding 0.25s ease;
@@ -215,7 +227,7 @@ watch(
   top: 0;
   align-self: flex-start;
   height: 100dvh;
-  background-color:var(--color-black-bg1);
+  background-color: var(--color-black-bg1);
   color: var(--color-white-txt1);
   padding: 16px;
   box-sizing: border-box;
@@ -292,7 +304,6 @@ watch(
   margin-bottom: 24px;
 }
 
-
 .toggle-btn {
   margin-left: auto;
   background: none;
@@ -365,7 +376,7 @@ watch(
 }
 
 .chat-date {
-  color: var(--color-gray-txt2 );
+  color: var(--color-gray-txt2);
   font-size: 11px;
 }
 
@@ -409,7 +420,7 @@ watch(
   cursor: pointer;
   transition: color ease-out 150ms;
 
-  &:hover{
+  &:hover {
     color: var(--color-red);
   }
 }

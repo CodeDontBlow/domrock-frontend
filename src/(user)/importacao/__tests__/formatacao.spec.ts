@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { formatarCompetencia, formatarDataHora, formatarHora, formatarTamanho, linhasGravadas } from '../formatacao'
+import {
+  formatarCompetencia,
+  formatarDataHora,
+  formatarHora,
+  formatarTamanho,
+  linhasGravadas,
+} from '../formatacao'
 
 const SAO_PAULO = 'America/Sao_Paulo'
 
@@ -27,8 +33,14 @@ describe('formatação da importação', () => {
   })
 
   it('linhas gravadas de quantas foram lidas; enquanto processa, traço', () => {
-    expect(linhasGravadas({ status: 'CONCLUIDO', linhas_importadas: 5462, total_linhas: 5468 })).toBe('5.462 de 5.468')
-    expect(linhasGravadas({ status: 'PENDENTE', linhas_importadas: 0, total_linhas: 5498 })).toBe('0 de 5.498')
-    expect(linhasGravadas({ status: 'PROCESSANDO', linhas_importadas: 0, total_linhas: 0 })).toBe('—')
+    expect(
+      linhasGravadas({ status: 'CONCLUIDO', linhas_importadas: 5462, total_linhas: 5468 }),
+    ).toBe('5.462 de 5.468')
+    expect(linhasGravadas({ status: 'PENDENTE', linhas_importadas: 0, total_linhas: 5498 })).toBe(
+      '0 de 5.498',
+    )
+    expect(linhasGravadas({ status: 'PROCESSANDO', linhas_importadas: 0, total_linhas: 0 })).toBe(
+      '—',
+    )
   })
 })

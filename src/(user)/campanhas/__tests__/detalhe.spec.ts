@@ -49,7 +49,10 @@ describe('Detalhe da campanha', () => {
 
   it('os botões são as `acoes` da campanha, e a ação devolve a campanha atualizada', async () => {
     const wrapper = await abrirDetalhe()
-    expect(wrapper.findAll('.header-acoes button').map((b) => b.text())).toEqual(['Editar', 'Arquivar'])
+    expect(wrapper.findAll('.header-acoes button').map((b) => b.text())).toEqual([
+      'Editar',
+      'Arquivar',
+    ])
 
     await botao(wrapper, 'Editar').trigger('click')
     await flushPromises()
@@ -60,14 +63,20 @@ describe('Detalhe da campanha', () => {
   })
 
   it('Renomear abre o modal com o nome atual e manda o novo pelo PUT', async () => {
-    servico.campanha = campanhaReprovada({ status: 'RASCUNHO', acoes: ['RENOMEAR', 'SUBMETER', 'ARQUIVAR'] })
+    servico.campanha = campanhaReprovada({
+      status: 'RASCUNHO',
+      acoes: ['RENOMEAR', 'SUBMETER', 'ARQUIVAR'],
+    })
     const wrapper = await abrirDetalhe()
 
     await botao(wrapper, 'Renomear').trigger('click')
     const campo = wrapper.find<HTMLInputElement>('#nome-campanha')
     expect(campo.element.value).toBe('Black Friday 2025')
     await campo.setValue('Black Friday 2025 - sem gerentes')
-    await wrapper.findAll('.modal-rodape button').find((b) => b.text() === 'Renomear')!.trigger('click')
+    await wrapper
+      .findAll('.modal-rodape button')
+      .find((b) => b.text() === 'Renomear')!
+      .trigger('click')
     await flushPromises()
 
     expect(servico.nomesPedidos).toEqual(['Black Friday 2025 - sem gerentes'])
@@ -87,7 +96,10 @@ describe('Detalhe da campanha', () => {
   it('aba Versões mostra a v1 reprovada com a justificativa', async () => {
     const wrapper = await abrirDetalhe()
 
-    await wrapper.findAll('.aba').find((a) => a.text() === 'Versões')!.trigger('click')
+    await wrapper
+      .findAll('.aba')
+      .find((a) => a.text() === 'Versões')!
+      .trigger('click')
 
     const linha = wrapper.find('.versoes-tabela tbody tr').text()
     expect(linha).toContain('v1')
@@ -98,24 +110,34 @@ describe('Detalhe da campanha', () => {
   it('aba Conversa reabre no chat a conversa da campanha (A6-92)', async () => {
     const wrapper = await abrirDetalhe()
 
-    await wrapper.findAll('.aba').find((a) => a.text() === 'Conversa')!.trigger('click')
+    await wrapper
+      .findAll('.aba')
+      .find((a) => a.text() === 'Conversa')!
+      .trigger('click')
 
-    expect(JSON.parse(wrapper.find('.link-conversa').attributes('data-to')!))
-      .toEqual({ name: 'chat', query: { campanha: 12 } })
+    expect(JSON.parse(wrapper.find('.link-conversa').attributes('data-to')!)).toEqual({
+      name: 'chat',
+      query: { campanha: 12 },
+    })
     expect(wrapper.find('.link-conversa').text()).toContain('Abrir a conversa no chat')
   })
 
   it('sem orçamento, a ficha mostra o custo e não mostra orçamento nem folga (A6-72)', async () => {
     servico.campanha = campanhaReprovada({
       ultima_simulacao: {
-        id: 345, regra: regraBlackFriday({ orcamento_limite: null }), resultado: resultadoDoCriterio('sem_orcamento'),
+        id: 345,
+        regra: regraBlackFriday({ orcamento_limite: null }),
+        resultado: resultadoDoCriterio('sem_orcamento'),
         concluida_em: '2026-10-21T12:59:02Z',
       },
     })
 
     const wrapper = await abrirDetalhe()
 
-    const resultado = wrapper.find('.resultado-grid').text().replace(/\u00a0/g, ' ')
+    const resultado = wrapper
+      .find('.resultado-grid')
+      .text()
+      .replace(/\u00a0/g, ' ')
     expect(resultado).toContain('R$ 23.736,10')
     expect(resultado).not.toContain('Orçamento limite')
     expect(resultado).not.toContain('Folga')
