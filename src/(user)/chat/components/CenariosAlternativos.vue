@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useId } from 'vue'
+import { usePerfil } from '@/composables/usePerfil'
 import { formatarMoeda, formatarPercentual } from '../formatacao'
 import type { CenarioAlternativo } from '../types'
+
+const { ehAuditor } = usePerfil()
 
 // Sem `titulo`, a lista entra direto num bloco que já tem título (o maior % que cabe, no Orçamento).
 defineProps<{ cenarios: CenarioAlternativo[]; titulo?: string }>()
@@ -44,6 +47,7 @@ function efeito(cenario: CenarioAlternativo): string {
         </div>
         <button
           type="button"
+          v-if="!ehAuditor"
           class="cenario-aplicar"
           :title="`Preencher o painel com: ${cenario.titulo}`"
           @click="emit('aplicar', cenario)"

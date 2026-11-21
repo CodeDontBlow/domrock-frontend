@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import SidebarLayout from '../layouts/SidebarLayout.vue'
-import HomeView from '../views/HomeView.vue'
+import AuditoriaPage from '../(user)/auditoria/Page.vue'
+import { lerPerfil, rotaInicial } from '@/composables/usePerfil'
 import ChatPage from '../(user)/chat/Page.vue'
 import LoginPage from '../(auth)/login/Page.vue'
 import AdminUsers from '../(admin)/users/Page.vue'
@@ -20,6 +21,18 @@ export const router = createRouter({
       path: '/',
       component: SidebarLayout,
       children: [
+        {
+          path: 'auditoria',
+          name: 'auditoria',
+          component: AuditoriaPage,
+          meta: { auditor: true },
+        },
+        {
+          path: 'auditoria/campanhas/:id',
+          name: 'auditoria-campanha',
+          component: AuditoriaPage,
+          meta: { auditor: true },
+        },
         {
           path: '',
           name: 'chat',
@@ -91,34 +104,19 @@ export const router = createRouter({
   ],
 })
 
-// NAVIGATION GUARDS
-router.beforeEach(async (to, from) => {
+// A proteção da API complementa estas regras de navegação.
+router.beforeEach((to) => {
   const token = localStorage.getItem('token')
-  const perfil = localStorage.getItem('perfil')
-
-  // Sem token, só pode ficar em login
-  if (!token && to.name !== 'login') {
-    return { name: 'login' }
-  }
-
-  // Com token, não pode ir para login
-  if (token && to.name === 'login') {
-    return { name: 'chat' }
-  }
-
-  // Sem ser admin, não pode ver rotas do admin
-  if (perfil !== 'ADMIN' && to.path.startsWith('/admin')) {
-    return { name: 'chat' }
-  }
-
-  // Importar a base do mês é só do Supervisor (A6-79); o backend também recusa os outros com 403.
-  if (perfil !== 'SUPERVISOR' && to.path.startsWith('/importar')) {
-    return { name: 'chat' }
-  }
-
-  if (perfil === 'ADMIN' && to.path === '/') {
-    return { name: 'admin' }
-  }
+  const perfil = lerPerfil()
+  if (!token && to.name !== 'login') return { name: 'login' }
+  if (!token) return
+  if (to.name === 'login') return { name: rotaInicial(perfil) }
+  if (perfil === 'AUDITOR' && !to.meta.auditor) return { name: 'auditoria' }
+  if (to.meta.auditor && perfil !== 'AUDITOR') return { name: rotaInicial(perfil) }
+  if (perfil !== 'ADMIN' && to.path.startsWith('/admin')) return { name: rotaInicial(perfil) }
+  if (perfil !== 'SUPERVISOR' && to.path.startsWith('/importar'))
+    return { name: rotaInicial(perfil) }
+  if (perfil === 'ADMIN' && to.path === '/') return { name: 'users' }
 })
 
 export default router

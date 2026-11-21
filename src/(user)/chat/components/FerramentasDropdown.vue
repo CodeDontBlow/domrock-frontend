@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { usePerfil } from '@/composables/usePerfil'
 import type { EventoAgente } from '../types'
 import TabelaDados from './TabelaDados.vue'
 
@@ -10,10 +11,7 @@ defineProps<{
 const aberto = ref(false)
 const ferramentasAbertas = ref<Record<number, boolean>>({})
 
-const isSupervisor = computed(() => {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem('perfil') === 'SUPERVISOR'
-})
+const { podeVerCodigoGerado } = usePerfil()
 
 function alternarFerramenta(index: number): void {
   ferramentasAbertas.value[index] = !ferramentasAbertas.value[index]
@@ -135,7 +133,7 @@ function formatarJson(dado: unknown): string {
           </div>
 
           <!-- Nome da ferramenta: visível SOMENTE para perfil SUPERVISOR -->
-          <div v-if="isSupervisor" class="flex items-center gap-2">
+          <div v-if="podeVerCodigoGerado" class="flex items-center gap-2">
             <p class="text-label text-gray-txt3-dark">Nome da ferramenta:</p>
             <code
               class="px-1.5 py-0.5 rounded bg-black-bg2 text-white-txt1 font-source-code-pro text-code"
@@ -170,7 +168,7 @@ function formatarJson(dado: unknown): string {
           </div>
 
           <!-- SQL Gerado: visível SOMENTE para perfil SUPERVISOR -->
-          <div v-if="isSupervisor && event.sql" class="flex flex-col gap-1">
+          <div v-if="podeVerCodigoGerado && event.sql" class="flex flex-col gap-1">
             <span class="text-label text-gray-txt3-dark">SQL gerado:</span>
             <pre
               class="p-2.5 rounded bg-black-bg2 font-source-code-pro text-code text-white-txt1 overflow-x-auto whitespace-pre-wrap max-h-48 overflow-y-auto"
