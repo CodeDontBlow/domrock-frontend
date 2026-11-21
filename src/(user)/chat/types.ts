@@ -156,6 +156,17 @@ export interface AtingimentoMeta {
   diferenca?: number
 }
 
+/** Custo da campanha se a venda do período chegar à meta (A6-93). */
+export interface SimulacaoNaMeta {
+  fator: number
+  vendas_na_meta: number
+  comissao_sem_campanha: number
+  comissao_com_campanha: number
+  custo_adicional: number
+  /** null quando a ficha não tem orçamento (A6-93). */
+  cabe_no_orcamento: boolean | null
+}
+
 export interface ResultadoSimulacao {
   comissao_periodo?: ComissaoNoTrecho[]
   conflitos?: ConflitoCampanha[]
@@ -178,6 +189,8 @@ export interface ResultadoSimulacao {
   explicacao: string
   observacao?: string
   trilha?: TrilhaChat | null
+  /** Ausente nas simulações anteriores ao A6-93; null quando a meta não passa da venda. */
+  na_meta?: SimulacaoNaMeta | null
 }
 
 export interface FalhaSimulacao {
