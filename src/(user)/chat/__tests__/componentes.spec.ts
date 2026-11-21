@@ -248,7 +248,7 @@ describe('ResultadoSimulacao (A6-72)', () => {
 
     const blocoMeta = bloco(wrapper, 'Meta')
     expect(texto(blocoMeta)).toContain(
-      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34. Esse custo passa do orçamento.',
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo passa do orçamento.',
     )
     const linhas = blocoMeta.findAll('.resultado-linha')
     expect(linhas).toHaveLength(2)
@@ -261,7 +261,7 @@ describe('ResultadoSimulacao (A6-72)', () => {
 
     const blocoMeta = bloco(wrapper, 'Meta')
     expect(texto(blocoMeta)).toContain(
-      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34. Esse custo cabe no orçamento.',
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo cabe no orçamento.',
     )
     const linhas = blocoMeta.findAll('.resultado-linha')
     expect(linhas).toHaveLength(2)

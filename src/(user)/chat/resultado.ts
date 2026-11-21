@@ -82,7 +82,7 @@ export function numerosDaMeta(meta: AtingimentoMeta): NumeroResultado[] {
 
 /** Linha explicativa do custo adicional caso a venda chegue à meta (A6-93). */
 export function textoCustoNaMeta(meta: AtingimentoMeta, naMeta: SimulacaoNaMeta): string {
-  const base = `Se a venda chegar à meta de ${formatarMoeda(meta.meta_vendas)}, o custo adicional sobe para ${formatarMoeda(naMeta.custo_adicional)}.`
+  const base = `Se a venda chegar à meta de ${formatarMoeda(meta.meta_vendas)}, o custo adicional fica em ${formatarMoeda(naMeta.custo_adicional)}.`
   if (naMeta.cabe_no_orcamento === true) {
     return `${base} Esse custo cabe no orçamento.`
   }

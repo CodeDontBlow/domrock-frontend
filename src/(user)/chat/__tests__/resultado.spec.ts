@@ -101,7 +101,7 @@ describe('Linha de custo na meta (A6-93)', () => {
     const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: null })
 
     expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
-      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34.',
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34.',
     )
     expect(tomCustoNaMeta(naMeta)).toBeNull()
   })
@@ -111,7 +111,7 @@ describe('Linha de custo na meta (A6-93)', () => {
     const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: true })
 
     expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
-      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34. Esse custo cabe no orçamento.',
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo cabe no orçamento.',
     )
     expect(tomCustoNaMeta(naMeta)).toBeNull()
   })
@@ -121,7 +121,7 @@ describe('Linha de custo na meta (A6-93)', () => {
     const naMeta = simulacaoNaMetaFake({ cabe_no_orcamento: false })
 
     expect(semNbsp(textoCustoNaMeta(meta, naMeta))).toBe(
-      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional sobe para R$ 29.512,34. Esse custo passa do orçamento.',
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo passa do orçamento.',
     )
     expect(tomCustoNaMeta(naMeta)).toBe('aviso')
   })
