@@ -10,9 +10,9 @@ import type { Periodo } from '../../types'
 const props = defineProps<{ modelValue: Periodo | null; faltando: boolean; idCampo: string }>()
 const emit = defineEmits<{ 'update:modelValue': [valor: Periodo] }>()
 
-// A base importada vai de julho a dezembro de 2025; fora disso não há o que simular.
+// A base importada começa em julho de 2025. Datas futuras são permitidas: a campanha futura é
+// calculada sobre um mês histórico de referência (ADR-006).
 const PRIMEIRO_DIA = new Date(2025, 6, 1)
-const ULTIMO_DIA = new Date(2025, 11, 31)
 const MESES = ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 const atalhos: PresetDate[] = [
@@ -58,7 +58,6 @@ function alterar(valor: string[] | null): void {
     :locale="ptBR"
     :formats="{ input: 'dd/MM/yyyy' }"
     :min-date="PRIMEIRO_DIA"
-    :max-date="ULTIMO_DIA"
     prevent-min-max-navigation
     :start-date="intervalo?.[0] ?? PRIMEIRO_DIA"
     :preset-dates="atalhos"

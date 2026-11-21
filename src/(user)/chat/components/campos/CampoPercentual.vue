@@ -4,16 +4,20 @@ import { lerDecimal } from '../../formatacao'
 
 // Acréscimo em pontos percentuais com botões de ±0,1, como os steppers de apps de investimento:
 // o ajuste fino mais comum é "um pouco menos" ou "um pouco mais", sem precisar digitar.
-const props = defineProps<{
-  modelValue: number | null
-  faltando: boolean
-  idCampo: string
-  rotulo: string
-}>()
+// `minimo`: o acréscimo começa em 0,01; o crescimento sobre a referência (ADR-006) aceita 0%.
+const props = withDefaults(
+  defineProps<{
+    modelValue: number | null
+    faltando: boolean
+    idCampo: string
+    rotulo: string
+    minimo?: number
+  }>(),
+  { minimo: 0.01 },
+)
 const emit = defineEmits<{ 'update:modelValue': [valor: number | null] }>()
 
 const PASSO = 0.1
-const MINIMO = 0.01
 const MAXIMO = 100
 const DECIMAL = new Intl.NumberFormat('pt-BR', {
   minimumFractionDigits: 2,
@@ -23,7 +27,7 @@ const DECIMAL = new Intl.NumberFormat('pt-BR', {
 const texto = computed(() => (props.modelValue === null ? '' : DECIMAL.format(props.modelValue)))
 
 function limitar(valor: number): number {
-  return Math.min(MAXIMO, Math.max(MINIMO, Math.round(valor * 100) / 100))
+  return Math.min(MAXIMO, Math.max(props.minimo, Math.round(valor * 100) / 100))
 }
 
 function passo(direcao: 1 | -1): void {
@@ -44,7 +48,7 @@ function confirmar(evento: Event): void {
       type="button"
       class="percentual-passo"
       :aria-label="`Diminuir ${rotulo} em 0,1 ponto`"
-      :disabled="modelValue !== null && modelValue <= MINIMO"
+      :disabled="modelValue !== null && modelValue <= minimo"
       @click="passo(-1)"
     >
       <i class="bi bi-dash" aria-hidden="true" />

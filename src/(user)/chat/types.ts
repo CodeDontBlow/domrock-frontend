@@ -2,7 +2,8 @@
 
 import type { StatusCampanha } from '../campanha/types'
 
-export type TipoParametro = 'date_range' | 'percentage' | 'multi_select' | 'currency'
+/** `month`: competência "YYYY-MM", como o mês de referência da campanha futura (ADR-006). */
+export type TipoParametro = 'date_range' | 'percentage' | 'multi_select' | 'currency' | 'month'
 
 export interface OpcaoParametro {
   id: string
@@ -14,7 +15,7 @@ export interface Periodo {
   data_fim: string | null
 }
 
-export type ValorParametro = Periodo | number | string[] | null
+export type ValorParametro = Periodo | number | string | string[] | null
 
 export interface ParametroRegra {
   key: string
