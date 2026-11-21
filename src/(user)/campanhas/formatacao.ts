@@ -36,15 +36,15 @@ export function custoDaCampanha(valor: number | null): string {
   return valor === null ? '—' : formatarMoeda(valor)
 }
 
-/**
- * Valor de um parâmetro da ficha (contrato 2.1) para leitura. Códigos viram o rótulo das `options`.
- * Ex.: marcas_alvo ['30'] com a opção { id: '30', label: 'AZUL' } -> 'AZUL'; meta_vendas 2000000 -> 'R$ 2.000.000,00'
- */
 /** Parâmetros da ficha para leitura: referência e crescimento só quando a campanha usou (ADR-006). */
 export function parametrosDaFicha(parametros: ParametroRegra[]): ParametroRegra[] {
   return parametros.filter((p) => !CHAVES_REFERENCIA.includes(p.key) || p.value !== null)
 }
 
+/**
+ * Valor de um parâmetro da ficha (contrato 2.1) para leitura. Códigos viram o rótulo das `options`.
+ * Ex.: marcas_alvo ['30'] com a opção { id: '30', label: 'AZUL' } -> 'AZUL'; meta_vendas 2000000 -> 'R$ 2.000.000,00'
+ */
 export function valorDoParametro(parametro: ParametroRegra): string {
   const { value, options, type } = parametro
   if (typeof value === 'number' && type === 'currency') return formatarMoeda(value)
