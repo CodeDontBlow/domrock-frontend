@@ -1,19 +1,66 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import type { Vigencia } from '../types'
+
+export interface Sobreposicao {
+  nome: string
+  descricao: string
+}
 
 export interface Tabela {
   id?: string | number
   titulo: string
   inicio: string
   fim: string
-  cargo?: string
-  marca?: string
+  autor: string
+  aprovador: string
+  vigencia: Vigencia | null
+  sobreposicoes: Sobreposicao[]
   percentual: string
 }
 
 const props = defineProps<{
   campanhas: Tabela[]
 }>()
+
+interface Aba {
+  vigencia: Vigencia
+  rotulo: string
+  legenda: string
+  vazia: string
+}
+
+const ABAS: Aba[] = [
+  {
+    vigencia: 'ENCERRADA',
+    rotulo: 'Realizadas',
+    legenda: 'Realizadas: o período da campanha já terminou.',
+    vazia: 'Nenhuma campanha aprovada com período encerrado.',
+  },
+  {
+    vigencia: 'VIGENTE',
+    rotulo: 'Em andamento',
+    legenda: 'Em andamento: o período da campanha inclui o dia de hoje.',
+    vazia: 'Nenhuma campanha aprovada em andamento hoje.',
+  },
+  {
+    vigencia: 'FUTURA',
+    rotulo: 'Previstas',
+    legenda: 'Previstas: o período da campanha ainda não começou.',
+    vazia: 'Nenhuma campanha aprovada com início futuro.',
+  },
+]
+
+const abaAtiva = ref<Vigencia>('VIGENTE')
+const aba = computed(() => ABAS.find((item) => item.vigencia === abaAtiva.value)!)
+
+function daAba(vigencia: Vigencia): Tabela[] {
+  return props.campanhas.filter((campanha) => campanha.vigencia === vigencia)
+}
+
+const contagem = computed(() =>
+  Object.fromEntries(ABAS.map((item) => [item.vigencia, daAba(item.vigencia).length])),
+)
 
 const emit = defineEmits<{
   selecionar: [campanha: Tabela]
@@ -55,7 +102,7 @@ function converterData(data: string): number {
 }
 
 const campanhasOrdenadas = computed(() => {
-  return [...props.campanhas].sort((a, b) => {
+  return daAba(abaAtiva.value).sort((a, b) => {
     const dataA = converterData(ordenarPor.value === 'inicio' ? a.inicio : a.fim)
 
     const dataB = converterData(ordenarPor.value === 'inicio' ? b.inicio : b.fim)
@@ -101,7 +148,7 @@ const paginasVisiveis = computed<(number | string)[]>(() => {
   return [1, '...', atual, '...', total]
 })
 
-watch([ordenarPor, ordem], () => {
+watch([ordenarPor, ordem, abaAtiva], () => {
   paginaAtual.value = 1
 })
 
@@ -133,7 +180,26 @@ function proximaPagina() {
 
 <template>
   <section class="campaign-section">
-    <div class="table-filters">
+    <div class="abas" role="tablist" aria-label="Campanhas aprovadas por vigência">
+      <button
+        v-for="item in ABAS"
+        :id="`aba-${item.vigencia}`"
+        :key="item.vigencia"
+        type="button"
+        role="tab"
+        class="aba"
+        :class="{ 'aba--ativa': abaAtiva === item.vigencia }"
+        :aria-selected="abaAtiva === item.vigencia"
+        aria-controls="painel-vigencia"
+        @click="abaAtiva = item.vigencia"
+      >
+        {{ item.rotulo }} <span class="aba-contagem">· {{ contagem[item.vigencia] }}</span>
+      </button>
+    </div>
+
+    <p class="legenda-aba">{{ aba.legenda }}</p>
+
+    <div v-if="campanhasOrdenadas.length > 0" class="table-filters">
       <div class="filter-group">
         <label for="ordenar-por">Ordenando por</label>
 
@@ -153,7 +219,12 @@ function proximaPagina() {
       </div>
     </div>
 
-    <div class="table-container">
+    <div
+      id="painel-vigencia"
+      class="table-container"
+      role="tabpanel"
+      :aria-labelledby="`aba-${abaAtiva}`"
+    >
       <table class="campaign-table">
         <thead>
           <tr>
@@ -167,34 +238,28 @@ function proximaPagina() {
             <th>
               <div class="th-content">
                 <i class="bi bi-calendar-event header-icon"></i>
-                <span>Data de Início</span>
+                <span>Período</span>
               </div>
             </th>
 
             <th>
               <div class="th-content">
-                <i class="bi bi-calendar-check header-icon"></i>
-                <span>Data de Término</span>
+                <i class="bi bi-person header-icon"></i>
+                <span>Autor</span>
               </div>
             </th>
 
             <th>
               <div class="th-content">
-                <i class="bi bi-person-badge header-icon"></i>
-                <span>Cargo</span>
-              </div>
-            </th>
-
-            <th>
-              <div class="th-content">
-                <i class="bi bi-badge-tm header-icon"></i>
-                <span>Marca</span>
+                <i class="bi bi-person-check header-icon"></i>
+                <span>Aprovada por</span>
               </div>
             </th>
 
             <th class="text-right">
               <div class="th-content justify-end">
                 <i class="bi bi-percent header-icon"></i>
+                <span>Acréscimo</span>
               </div>
             </th>
           </tr>
@@ -210,25 +275,26 @@ function proximaPagina() {
             @click="emit('selecionar', item)"
             @keydown.enter="emit('selecionar', item)"
           >
-            <td class="col-titulo" :title="item.titulo">
-              {{ item.titulo }}
+            <td class="col-titulo">
+              <div class="titulo-conteudo">
+                <span class="titulo-texto" :title="item.titulo">{{ item.titulo }}</span>
+                <span
+                  v-for="sobreposicao in item.sobreposicoes"
+                  :key="sobreposicao.nome"
+                  class="aviso-sobreposicao"
+                  :title="sobreposicao.descricao"
+                >
+                  <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                  Sobrepõe a {{ sobreposicao.nome }}
+                </span>
+              </div>
             </td>
 
-            <td class="col-data">
-              {{ item.inicio }}
-            </td>
+            <td class="col-data">{{ item.inicio }} – {{ item.fim }}</td>
 
-            <td class="col-data">
-              {{ item.fim }}
-            </td>
+            <td class="col-pessoa" :title="item.autor">{{ item.autor }}</td>
 
-            <td class="col-cargo" :title="item.cargo || 'Todos'">
-              {{ item.cargo || 'Todos' }}
-            </td>
-
-            <td class="col-marca" :title="item.marca || 'Todos'">
-              {{ item.marca || 'Todos' }}
-            </td>
+            <td class="col-pessoa" :title="item.aprovador">{{ item.aprovador }}</td>
 
             <td class="col-percentual text-right">
               {{ item.percentual }}
@@ -236,11 +302,16 @@ function proximaPagina() {
           </tr>
 
           <tr v-if="campanhasOrdenadas.length === 0">
-            <td colspan="6" class="empty-state">Nenhuma campanha encontrada.</td>
+            <td colspan="5" class="empty-state">{{ aba.vazia }}</td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <p v-if="campanhasOrdenadas.length > 0" class="rodape-tabela">
+      Visualizando {{ campanhasOrdenadas.length }}
+      {{ campanhasOrdenadas.length === 1 ? 'campanha' : 'campanhas' }}
+    </p>
 
     <nav v-if="totalPaginas > 1" class="pagination" aria-label="Paginação das campanhas">
       <button
@@ -403,8 +474,7 @@ function proximaPagina() {
 
 .col-titulo,
 .col-data,
-.col-cargo,
-.col-marca,
+.col-pessoa,
 .col-percentual {
   color: var(--color-gray-txt2-dark);
   font-family: var(--font-inconsolata);
@@ -416,9 +486,81 @@ function proximaPagina() {
   min-width: 115px;
 }
 
-.col-cargo,
-.col-marca {
-  max-width: 150px;
+.col-pessoa {
+  max-width: 180px;
+}
+
+.titulo-conteudo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.titulo-texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aviso-sobreposicao {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-yellow) 14%, transparent);
+  color: var(--color-yellow);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-gray-txt3-dark);
+}
+
+.aba {
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-gray-txt2-dark);
+  font-family: var(--font-raleway);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.aba:hover,
+.aba:focus-visible {
+  color: var(--color-white-txt1);
+}
+
+.aba--ativa {
+  border-bottom-color: var(--color-blue);
+  color: var(--color-white-txt1);
+  font-weight: 700;
+}
+
+.aba-contagem {
+  font-family: var(--font-inconsolata);
+  font-weight: 400;
+}
+
+.legenda-aba,
+.rodape-tabela {
+  margin: 0 0 12px;
+  color: var(--color-gray-txt2-dark);
+  font-family: var(--font-inconsolata);
+  font-size: var(--text-label);
+}
+
+.rodape-tabela {
+  margin: 12px 0 0;
 }
 
 .text-right {

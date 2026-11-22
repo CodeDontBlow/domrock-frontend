@@ -8,8 +8,7 @@ import AdminUsers from '../(admin)/users/Page.vue'
 import CampanhaPage from '../(user)/campanha/Page.vue'
 import CampanhasPage from '../(user)/campanhas/Page.vue'
 import CampanhaDetalhePage from '../(user)/campanhas/[id]/Page.vue'
-import VigentePage from '../(user)/vigente/Page.vue'
-import RelatoriosPage from '../(user)/relatorios/Page.vue'
+import SolicitacoesPage from '../(user)/solicitacoes/Page.vue'
 import ConfiguracoesPage from '../(user)/configuracoes/Page.vue'
 import ImportacaoPage from '../(user)/importacao/Page.vue'
 import RelatorioImportacaoPage from '../(user)/importacao/relatorio/Page.vue'
@@ -54,14 +53,9 @@ export const router = createRouter({
           component: CampanhaDetalhePage,
         },
         {
-          path: 'vigente',
-          name: 'vigente',
-          component: VigentePage,
-        },
-        {
-          path: 'relatorios',
-          name: 'relatorios',
-          component: RelatoriosPage,
+          path: 'solicitacoes',
+          name: 'solicitacoes',
+          component: SolicitacoesPage,
         },
         {
           path: 'configuracoes',

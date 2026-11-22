@@ -11,13 +11,11 @@ defineProps<{
   <div class="aviso-campanhas" role="note">
     <i class="bi bi-exclamation-triangle aviso-icone"></i>
 
-    <p class="aviso-texto">
-      {{ mensagem || 'Para acompanhar quais são as' }}
-      <strong>{{ destaque || 'campanhas em vigência' }}</strong>
-      atualmente, consulte a página
-      <a :href="href || '/vigente'" class="aviso-link">
-        {{ textoLink || 'Vigente' }} </a
-      >.
+   <p class="aviso-texto">
+      {{ mensagem || 'Apenas' }}
+      <strong>{{ destaque || 'campanhas aprovadas' }}</strong>
+      entram nas abas Realizadas, Em andamento e Previstas.  
+      
     </p>
   </div>
 </template>

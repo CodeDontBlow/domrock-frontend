@@ -1,5 +1,5 @@
-import { formatarMoeda, formatarPercentual } from '../chat/formatacao'
-import { NOMES_CARGO, NOMES_MARCA } from '../chat/rotulos'
+import { formatarMoeda, formatarPercentual, formatarTrecho } from '../chat/formatacao'
+import { NOMES_CARGO, NOMES_MARCA, statusLegivelConflito } from '../chat/rotulos'
 import type { Periodo, RegraCampanha } from '../chat/types'
 import type { ListaCampanha } from './components/ListaCampanha.vue'
 import type { Tabela } from './components/TabelaCampanhas.vue'
@@ -185,18 +185,22 @@ function dataCompleta(iso: string): string {
   return `${dia}/${mes}/${ano}`
 }
 
-/** Linha de "Campanhas Passadas". Ex.: as seis marcas -> "Todas"; cargos ["100", "150"] -> "Vendedor loja, Gerente" */
 export function linhaAprovada(item: CampanhaAprovada): Tabela {
-  const todasAsMarcas = item.marcas.length === QUANTIDADE_DE_MARCAS
   return {
     id: item.id,
     titulo: item.nome,
     inicio: dataCompleta(item.periodo.data_inicio),
     fim: dataCompleta(item.periodo.data_fim),
-    cargo: item.cargos.map((codigo) => NOMES_CARGO[codigo] ?? codigo).join(', ') || undefined,
-    marca: todasAsMarcas
-      ? 'Todas'
-      : item.marcas.map((codigo) => NOMES_MARCA[codigo] ?? codigo).join(', ') || undefined,
+    autor: item.autor.nome ?? '—',
+    aprovador: item.aprovador?.nome ?? '—',
+    vigencia: item.vigencia,
+    sobreposicoes: (item.conflitos ?? []).map((conflito) => ({
+      nome: conflito.nome,
+      descricao: `Sobrepõe a ${conflito.nome} (${statusLegivelConflito(conflito.status)}) em ${formatarTrecho(
+        conflito.sobreposicao.data_inicio,
+        conflito.sobreposicao.data_fim,
+      )}`,
+    })),
     percentual: item.pct_acrescimo === null ? '—' : `+${formatarPercentual(item.pct_acrescimo)}`,
   }
 }
