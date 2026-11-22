@@ -117,8 +117,7 @@ describe('Sidebar.vue (Item 6 e 7)', () => {
   })
 
   it.each([
-    ['/vigente', 'Vigente', 'GERENTE'],
-    ['/relatorios', 'Relatórios', 'GERENTE'],
+    ['/solicitacoes', 'Solicitações', 'GERENTE'],
     ['/importar', 'Importar base', 'SUPERVISOR'],
     ['/configuracoes', 'Configurações', 'GERENTE'],
     ['/campanhas', 'Campanhas', 'GERENTE'],
@@ -144,16 +143,16 @@ describe('Sidebar.vue (Item 6 e 7)', () => {
 
     const wrapper = mount(Sidebar)
 
-    rotaAtual.path = '/vigente'
-    rotaAtual.fullPath = '/vigente'
+    rotaAtual.path = '/solicitacoes'
+    rotaAtual.fullPath = '/solicitacoes'
     await nextTick()
 
-    expect(wrapper.find('.menu-item.active').text()).toContain('Vigente')
+    expect(wrapper.find('.menu-item.active').text()).toContain('Solicitações')
 
-    rotaAtual.path = '/relatorios'
-    rotaAtual.fullPath = '/relatorios'
+    rotaAtual.path = '/configuracoes'
+    rotaAtual.fullPath = '/configuracoes'
     await nextTick()
 
-    expect(wrapper.find('.menu-item.active').text()).toContain('Relatórios')
+    expect(wrapper.find('.menu-item.active').text()).toContain('Configurações')
   })
 })
