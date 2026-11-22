@@ -64,6 +64,7 @@ function cartaoBase(
     detalhe: campos.versao === null ? 'indisponivel' : 'carregando',
     // Vêm da versão (eventos de RH e conflitos reais); até ela carregar, o bloco fica escondido.
     interferencias: [],
+    alertasAbertos: [],
   }
 }
 
@@ -164,6 +165,7 @@ export function comVersao(cartao: CampanhaAprovacao, versao: VersaoCampanha): Ca
     custoResimulado: versao.resimulacao
       ? formatarMoeda(versao.resimulacao.resultado.totais.diferenca)
       : null,
+    alertasAbertos: (versao.alertas ?? []).filter((alerta) => alerta.status === 'ABERTO'),
   }
 }
 

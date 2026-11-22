@@ -182,6 +182,54 @@ describe('montagem dos cards de aprovação', () => {
       'Campanha: Semana do Vendedor (aprovada), 20/11 a 28/11',
     ])
   })
+
+  it('mapeia apenas alertas com status ABERTO em alertasAbertos da campanha', () => {
+    const versao = {
+      campanha_id: 7,
+      numero: 1,
+      status: 'AGUARDANDO_APROVACAO',
+      autor: { id: 1, nome: 'Gabriela' },
+      submetida_em: '2026-11-16T15:00:00Z',
+      simulacao_id: 3,
+      resimulacao_necessaria: false,
+      decisao: null,
+      regra: regraBlackFriday(),
+      resultado: resultadoBlackFriday(),
+      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'],
+      aprovadas_depois: [],
+      resimulacao: null,
+      alertas: [
+        {
+          id: 1,
+          origem: 'AUTOMATICO',
+          tipo: 'SQL_BLOQUEADO',
+          descricao: 'Consulta bloqueada',
+          status: 'ABERTO',
+          aberto_por: 'Sistema',
+          aberto_em: '2026-11-16T15:05:00Z',
+          resolvido_por: null,
+          resolvido_em: null,
+          justificativa: null,
+        },
+        {
+          id: 2,
+          origem: 'MANUAL',
+          tipo: 'REVISAO',
+          descricao: 'Já analisado',
+          status: 'RESOLVIDO',
+          aberto_por: { id: 4, nome: 'Aline' },
+          aberto_em: '2026-11-16T15:06:00Z',
+          resolvido_por: { id: 4, nome: 'Aline' },
+          resolvido_em: '2026-11-16T15:10:00Z',
+          justificativa: 'Conferido',
+        },
+      ],
+    } satisfies VersaoCampanha
+
+    const cartao = comVersao(cartaoDaFila(itemDaFila()), versao)
+    expect(cartao.alertasAbertos).toHaveLength(1)
+    expect(cartao.alertasAbertos?.[0]?.id).toBe(1)
+  })
 })
 
 describe('linhaAprovada (Campanhas Passadas)', () => {

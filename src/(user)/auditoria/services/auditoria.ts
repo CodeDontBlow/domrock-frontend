@@ -2,9 +2,8 @@ import type { AxiosInstance } from 'axios'
 import { api } from '@/services/api'
 import { criarServicoCampanhas } from '../../campanha/services/campanhas'
 import type { ConversaGravada } from '../../chat/types'
-import type { CampanhaAuditoria, CorrecaoAuditoria } from '../types'
+import type { AlertaTecnico, CampanhaAuditoria, CorrecaoAuditoria } from '../types'
 
-/** Somente consultas. O frontend não altera campanhas nem o estado do chat nesta tela. */
 export function criarServicoAuditoria(http: AxiosInstance) {
   const campanhas = criarServicoCampanhas(http)
   return {
@@ -23,6 +22,35 @@ export function criarServicoAuditoria(http: AxiosInstance) {
     // Listagem global exclusiva do Auditor, documentada em docs/auditoria.md.
     async correcoes(): Promise<CorrecaoAuditoria[]> {
       const { data } = await http.get<CorrecaoAuditoria[]>('/api/correcoes/auditoria')
+      return data
+    },
+    async listarAlertas(campanhaId: number, numeroVersao: number): Promise<AlertaTecnico[]> {
+      const { data } = await http.get<AlertaTecnico[]>(
+        `/api/campanhas/${campanhaId}/versoes/${numeroVersao}/alertas`,
+      )
+      return data
+    },
+    async abrirAlerta(
+      campanhaId: number,
+      numeroVersao: number,
+      descricao: string,
+    ): Promise<AlertaTecnico> {
+      const { data } = await http.post<AlertaTecnico>(
+        `/api/campanhas/${campanhaId}/versoes/${numeroVersao}/alertas`,
+        { descricao },
+      )
+      return data
+    },
+    async resolverAlerta(
+      campanhaId: number,
+      numeroVersao: number,
+      alertaId: number,
+      justificativa: string,
+    ): Promise<AlertaTecnico> {
+      const { data } = await http.post<AlertaTecnico>(
+        `/api/campanhas/${campanhaId}/versoes/${numeroVersao}/alertas/${alertaId}/resolver`,
+        { justificativa },
+      )
       return data
     },
   }
