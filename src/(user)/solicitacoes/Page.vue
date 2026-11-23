@@ -2,6 +2,6 @@
 
 <template>
   <section>
-    <h1>Vigente</h1>
+    <h1>Solicitações</h1>
   </section>
 </template>

@@ -65,10 +65,8 @@ const menuItems = computed<MenuItem[]>(() => {
       rota: profile.value === 'SUPERVISOR' ? '/campanha' : '/campanhas',
     },
     //calendar4event
-    { id: 'vigente', label: 'Vigente', icon: 'bi bi-calendar4-event', rota: '/vigente' },
-    //clipboard
-    { id: 'relatorios', label: 'Relatórios', icon: 'bi bi-clipboard', rota: '/relatorios' },
-    //cloudarrowup: só o Supervisor importa a base do mês (A6-79)
+    { id: 'solicitacoes', label: 'Solicitações', icon: 'bi bi-calendar4-event', rota: '/solicitacoes' },
+    //cloudarrowup: só o Supervisor importa a base do mês
     ...(profile.value === 'SUPERVISOR'
       ? [
           {

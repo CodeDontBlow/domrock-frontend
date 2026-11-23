@@ -184,12 +184,13 @@ describe('montagem dos cards de aprovação', () => {
   })
 })
 
-describe('linhaAprovada (Campanhas Passadas)', () => {
+describe('linhaAprovada (Campanhas aprovadas)', () => {
   const aprovada: CampanhaAprovada = {
     id: 1,
     nome: 'Natal',
     versao: 1,
     autor: { id: 1, nome: 'Gabriela' },
+    aprovador: { id: 2, nome: 'Sérgio' },
     periodo: { data_inicio: '2025-12-01', data_fim: '2025-12-24' },
     vigencia: 'ENCERRADA',
     pct_acrescimo: 1.5,
@@ -198,24 +199,55 @@ describe('linhaAprovada (Campanhas Passadas)', () => {
     custo_adicional: 30674.22,
     submetida_em: '2026-10-25T13:21:33Z',
     simulacao_id: 23,
+    conflitos: [],
   }
 
-  it('mostra datas completas, nomes de marca e cargo e o acréscimo', () => {
+  it('mostra datas completas, autor, aprovador, a vigência do servidor e o acréscimo', () => {
     expect(linhaAprovada(aprovada)).toEqual({
       id: 1,
       titulo: 'Natal',
       inicio: '01/12/2025',
       fim: '24/12/2025',
-      cargo: 'Vendedor loja, Gerente',
-      marca: 'Preto, Branco',
+      autor: 'Gabriela',
+      aprovador: 'Sérgio',
+      vigencia: 'ENCERRADA',
+      sobreposicoes: [],
       percentual: '+1,5%',
     })
   })
 
-  it('as seis marcas viram "Todas"', () => {
-    const linha = linhaAprovada({ ...aprovada, marcas: ['10', '20', '30', '40', '50', '60'] })
+  it('repassa a vigência do servidor sem olhar a data do navegador', () => {
+    // Período já passado no calendário local, mas o servidor disse FUTURA: vale o servidor.
+    expect(linhaAprovada({ ...aprovada, vigencia: 'FUTURA' }).vigencia).toBe('FUTURA')
+  })
 
-    expect(linha.marca).toBe('Todas')
+  it('sem aprovador conhecido mostra travessão', () => {
+    expect(linhaAprovada({ ...aprovada, aprovador: null }).aprovador).toBe('—')
+  })
+
+  it('cada conflito da simulação vira um aviso de sobreposição', () => {
+    const linha = linhaAprovada({
+      ...aprovada,
+      conflitos: [
+        {
+          campanha_id: 7,
+          versao: 1,
+          tipo: 'ACRESCIMO',
+          nome: 'Esquenta Black Friday',
+          status: 'APROVADA',
+          autor: 'Roberval',
+          data_inicio: '2025-11-20',
+          data_fim: '2025-12-05',
+          sobreposicao: { data_inicio: '2025-12-01', data_fim: '2025-12-05' },
+          marcas: ['10'],
+          cargos: ['100'],
+        },
+      ],
+    })
+
+    expect(linha.sobreposicoes).toHaveLength(1)
+    expect(linha.sobreposicoes[0]!.nome).toBe('Esquenta Black Friday')
+    expect(linha.sobreposicoes[0]!.descricao).toMatch(/^Sobrepõe a Esquenta Black Friday \(.+\) em 01 a 05\/12$/)
   })
 })
 
@@ -226,6 +258,7 @@ describe('detalheAprovada (modal de Campanhas Passadas)', () => {
       nome: 'Natal',
       versao: 1,
       autor: { id: 1, nome: 'Gabriela' },
+      aprovador: { id: 2, nome: 'Sérgio' },
       periodo: { data_inicio: '2025-12-01', data_fim: '2025-12-24' },
       vigencia: 'ENCERRADA',
       pct_acrescimo: 1.5,
@@ -234,6 +267,7 @@ describe('detalheAprovada (modal de Campanhas Passadas)', () => {
       custo_adicional: 30674.22,
       submetida_em: '2026-10-25T13:21:33Z',
       simulacao_id: 23,
+      conflitos: [],
     })
 
     expect(detalhe).toMatchObject({
