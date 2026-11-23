@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import type { CampanhaDetalhe, VersaoCampanha } from '../../campanha/types'
+import { usePerfil } from '@/composables/usePerfil'
+import type { AlertaTecnico, CampanhaDetalhe, VersaoCampanha } from '../../campanha/types'
 import type { MensagemGravada } from '../../chat/types'
 import { converterHistorico, acharUltimaRegraLana } from '../../chat/reabrir'
 import { formatarDataHoraCurta } from '../../chat/formatacao'
@@ -11,8 +12,10 @@ import SpeechBubble from '../../chat/components/SpeechBubble.vue'
 import FerramentasDropdown from '../../chat/components/FerramentasDropdown.vue'
 import { obterServicoAuditoria } from '../services/auditoria'
 import { diferencasEntreVersoes, erroConsulta } from '../formatacao'
+import AbaTecnica from './AbaTecnica.vue'
 
 const servicoAuditoria = obterServicoAuditoria()
+const { podeVerCodigoGerado } = usePerfil()
 
 const props = defineProps<{ id: number }>()
 const campanha = ref<CampanhaDetalhe | null>(null)
@@ -24,7 +27,7 @@ const carregandoConversa = ref(false)
 const erro = ref('')
 const erroVersoes = ref('')
 const erroConversa = ref('')
-const aba = ref<'versoes' | 'decisoes' | 'conversa'>('versoes')
+const aba = ref<'versoes' | 'decisoes' | 'conversa' | 'tecnica'>('versoes')
 const selecionada = ref<number | null>(null)
 const comparar = ref<number | null>(null)
 const versao = computed(() => versoes.value.find((v) => v.numero === selecionada.value))
@@ -55,6 +58,13 @@ watch(selecionada, (numero) => {
   const anteriores = versoes.value.filter((v) => numero !== null && v.numero < numero)
   comparar.value = anteriores[anteriores.length - 1]?.numero ?? null
 })
+watch(podeVerCodigoGerado, (pode) => {
+  if (!pode && aba.value === 'tecnica') aba.value = 'versoes'
+})
+function atualizarAlertasVersao(numeroVersao: number, lista: AlertaTecnico[]) {
+  const alvo = versoes.value.find((v) => v.numero === numeroVersao)
+  if (alvo) alvo.alertas = lista
+}
 async function carregar() {
   const atual = ++consulta
   campanha.value = null
@@ -146,6 +156,14 @@ onBeforeUnmount(() => ++consulta)
       <button type="button" :aria-pressed="aba === 'conversa'" @click="aba = 'conversa'">
         Conversa
       </button>
+      <button
+        v-if="podeVerCodigoGerado"
+        type="button"
+        :aria-pressed="aba === 'tecnica'"
+        @click="aba = 'tecnica'"
+      >
+        Técnica
+      </button>
     </nav>
     <section v-if="aba === 'versoes'" aria-label="Versões e resultados">
       <p v-if="carregandoVersoes" class="estado" role="status">Carregando versões…</p>
@@ -224,7 +242,7 @@ onBeforeUnmount(() => ++consulta)
         </p>
       </article>
     </section>
-    <section v-else aria-label="Conversa com a Lana">
+    <section v-else-if="aba === 'conversa'" aria-label="Conversa com a Lana">
       <h2>Conversa com a Lana</h2>
       <p v-if="carregandoConversa" class="estado" role="status">Carregando conversa…</p>
       <div v-else-if="erroConversa" class="estado erro" role="alert">
@@ -249,6 +267,32 @@ onBeforeUnmount(() => ++consulta)
           <SpeechBubble :message="mensagem.texto" :papel="mensagem.papel" />
         </li>
       </ol>
+    </section>
+    <section
+      v-else-if="aba === 'tecnica' && podeVerCodigoGerado"
+      aria-label="Detalhes técnicos da versão"
+    >
+      <p v-if="carregandoVersoes" class="estado" role="status">Carregando versões…</p>
+      <div v-if="erroVersoes" class="estado erro" role="alert">
+        <p>{{ erroVersoes }}</p>
+        <button type="button" @click="carregar">Tentar novamente</button>
+      </div>
+      <div v-if="versoes.length" class="filtros">
+        <label
+          >Versão<select v-model="selecionada">
+            <option v-for="v in versoes" :key="v.numero" :value="v.numero">
+              Versão {{ v.numero }}
+            </option>
+          </select></label
+        >
+      </div>
+      <AbaTecnica
+        v-if="!carregandoVersoes"
+        :campanha-id="campanha.id"
+        :versao="versao ?? null"
+        :resultado-fallback="resultado ?? null"
+        @alertas-atualizados="atualizarAlertasVersao"
+      />
     </section>
   </template>
 </template>

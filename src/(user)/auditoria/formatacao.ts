@@ -1,6 +1,7 @@
 import { isAxiosError } from 'axios'
+import type { UsuarioResumo } from '../campanha/types'
 import { valorDoParametro, diaDaCampanha } from '../campanhas/formatacao'
-import type { RegraCampanha, ValorParametro } from '../chat/types'
+import type { PassoTrilha, RegraCampanha, ValorParametro } from '../chat/types'
 
 function compararValor(valor: ValorParametro | undefined): string {
   if (Array.isArray(valor)) return JSON.stringify([...valor].sort())
@@ -60,4 +61,81 @@ export function erroConsulta(erro: unknown, assunto: string): string {
   if (isAxiosError(erro) && erro.response?.status === 403)
     return 'Seu perfil não permite esta consulta.'
   return `Não foi possível carregar ${assunto}. Tente novamente.`
+}
+
+export function nomeUsuarioAlerta(usuario: UsuarioResumo | string | null | undefined): string {
+  if (!usuario) return 'Não informado'
+  if (typeof usuario === 'string') return usuario.trim() || 'Não informado'
+  return usuario.nome?.trim() || 'Não informado'
+}
+
+export function passoBloqueado(passo: Pick<PassoTrilha, 'situacao'>): boolean {
+  return (passo.situacao ?? '').toUpperCase().includes('BLOQUEAD')
+}
+
+const TERMOS_ERRO_PASSO = ['erro', 'error', 'falha', 'negad', 'recusad', 'proibid']
+
+export function passoComBloqueioOuErro(
+  passo: Pick<PassoTrilha, 'situacao' | 'mensagem_erro'>,
+): boolean {
+  if (passoBloqueado(passo)) return true
+  if (passo.mensagem_erro?.trim()) return true
+  const situacao = (passo.situacao ?? '').toLowerCase()
+  return TERMOS_ERRO_PASSO.some((termo) => situacao.includes(termo))
+}
+
+export function motivoBloqueioPasso(
+  passo: Pick<PassoTrilha, 'situacao' | 'mensagem_erro'>,
+): string {
+  const erro = passo.mensagem_erro?.trim()
+  const situacao = passo.situacao?.trim()
+  if (erro && situacao && !erro.toLowerCase().includes(situacao.toLowerCase())) {
+    return `${situacao}: ${erro}`
+  }
+  return erro || situacao || (passoBloqueado(passo) ? 'Consulta bloqueada' : 'Erro na consulta')
+}
+
+function mensagemDaResposta(data: unknown): string | null {
+  if (typeof data === 'string') {
+    const t = data.trim()
+    if (!t || t.startsWith('<') || t.length > 300) return null
+    return t
+  }
+  if (data && typeof data === 'object') {
+    const registro = data as Record<string, unknown>
+    for (const chave of ['detail', 'mensagem', 'message', 'erro']) {
+      const valor = registro[chave]
+      if (typeof valor === 'string' && valor.trim()) return valor.trim()
+    }
+  }
+  return null
+}
+
+export function erroAlerta(erro: unknown, acao: 'abrir' | 'resolver'): string {
+  const padrao =
+    acao === 'abrir'
+      ? 'Não foi possível abrir o alerta. Tente novamente.'
+      : 'Não foi possível resolver o alerta. Tente novamente.'
+
+  if (isAxiosError(erro)) {
+    const detalhe = mensagemDaResposta(erro.response?.data)
+    if (detalhe) return detalhe
+
+    const status = erro.response?.status
+    if (status === 400) {
+      return acao === 'abrir'
+        ? 'Dados inválidos para abrir o alerta.'
+        : 'Dados inválidos para resolver o alerta.'
+    }
+    if (status === 403) return 'Apenas o Auditor pode executar esta ação.'
+    if (status === 409) {
+      return acao === 'abrir'
+        ? 'Não foi possível abrir o alerta devido a um conflito de estado.'
+        : 'Este alerta já foi resolvido ou não pode ser alterado.'
+    }
+    if (!erro.response) return 'Erro de conexão com o servidor. Tente novamente.'
+    return padrao
+  }
+  if (erro instanceof Error && erro.message.trim()) return erro.message.trim()
+  return padrao
 }

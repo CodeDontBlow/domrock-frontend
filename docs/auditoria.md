@@ -3,7 +3,7 @@
 ## Manual do Auditor
 
 O Auditor consulta campanhas de todos os autores, inclusive rascunhos, em modo
-somente leitura. Após o login, a página inicial e o menu direcionam para **Auditoria**.
+somente leitura (exceto abrir e resolver alertas técnicos, na aba Técnica). Após o login, a página inicial e o menu direcionam para **Auditoria**.
 
 ### Campanhas
 
@@ -89,7 +89,8 @@ As consultas usam a instância Axios existente: `VITE_API_BASE_URL` ou `/backend
 proxy local `API_PROXY_TARGET` e token Bearer. Nenhuma nova variável de ambiente é
 necessária. As permissões no localStorage controlam a navegação e a exibição; a API
 deve validar a role em cada requisição e recusar operações de escrita do Auditor.
-SQL, código e alertas da aba técnica pertencem à A6-107/US-20.
+A aba técnica (trilha com SQLs executados, código Python gerado e gestão de alertas técnicos da
+versão) foi implementada na A6-107/US-20, com acesso via /auditoria restrito ao Auditor (abertura e resolução de alertas) e exibição dos alertas abertos no painel de aprovação do Supervisor.
 
 ## Validação
 
@@ -120,7 +121,7 @@ pertencentes à task recebem alterações de formatação na entrega.
 
 Testes cobrem controle de perfil e navegação, filtros, versões e comparação,
 decisões, conversa e trilha, correções, ausência de ações mutáveis, falhas parciais,
-respostas atrasadas e requisições exclusivamente GET. Os serviços são simulados nos
+respostas atrasadas e requisições de consulta (GET), exceto abrir e resolver alertas técnicos (POST). Os serviços são simulados nos
 testes da tela; isso não substitui a validação do contrato com a API implementada.
 
 Para validar manualmente com as alterações de ambos os repositórios:

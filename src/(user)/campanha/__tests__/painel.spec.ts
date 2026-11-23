@@ -116,4 +116,42 @@ describe('PainelAprovacao', () => {
     expect(painel.text()).not.toContain('Limites da simulação')
     painel.unmount()
   })
+
+  it('com alerta técnico ABERTO, exibe o aviso exato, desabilita Aprovar e mantém Reprovar ativo', async () => {
+    const painel = montar({
+      alertasAbertos: [
+        {
+          id: 5,
+          origem: 'AUTOMATICO',
+          tipo: 'SQL_BLOQUEADO',
+          descricao: 'Consulta bloqueada',
+          status: 'ABERTO',
+          aberto_por: 'Sistema',
+          aberto_em: '2026-11-20T14:00:00Z',
+          resolvido_por: null,
+          resolvido_em: null,
+          justificativa: null,
+        },
+      ],
+    })
+
+    const aviso = painel.find('.bloco-alerta-tecnico[role="alert"]')
+    expect(aviso.exists()).toBe(true)
+    expect(aviso.text()).toBe(
+      'Esta versão tem alerta técnico aberto. O Auditor precisa resolvê-lo antes da aprovação.',
+    )
+    expect(painel.find('.lista-alertas-tecnicos').text()).toContain('Consulta bloqueada')
+
+    const aprovar = painel.find('.acao--aprovar')
+    expect(aprovar.attributes('disabled')).toBeDefined()
+    await aprovar.trigger('click')
+    expect(painel.emitted('aprovar')).toBeUndefined()
+
+    const devolver = painel.find('.acao--devolver')
+    await painel.find('textarea').setValue('Ajustar parâmetros antes de resubmeter')
+    expect(devolver.attributes('disabled')).toBeUndefined()
+    await devolver.trigger('click')
+    expect(painel.emitted('devolver')).toHaveLength(1)
+    painel.unmount()
+  })
 })

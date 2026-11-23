@@ -31,6 +31,10 @@ function temAcao(acao: AcaoVersao): boolean {
 }
 
 const ocupado = computed(() => props.decidindo || Boolean(props.resimulando))
+const alertasAbertos = computed(() =>
+  (props.campanha?.alertasAbertos ?? []).filter((alerta) => alerta.status === 'ABERTO'),
+)
+const temAlertaAberto = computed(() => alertasAbertos.value.length > 0)
 const podeDevolver = computed(
   () => temAcao('REPROVAR') && comentario.value.trim().length > 0 && !ocupado.value,
 )
@@ -39,6 +43,7 @@ const podeAprovar = computed(
     temAcao('APROVAR') &&
     props.campanha?.detalhe === 'pronto' &&
     !ocupado.value &&
+    !temAlertaAberto.value &&
     comentario.value.trim().length === 0,
 )
 
@@ -160,6 +165,21 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
             Não foi possível carregar a simulação desta versão. Recarregue a página para tentar de
             novo.
           </p>
+
+          <template v-if="temAlertaAberto">
+            <p class="bloco bloco-alerta-tecnico" role="alert">
+              <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+              <span>
+                Esta versão tem alerta técnico aberto. O Auditor precisa resolvê-lo antes da
+                aprovação.
+              </span>
+            </p>
+            <ul class="lista-alertas-tecnicos" aria-label="Alertas técnicos abertos">
+              <li v-for="alerta in alertasAbertos" :key="alerta.id">
+                {{ alerta.descricao }}
+              </li>
+            </ul>
+          </template>
 
           <AvisoConflitos v-if="campanha.detalhe === 'pronto'" :conflitos="campanha.conflitos" />
 
@@ -502,6 +522,31 @@ onBeforeUnmount(() => window.removeEventListener('keydown', aoPressionarTecla))
 
 .bloco-alerta {
   color: var(--color-orange);
+}
+
+.bloco-alerta-tecnico {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 0;
+  padding: 12px;
+  border-left: 3px solid var(--color-red);
+  border-radius: 4px;
+  background-color: rgb(240 98 96 / 12%);
+  color: var(--color-red);
+  font-size: var(--text-label);
+  line-height: 1.5;
+}
+
+.lista-alertas-tecnicos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0 0 0 18px;
+  color: var(--color-white-txt1);
+  font-size: var(--text-label);
+  line-height: 1.5;
 }
 
 .acrescimos {

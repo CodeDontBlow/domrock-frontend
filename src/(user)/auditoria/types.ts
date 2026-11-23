@@ -1,4 +1,12 @@
-import type { CampanhaResumo, UsuarioResumo } from '../campanha/types'
+import type {
+  AlertaTecnico,
+  CampanhaResumo,
+  OrigemAlerta,
+  StatusAlerta,
+  UsuarioResumo,
+} from '../campanha/types'
+
+export type { AlertaTecnico, OrigemAlerta, StatusAlerta }
 
 /** Resumo de auditoria com autor; opcional para tolerar versões anteriores da API. */
 export interface CampanhaAuditoria extends CampanhaResumo {
