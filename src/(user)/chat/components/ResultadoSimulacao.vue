@@ -20,6 +20,7 @@ import BlocoResultado from './BlocoResultado.vue'
 import CenariosAlternativos from './CenariosAlternativos.vue'
 import ComissaoPeriodo from './ComissaoPeriodo.vue'
 import DetalhamentoCusto from './DetalhamentoCusto.vue'
+import ApuracaoPorPessoa from './ApuracaoPorPessoa.vue'
 import MedidorResultado from './MedidorResultado.vue'
 import NumerosResultado from './NumerosResultado.vue'
 import SecaoExpansivel from './SecaoExpansivel.vue'
@@ -83,6 +84,10 @@ function aplicar(cenario: CenarioAlternativo): void {
     >
       <NumerosResultado :itens="numerosDaComissao(resultado.totais, resultado.impacto)" />
       <ComissaoPeriodo :linhas="resultado.comissao_periodo" />
+      <ApuracaoPorPessoa
+        :linhas="resultado.apuracao_por_pessoa"
+        :total-simulado="resultado.totais.simulado"
+      />
       <SecaoExpansivel titulo="Onde o custo pesa">
         <DetalhamentoCusto :resultado="resultado" />
       </SecaoExpansivel>

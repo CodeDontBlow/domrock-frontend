@@ -168,7 +168,24 @@ export interface SimulacaoNaMeta {
   cabe_no_orcamento: boolean | null
 }
 
+/** Contrato A6-77: valores finais calculados pela Lana, por matrícula e competência. */
+export interface ApuracaoPessoa {
+  matricula: string
+  competencia: string
+  cod_loja: string
+  cod_marca: string
+  cod_cargo: string
+  /** Base e percentual da regra 5a/5b, antes dos ajustes e campanhas. */
+  base_calculo: number
+  pct_comiss: number
+  detalhamento: { regra: string; descricao: string }[]
+  comissao_atual: number
+  comissao_com_campanha: number
+}
+
 export interface ResultadoSimulacao {
+  /** Ausente em resultados gravados antes da A6-77. */
+  apuracao_por_pessoa?: ApuracaoPessoa[] | null
   comissao_periodo?: ComissaoNoTrecho[]
   conflitos?: ConflitoCampanha[]
   rule_id: string
