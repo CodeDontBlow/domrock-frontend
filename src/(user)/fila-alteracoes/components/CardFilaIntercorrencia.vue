@@ -9,219 +9,78 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'selecionar', solicitacao: SolicitacaoIntercorrenciaCard): void
 }>()
+
+function formatarSolicitante(nome?: string): string {
+  if (!nome) return 'Solicitado via chat'
+  const normalizado = nome.trim().toLowerCase()
+  if (normalizado === 'lana / chat' || normalizado === 'chat / lana' || normalizado === 'chat' || normalizado === 'lana') {
+    return 'Solicitado via chat'
+  }
+  return `Solicitado por ${nome}`
+}
 </script>
 
 <template>
   <article
-    class="card-fila-intercorrencia"
-    :class="{ 'card-fila-intercorrencia--clicavel': selecionavel }"
+    class="w-[389px] min-w-[340px] max-sm:w-full max-sm:min-w-0 shrink-0 flex flex-col justify-between bg-black-bg2 border border-gray-txt3-dark rounded-[10px] font-raleway text-white-txt1 box-border transition-all duration-150 outline-none"
+    :class="selecionavel ? 'cursor-pointer hover:border-blue focus-visible:border-blue focus-visible:-translate-y-0.5' : ''"
     tabindex="0"
     role="button"
     @click="emit('selecionar', solicitacao)"
     @keydown.enter="emit('selecionar', solicitacao)"
     @keydown.space.prevent="emit('selecionar', solicitacao)"
   >
-    <div class="card-topo">
+    <div class="p-4 flex flex-col gap-4">
       <!-- Tags superiores: TIPO, MATRÍCULAS, STATUS/IMPACTO -->
-      <div class="tags-linha">
-        <div class="tag-grupo">
-          <span class="tag-rotulo">TIPO</span>
-          <span class="selo-pilula selo-pilula--cyan">{{ solicitacao.tipo }}</span>
-        </div>
-
-        <div class="tag-grupo">
-          <span class="tag-rotulo">MATRÍCULAS</span>
-          <span class="selo-pilula selo-pilula--cinza">
-            {{ solicitacao.matriculasCount }} Matrícula{{ solicitacao.matriculasCount > 1 ? 's' : '' }}
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex flex-col gap-1">
+          <span class="font-inconsolata text-metadata text-gray-txt2-dark uppercase">TIPO</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-inconsolata text-label leading-[18px] whitespace-nowrap bg-blue/15 text-blue">
+            {{ solicitacao.tipo }}
           </span>
         </div>
 
-        <div v-if="solicitacao.impacto" class="tag-grupo">
-          <span class="tag-rotulo">IMPACTO</span>
-          <span class="selo-pilula selo-pilula--cinza">{{ solicitacao.impacto }}</span>
+        <div class="flex flex-col gap-1">
+          <span class="font-inconsolata text-metadata text-gray-txt2-dark uppercase">MATRÍCULAS</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-inconsolata text-label leading-[18px] whitespace-nowrap bg-gray-txt2-dark/15 text-gray-txt2-dark">
+            {{ solicitacao.matriculasCount }} Afetada{{ solicitacao.matriculasCount > 1 ? 's' : '' }}
+          </span>
+        </div>
+
+        <div v-if="solicitacao.duracao || solicitacao.impacto" class="flex flex-col gap-1">
+          <span class="font-inconsolata text-metadata text-gray-txt2-dark uppercase">PERÍODO</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-inconsolata text-label leading-[18px] whitespace-nowrap bg-gray-txt2-dark/15 text-gray-txt2-dark">
+            {{ solicitacao.duracao || solicitacao.impacto }}
+          </span>
         </div>
       </div>
 
       <!-- Timeline visual de Período: Início / Final -->
-      <div class="periodo-timeline-bloco">
-        <div class="timeline-cabecalho">
-          <span class="timeline-rotulo">INÍCIO</span>
-          <span class="timeline-rotulo">FINAL</span>
+      <div class="flex flex-col gap-1.5 bg-black-bg1/60 rounded-lg py-2.5 px-3.5">
+        <div class="flex justify-between items-center font-inconsolata text-[11px] text-gray-txt3-dark uppercase">
+          <span>INÍCIO</span>
+          <span>FINAL</span>
         </div>
 
-        <div class="timeline-linha">
-          <span class="timeline-data">{{ solicitacao.inicio }}</span>
-          <i class="bi bi-fast-forward-circle-fill timeline-icone" aria-hidden="true" />
-          <div class="timeline-trilha" aria-hidden="true" />
-          <i class="bi bi-check-circle-fill timeline-icone" aria-hidden="true" />
-          <span class="timeline-data">{{ solicitacao.fim }}</span>
+        <div class="flex items-center gap-2">
+          <span class="font-inconsolata text-[13px] text-gray-txt2-dark whitespace-nowrap">{{ solicitacao.inicio }}</span>
+          <i class="bi bi-fast-forward-circle-fill text-[14px] text-gray-txt3-dark flex items-center" aria-hidden="true" />
+          <div class="flex-1 h-[2px] bg-gray-txt3-dark" aria-hidden="true" />
+          <i class="bi bi-check-circle-fill text-[14px] text-gray-txt3-dark flex items-center" aria-hidden="true" />
+          <span class="font-inconsolata text-[13px] text-gray-txt2-dark whitespace-nowrap">{{ solicitacao.fim }}</span>
         </div>
       </div>
 
       <!-- Motivo em itálico -->
-      <p class="motivo-texto">
+      <p class="m-0 text-body leading-snug text-white-txt1">
         <em>{{ solicitacao.motivo }}</em>
       </p>
     </div>
 
     <!-- Rodapé -->
-    <footer class="card-rodape">
-      <span class="rodape-info">Solicitado por {{ solicitacao.solicitante }}</span>
-      <span class="rodape-info">Submetido em {{ solicitacao.submetidoEm }}</span>
+    <footer class="flex justify-between items-center py-2.5 px-4 border-t border-gray-txt3-dark font-inconsolata text-metadata text-white-txt1">
+      <span class="whitespace-nowrap">{{ formatarSolicitante(solicitacao.solicitante) }}</span>
+      <span class="whitespace-nowrap">Submetido em {{ solicitacao.submetidoEm }}</span>
     </footer>
   </article>
 </template>
-
-<style scoped>
-.card-fila-intercorrencia {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 389px;
-  min-width: 340px;
-  flex-shrink: 0;
-  background-color: var(--color-black-bg2);
-  border: 1px solid var(--color-gray-txt3-dark);
-  border-radius: 10px;
-  font-family: var(--font-raleway);
-  color: var(--color-white-txt1);
-  box-sizing: border-box;
-  transition: border-color 0.15s ease, transform 0.15s ease;
-  outline: none;
-}
-
-.card-fila-intercorrencia--clicavel {
-  cursor: pointer;
-}
-
-.card-fila-intercorrencia--clicavel:hover,
-.card-fila-intercorrencia--clicavel:focus-visible {
-  border-color: var(--color-blue);
-  transform: translateY(-2px);
-}
-
-.card-topo {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.tags-linha {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.tag-grupo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.tag-rotulo {
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-metadata);
-  color: var(--color-gray-txt2-dark);
-  text-transform: uppercase;
-}
-
-.selo-pilula {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  line-height: 18px;
-  white-space: nowrap;
-}
-
-.selo-pilula--cyan {
-  background-color: rgba(0, 180, 241, 0.14);
-  color: var(--color-blue);
-}
-
-.selo-pilula--cinza {
-  background-color: rgba(169, 173, 181, 0.14);
-  color: var(--color-gray-txt2-dark);
-}
-
-.periodo-timeline-bloco {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background-color: rgba(20, 20, 22, 0.6);
-  border-radius: 8px;
-  padding: 10px 14px;
-}
-
-.timeline-cabecalho {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.timeline-rotulo {
-  font-family: var(--font-inconsolata);
-  font-size: 11px;
-  color: var(--color-gray-txt3-dark);
-  text-transform: uppercase;
-}
-
-.timeline-linha {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.timeline-data {
-  font-family: var(--font-inconsolata);
-  font-size: 13px;
-  color: var(--color-gray-txt2-dark);
-  white-space: nowrap;
-}
-
-.timeline-icone {
-  font-size: 14px;
-  color: var(--color-gray-txt3-dark);
-  display: flex;
-  align-items: center;
-}
-
-.timeline-trilha {
-  flex: 1;
-  height: 2px;
-  background-color: var(--color-gray-txt3-dark);
-}
-
-.motivo-texto {
-  margin: 0;
-  font-size: var(--text-body);
-  line-height: 1.4;
-  color: var(--color-white-txt1);
-}
-
-.card-rodape {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 16px;
-  border-top: 1px solid var(--color-gray-txt3-dark);
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-metadata);
-  color: var(--color-white-txt1);
-}
-
-.rodape-info {
-  white-space: nowrap;
-}
-
-@media (max-width: 480px) {
-  .card-fila-intercorrencia {
-    width: 100%;
-    min-width: 0;
-  }
-}
-</style>

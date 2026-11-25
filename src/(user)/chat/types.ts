@@ -242,23 +242,34 @@ export const ETAPAS_DE_ENVIO: readonly EtapaAprovacao[] = ['pronta', 'fora_do_or
 export type PapelMensagem = 'usuario' | 'agente' | 'resultado' | 'erro' | 'sistema'
 
 
+export type StatusSolicitacaoChat = 'rascunho' | 'enviada' | 'aprovada' | 'arquivada' | 'erro'
+
 export interface SolicitacaoCorrecaoChat {
   id?: string | number
   tipo: string
   tipo_alteracao?: string
+  tipoSolicitacao?: 'correcao' | 'intercorrencia'
   matricula?: string
   matriculas: string[]
-  competencia: string
+  competencia?: string
   competencia_iso?: string
-  valorAnterior: string
-  valorAposMudanca: string
+  valorAnterior?: string
+  valorAposMudanca?: string
   valor_antes?: string
   valor_depois?: string
+  dataInicio?: string
+  dataFim?: string
   motivo: string
   sql?: string
+  status?: StatusSolicitacaoChat
   enviada?: boolean
+  enviadaEm?: string
+  aprovadaEm?: string
+  arquivadaEm?: string
   statusEnvio?: 'pendente' | 'enviando' | 'sucesso' | 'erro'
   erroEnvio?: string | null
+  temConflito?: boolean
+  conflitoMensagem?: string
 }
 
 export interface MensagemChat {

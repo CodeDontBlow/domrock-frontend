@@ -29,6 +29,7 @@ export interface SolicitacaoIntercorrenciaCard {
   tipo: string
   matriculasCount: number
   matriculas: string[]
+  duracao?: string
   impacto?: string
   inicio: string
   fim: string

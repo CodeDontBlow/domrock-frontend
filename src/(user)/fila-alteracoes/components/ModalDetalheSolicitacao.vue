@@ -18,34 +18,42 @@ const itemBase = computed(() => (ehBase.value ? (props.solicitacao as Solicitaca
 const itemIntercorrencia = computed(() =>
   !ehBase.value ? (props.solicitacao as SolicitacaoIntercorrenciaCard) : null,
 )
+function formatarSolicitante(nome?: string): string {
+  if (!nome) return 'Solicitado via chat'
+  const normalizado = nome.trim().toLowerCase()
+  if (normalizado === 'lana / chat' || normalizado === 'chat / lana' || normalizado === 'chat' || normalizado === 'lana') {
+    return 'Solicitado via chat'
+  }
+  return `Solicitado por: ${nome}`
+}
 </script>
 
 <template>
   <div
     v-if="solicitacao"
-    class="modal-backdrop"
+    class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-detalhe-titulo"
     @click.self="emit('fechar')"
     @keydown.esc="emit('fechar')"
   >
-    <div class="modal-conteudo">
-      <header class="modal-header">
-        <div class="modal-titulo-bloco">
+    <div class="modal-conteudo w-full max-w-[650px] bg-black-bg1 border-2 border-black-bg2 rounded-2xl p-6 flex flex-col gap-5 text-white-txt1 font-raleway shadow-2xl">
+      <header class="modal-header flex justify-between items-center">
+        <div class="modal-titulo-bloco flex items-center gap-2.5">
           <i
-            class="bi modal-icone"
+            class="bi text-[24px] text-blue"
             :class="ehBase ? 'bi-database-exclamation' : 'bi-person-exclamation'"
             aria-hidden="true"
           />
-          <h2 id="modal-detalhe-titulo" class="modal-titulo">
+          <h2 id="modal-detalhe-titulo" class="m-0 text-header-3 font-bold">
             {{ ehBase ? 'Detalhes da Correção da Base' : 'Detalhes da Intercorrência' }}
           </h2>
         </div>
 
         <button
           type="button"
-          class="modal-btn-fechar"
+          class="modal-btn-fechar bg-transparent border-0 text-gray-txt2-dark text-[18px] cursor-pointer p-1 transition-colors hover:text-white-txt1"
           aria-label="Fechar modal"
           @click="emit('fechar')"
         >
@@ -53,51 +61,54 @@ const itemIntercorrencia = computed(() =>
         </button>
       </header>
 
-      <div class="modal-corpo">
+      <div class="modal-corpo flex flex-col gap-4">
         <!-- Tags / Metadados -->
-        <div class="modal-tags">
-          <span class="selo selo--cyan">Tipo: {{ solicitacao.tipo }}</span>
-          <span v-if="ehBase && itemBase" class="selo selo--cyan">
+        <div class="modal-tags flex flex-wrap gap-2.5">
+          <span class="inline-flex items-center px-3 py-1 rounded-full font-inconsolata text-label bg-blue/15 text-blue">
+            Tipo: {{ solicitacao.tipo }}
+          </span>
+          <span v-if="ehBase && itemBase" class="inline-flex items-center px-3 py-1 rounded-full font-inconsolata text-label bg-blue/15 text-blue">
             Competência: {{ itemBase.competencia }}
           </span>
-          <span v-if="!ehBase && itemIntercorrencia" class="selo selo--cyan">
+          <span v-if="!ehBase && itemIntercorrencia" class="inline-flex items-center px-3 py-1 rounded-full font-inconsolata text-label bg-blue/15 text-blue">
             Período: {{ itemIntercorrencia.inicio }} até {{ itemIntercorrencia.fim }}
           </span>
-          <span class="selo selo--cinza">
+          <span class="inline-flex items-center px-3 py-1 rounded-full font-inconsolata text-label bg-gray-txt2-dark/15 text-gray-txt2-dark">
             Matrículas: {{ solicitacao.matriculas.join(', ') }}
           </span>
         </div>
 
         <!-- Bloco de Comparação para Correção de Base -->
-        <div v-if="ehBase && itemBase" class="modal-comparacao">
-          <div class="comparacao-caixa">
-            <span class="comparacao-label">VALOR ANTERIOR</span>
-            <p class="comparacao-texto">{{ itemBase.valorAnterior }}</p>
+        <div v-if="ehBase && itemBase" class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 bg-black-bg2 p-3.5 rounded-[10px]">
+          <div class="flex flex-col gap-1">
+            <span class="font-inconsolata text-metadata text-gray-txt2-dark uppercase">VALOR ANTERIOR</span>
+            <p class="m-0 font-inconsolata text-label text-white-txt1 leading-snug">{{ itemBase.valorAnterior }}</p>
           </div>
-          <i class="bi bi-arrow-right comparacao-seta" aria-hidden="true" />
-          <div class="comparacao-caixa">
-            <span class="comparacao-label">VALOR APÓS MUDANÇA</span>
-            <p class="comparacao-texto">{{ itemBase.valorAposMudanca }}</p>
+          <i class="bi bi-arrow-right text-[18px] text-gray-txt3-dark self-center hidden sm:block" aria-hidden="true" />
+          <i class="bi bi-arrow-down text-[18px] text-gray-txt3-dark self-center block sm:hidden" aria-hidden="true" />
+          <div class="flex flex-col gap-1">
+            <span class="font-inconsolata text-metadata text-gray-txt2-dark uppercase">VALOR APÓS MUDANÇA</span>
+            <p class="m-0 font-inconsolata text-label text-white-txt1 leading-snug">{{ itemBase.valorAposMudanca }}</p>
           </div>
         </div>
 
         <!-- Descrição / Motivo -->
-        <div class="modal-secao">
-          <span class="secao-label">MOTIVO DA SOLICITAÇÃO</span>
-          <p class="secao-texto">{{ solicitacao.motivo }}</p>
+        <div class="flex flex-col gap-1.5">
+          <span class="font-inconsolata text-metadata text-gray-txt2-dark uppercase">MOTIVO DA SOLICITAÇÃO</span>
+          <p class="m-0 text-body text-white-txt1 leading-relaxed bg-black-bg2 p-3 rounded-lg">{{ solicitacao.motivo }}</p>
         </div>
 
         <!-- Informações de Submissão -->
-        <div class="modal-submissao">
-          <span>Solicitado por: <strong>{{ solicitacao.solicitante }}</strong></span>
-          <span>Data de envio: <strong>{{ solicitacao.submetidoEm }}</strong></span>
+        <div class="flex justify-between items-center flex-wrap gap-2 text-gray-txt2-dark font-inconsolata text-metadata pt-1 border-t border-black-bg2">
+          <span><strong class="text-white-txt1">{{ formatarSolicitante(solicitacao.solicitante) }}</strong></span>
+          <span>Data de envio: <strong class="text-white-txt1">{{ solicitacao.submetidoEm }}</strong></span>
         </div>
       </div>
 
-      <footer class="modal-footer">
+      <footer class="flex justify-end gap-3 pt-2 border-t border-black-bg2">
         <button
           type="button"
-          class="btn-modal btn-arquivar"
+          class="py-2.5 px-4.5 rounded-full font-raleway text-label font-medium cursor-pointer transition-colors bg-transparent border border-gray-txt2-dark text-gray-txt2-dark hover:bg-white/5 hover:border-white-txt1 hover:text-white-txt1"
           @click="emit('arquivar', solicitacao.id)"
         >
           Arquivar Solicitação
@@ -105,7 +116,7 @@ const itemIntercorrencia = computed(() =>
 
         <button
           type="button"
-          class="btn-modal btn-aprovar"
+          class="py-2.5 px-5 rounded-full font-raleway text-label font-semibold cursor-pointer transition-all bg-blue border border-blue text-black-bg1 hover:brightness-110"
           @click="emit('aprovar', solicitacao.id)"
         >
           Aprovar Alteração
@@ -114,204 +125,3 @@ const itemIntercorrencia = computed(() =>
     </div>
   </div>
 </template>
-
-<style scoped>
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 16px;
-  backdrop-filter: blur(4px);
-}
-
-.modal-conteudo {
-  width: 100%;
-  max-width: 650px;
-  background-color: var(--color-black-bg1);
-  border: 2px solid var(--color-black-bg2);
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  color: var(--color-white-txt1);
-  font-family: var(--font-raleway);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-titulo-bloco {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.modal-icone {
-  font-size: 24px;
-  color: var(--color-blue);
-}
-
-.modal-titulo {
-  margin: 0;
-  font-size: var(--text-header-3);
-  font-weight: 700;
-}
-
-.modal-btn-fechar {
-  background: transparent;
-  border: none;
-  color: var(--color-gray-txt2-dark);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px;
-  transition: color 0.15s;
-}
-
-.modal-btn-fechar:hover {
-  color: var(--color-white-txt1);
-}
-
-.modal-corpo {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.modal-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.selo {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-}
-
-.selo--cyan {
-  background-color: rgba(0, 180, 241, 0.14);
-  color: var(--color-blue);
-}
-
-.selo--cinza {
-  background-color: rgba(169, 173, 181, 0.14);
-  color: var(--color-gray-txt2-dark);
-}
-
-.modal-comparacao {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
-  background-color: var(--color-black-bg2);
-  padding: 12px;
-  border-radius: 8px;
-}
-
-.comparacao-caixa {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.comparacao-label {
-  font-family: var(--font-inconsolata);
-  font-size: 11px;
-  color: var(--color-gray-txt3-dark);
-  text-transform: uppercase;
-}
-
-.comparacao-texto {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-white-txt1);
-}
-
-.comparacao-seta {
-  color: var(--color-blue);
-  font-size: 18px;
-}
-
-.modal-secao {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.secao-label {
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  color: var(--color-gray-txt3-dark);
-}
-
-.secao-texto {
-  margin: 0;
-  font-size: var(--text-body);
-  line-height: 1.5;
-  color: var(--color-white-txt1);
-  background-color: var(--color-black-bg2);
-  padding: 12px;
-  border-radius: 8px;
-}
-
-.modal-submissao {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  color: var(--color-gray-txt2-dark);
-  padding-top: 8px;
-  border-top: 1px solid var(--color-black-bg2);
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 10px;
-}
-
-.btn-modal {
-  padding: 10px 20px;
-  border-radius: 999px;
-  font-family: var(--font-raleway);
-  font-size: var(--text-body);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-arquivar {
-  background: transparent;
-  border: 1px solid var(--color-gray-txt2-dark);
-  color: var(--color-gray-txt2-dark);
-}
-
-.btn-arquivar:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-color: var(--color-white-txt1);
-  color: var(--color-white-txt1);
-}
-
-.btn-aprovar {
-  background-color: var(--color-blue);
-  border: 1px solid var(--color-blue);
-  color: var(--color-black-bg1);
-  font-weight: 600;
-}
-
-.btn-aprovar:hover {
-  filter: brightness(1.1);
-}
-</style>

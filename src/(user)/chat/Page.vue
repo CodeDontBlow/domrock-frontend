@@ -13,6 +13,7 @@ import FerramentasDropdown from './components/FerramentasDropdown.vue'
 import ChatHeader from './components/ChatHeader.vue'
 import CompartilharCampanhaModal from './components/CompartilharCampanhaModal.vue'
 import CardSolicitacaoCorrecaoBase from './components/CardSolicitacaoCorrecaoBase.vue'
+import CardSolicitacaoIntercorrencia from './components/CardSolicitacaoIntercorrencia.vue'
 import { montarConferencia } from './conferencia'
 import { useChatStore } from './stores/chat'
 
@@ -163,23 +164,39 @@ watch(() => mensagens.value.length, async () => {
             />
             <div v-else class="mensagem-item">
               <SpeechBubble :message="mensagem.texto" :papel="mensagem.papel" />
+
+              <!-- Card de Intercorrência -->
+              <CardSolicitacaoIntercorrencia
+                v-if="mensagem.solicitacao && mensagem.solicitacao.tipoSolicitacao === 'intercorrencia'"
+                :tipo="mensagem.solicitacao.tipo"
+                :data-inicio="mensagem.solicitacao.dataInicio"
+                :data-fim="mensagem.solicitacao.dataFim"
+                :matriculas="mensagem.solicitacao.matriculas"
+                :motivo="mensagem.solicitacao.motivo"
+                :status="mensagem.solicitacao.status"
+                :enviada="mensagem.solicitacao.enviada"
+                :erro="mensagem.solicitacao.erroEnvio"
+                @solicitar="(motivo) => chat.enviarSolicitacaoCorrecao(mensagem, motivo)"
+                @cancelar="() => chat.cancelarSolicitacaoCorrecao(mensagem)"
+                @salvar-motivo="(novoMotivo) => chat.atualizarMotivoSolicitacao(mensagem, novoMotivo)"
+              />
+
+              <!-- Card de Correção da Base -->
               <CardSolicitacaoCorrecaoBase
-                v-if="mensagem.solicitacao && !mensagem.solicitacao.enviada"
+                v-else-if="mensagem.solicitacao"
                 :valor-anterior="mensagem.solicitacao.valorAnterior"
                 :valor-apos-mudanca="mensagem.solicitacao.valorAposMudanca"
                 :tipo="mensagem.solicitacao.tipo"
                 :matriculas="mensagem.solicitacao.matriculas"
                 :competencia="mensagem.solicitacao.competencia"
                 :motivo="mensagem.solicitacao.motivo"
-                :mensagem-intro="''"
+                :status="mensagem.solicitacao.status"
+                :enviada="mensagem.solicitacao.enviada"
+                :erro="mensagem.solicitacao.erroEnvio"
                 @solicitar="(motivo) => chat.enviarSolicitacaoCorrecao(mensagem, motivo)"
                 @cancelar="() => chat.cancelarSolicitacaoCorrecao(mensagem)"
                 @salvar-motivo="(novoMotivo) => chat.atualizarMotivoSolicitacao(mensagem, novoMotivo)"
               />
-              <div v-else-if="mensagem.solicitacao?.enviada" class="solicitacao-enviada-box">
-                <i class="bi bi-check-circle-fill icone-sucesso" />
-                <span>Solicitação de alteração enviada com sucesso para a supervisão!</span>
-              </div>
             </div>
           </template>
           <p v-if="aguardandoLana" class="pensando">A Lana está escrevendo…</p>
@@ -298,7 +315,8 @@ watch(() => mensagens.value.length, async () => {
   width: 100%;
   max-width: 832px;
   margin: 0 auto;
-  padding: 24px 24px 0;
+  padding: 25px;
+  padding-bottom: 0;
   box-sizing: border-box;
   display: flex;
   flex: 1;
@@ -392,12 +410,13 @@ watch(() => mensagens.value.length, async () => {
   position: sticky;
   top: 0;
   height: 100vh;
-  width: 500px;
+  width: 350px;
   flex-shrink: 0;
-  background-color: var(--color-black-bg2);
+  background-color: var(--color-black-bg1);
+  border-left: 2px solid var(--color-black-bg2);
   display: flex;
   flex-direction: column;
-  padding: 40px 42px;
+  padding: 25px;
   box-sizing: border-box;
   z-index: 20;
 }
@@ -440,23 +459,5 @@ watch(() => mensagens.value.length, async () => {
   gap: 16px;
 }
 
-.solicitacao-enviada-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  align-self: flex-start;
-  padding: 12px 20px;
-  background-color: var(--color-black-bg2);
-  border: 1px solid var(--color-green);
-  border-radius: 8px;
-  color: var(--color-white-txt1);
-  font-family: var(--font-raleway);
-  font-size: 14px;
-}
-
-.icone-sucesso {
-  color: var(--color-green);
-  font-size: 18px;
-}
 
 </style>

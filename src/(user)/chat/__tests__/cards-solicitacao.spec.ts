@@ -26,7 +26,7 @@ describe('CardSolicitacaoCorrecaoBase (Figma 968:3323)', () => {
     expect(wrapper.text()).toContain('11/2025')
   })
 
-  it('permite alterar o motivo e emite salvar-motivo', async () => {
+  it('permite alterar o motivo e emite salvar-motivo automaticamente', async () => {
     const wrapper = mount(CardSolicitacaoCorrecaoBase, {
       props: {
         motivo: 'Motivo original',
@@ -35,9 +35,6 @@ describe('CardSolicitacaoCorrecaoBase (Figma 968:3323)', () => {
 
     const textarea = wrapper.find('textarea')
     await textarea.setValue('Novo motivo corrigido')
-
-    const btnSalvar = wrapper.find('.botao-salvar')
-    await btnSalvar.trigger('click')
 
     expect(wrapper.emitted('salvar-motivo')).toEqual([['Novo motivo corrigido']])
   })
@@ -54,6 +51,63 @@ describe('CardSolicitacaoCorrecaoBase (Figma 968:3323)', () => {
 
     await wrapper.find('.btn-cancelar').trigger('click')
     expect(wrapper.emitted('cancelar')).toBeDefined()
+  })
+
+  it('não exibe caixa de status em estado de rascunho', () => {
+    const wrapper = mount(CardSolicitacaoCorrecaoBase, {
+      props: {
+        status: 'rascunho',
+        enviada: false,
+        erro: null,
+      },
+    })
+
+    expect(wrapper.find('.status-solicitacao').exists()).toBe(false)
+  })
+
+  it('exibe status laranja de envio para supervisão quando status é enviada', () => {
+    const wrapper = mount(CardSolicitacaoCorrecaoBase, {
+      props: {
+        status: 'enviada',
+      },
+    })
+
+    const statusBox = wrapper.find('.status-enviada')
+    expect(statusBox.exists()).toBe(true)
+    expect(statusBox.classes()).toContain('border-orange')
+    expect(statusBox.find('.bi-clock-history').exists()).toBe(true)
+    expect(statusBox.text()).toContain('Solicitação enviada para a análise dos supervisores!')
+    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+  })
+
+  it('exibe status azul de aprovação quando status é aprovada', () => {
+    const wrapper = mount(CardSolicitacaoCorrecaoBase, {
+      props: {
+        status: 'aprovada',
+      },
+    })
+
+    const statusBox = wrapper.find('.status-aprovada')
+    expect(statusBox.exists()).toBe(true)
+    expect(statusBox.classes()).toContain('border-blue')
+    expect(statusBox.find('.bi-check-circle-fill').exists()).toBe(true)
+    expect(statusBox.text()).toContain('Solicitação aprovada e aplicada!')
+    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+  })
+
+  it('exibe status vermelho com mensagem de erro quando há erro', () => {
+    const wrapper = mount(CardSolicitacaoCorrecaoBase, {
+      props: {
+        status: 'erro',
+        erro: 'Falha ao salvar no banco de dados',
+      },
+    })
+
+    const statusBox = wrapper.find('.status-erro')
+    expect(statusBox.exists()).toBe(true)
+    expect(statusBox.classes()).toContain('border-red')
+    expect(statusBox.find('.bi-exclamation-triangle-fill').exists()).toBe(true)
+    expect(statusBox.text()).toContain('Falha ao salvar no banco de dados')
   })
 })
 
@@ -78,6 +132,19 @@ describe('CardSolicitacaoIntercorrencia (Figma 964:3251)', () => {
     expect(wrapper.text()).toContain('MAT-20')
   })
 
+  it('permite alterar o motivo e emite salvar-motivo automaticamente', async () => {
+    const wrapper = mount(CardSolicitacaoIntercorrencia, {
+      props: {
+        motivo: 'Motivo inicial',
+      },
+    })
+
+    const textarea = wrapper.find('textarea')
+    await textarea.setValue('Motivo alterado automaticamente')
+
+    expect(wrapper.emitted('salvar-motivo')).toEqual([['Motivo alterado automaticamente']])
+  })
+
   it('emite solicitar e cancelar nos botões de ação', async () => {
     const wrapper = mount(CardSolicitacaoIntercorrencia, {
       props: {
@@ -90,5 +157,62 @@ describe('CardSolicitacaoIntercorrencia (Figma 964:3251)', () => {
 
     await wrapper.find('.btn-cancelar').trigger('click')
     expect(wrapper.emitted('cancelar')).toBeDefined()
+  })
+
+  it('não exibe caixa de status em estado de rascunho', () => {
+    const wrapper = mount(CardSolicitacaoIntercorrencia, {
+      props: {
+        status: 'rascunho',
+        enviada: false,
+        erro: null,
+      },
+    })
+
+    expect(wrapper.find('.status-solicitacao').exists()).toBe(false)
+  })
+
+  it('exibe status laranja de envio para supervisão quando status é enviada', () => {
+    const wrapper = mount(CardSolicitacaoIntercorrencia, {
+      props: {
+        status: 'enviada',
+      },
+    })
+
+    const statusBox = wrapper.find('.status-enviada')
+    expect(statusBox.exists()).toBe(true)
+    expect(statusBox.classes()).toContain('border-orange')
+    expect(statusBox.find('.bi-clock-history').exists()).toBe(true)
+    expect(statusBox.text()).toContain('Solicitação enviada para a análise dos supervisores!')
+    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+  })
+
+  it('exibe status azul de aprovação quando status é aprovada', () => {
+    const wrapper = mount(CardSolicitacaoIntercorrencia, {
+      props: {
+        status: 'aprovada',
+      },
+    })
+
+    const statusBox = wrapper.find('.status-aprovada')
+    expect(statusBox.exists()).toBe(true)
+    expect(statusBox.classes()).toContain('border-blue')
+    expect(statusBox.find('.bi-check-circle-fill').exists()).toBe(true)
+    expect(statusBox.text()).toContain('Solicitação aprovada e aplicada!')
+    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+  })
+
+  it('exibe status vermelho com mensagem de erro quando há erro', () => {
+    const wrapper = mount(CardSolicitacaoIntercorrencia, {
+      props: {
+        status: 'erro',
+        erro: 'Erro de conexão com o servidor',
+      },
+    })
+
+    const statusBox = wrapper.find('.status-erro')
+    expect(statusBox.exists()).toBe(true)
+    expect(statusBox.classes()).toContain('border-red')
+    expect(statusBox.find('.bi-exclamation-triangle-fill').exists()).toBe(true)
+    expect(statusBox.text()).toContain('Erro de conexão com o servidor')
   })
 })

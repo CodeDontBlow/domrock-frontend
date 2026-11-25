@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+
+export type StatusSolicitacao = 'rascunho' | 'enviada' | 'aprovada' | 'erro'
 
 export interface SolicitacaoCorrecaoBaseProps {
   valorAnterior?: string
@@ -8,7 +10,9 @@ export interface SolicitacaoCorrecaoBaseProps {
   matriculas?: string[]
   competencia?: string
   motivo?: string
-  mensagemIntro?: string
+  status?: StatusSolicitacao | string
+  enviada?: boolean
+  erro?: string | null
 }
 
 const props = withDefaults(defineProps<SolicitacaoCorrecaoBaseProps>(), {
@@ -18,8 +22,9 @@ const props = withDefaults(defineProps<SolicitacaoCorrecaoBaseProps>(), {
   matriculas: () => ['MAT-102', 'MAT-63', 'MAT-42'],
   competencia: '11/2025',
   motivo: 'Os funcionários especificados foram transferidos de loja desde Julho.',
-  mensagemIntro:
-    'Planejei o ticket para a sua solicitação de correção da base de dados, verifique as informações e caso algo esteja errado, me diga o que alterar!\nQuando tudo estiver pronto, clique em “Solicitar Alteração” para seu chamado ir para análise!',
+  status: 'rascunho',
+  enviada: false,
+  erro: null,
 })
 
 const emit = defineEmits<{
@@ -29,92 +34,108 @@ const emit = defineEmits<{
 }>()
 
 const motivoEditado = ref(props.motivo)
-const salvoComSucesso = ref(false)
+let ultimoMotivoEmitido = props.motivo
+const solicitadoLocalmente = ref(false)
+
+const statusEfetivo = computed<'enviada' | 'aprovada' | 'erro' | null>(() => {
+  if (props.erro) return 'erro'
+  if (props.status === 'erro') return 'erro'
+  if (props.status === 'aprovada') return 'aprovada'
+  if (props.status === 'enviada' || props.enviada || solicitadoLocalmente.value) return 'enviada'
+  return null
+})
 
 function salvarMotivo() {
-  emit('salvar-motivo', motivoEditado.value)
-  salvoComSucesso.value = true
-  setTimeout(() => {
-    salvoComSucesso.value = false
-  }, 2000)
+  if (motivoEditado.value !== ultimoMotivoEmitido) {
+    ultimoMotivoEmitido = motivoEditado.value
+    emit('salvar-motivo', motivoEditado.value)
+  }
 }
 
+watch(() => props.motivo, (novo) => {
+  motivoEditado.value = novo
+  ultimoMotivoEmitido = novo
+})
+
+watch(motivoEditado, () => {
+  salvarMotivo()
+})
+
 function handleSolicitar() {
+  solicitadoLocalmente.value = true
   emit('solicitar', motivoEditado.value)
 }
 
 function handleCancelar() {
+  solicitadoLocalmente.value = false
   emit('cancelar')
 }
 </script>
 
 <template>
-  <div class="solicitacao-correcao-container">
-    <!-- Mensagem introdutória da Lana -->
-    <p v-if="mensagemIntro" class="mensagem-intro">
-      {{ mensagemIntro }}
-    </p>
-
-    <!-- Card de solicitação (Figma 968:3323) -->
-    <article class="card-ticket" aria-labelledby="titulo-solicitacao-base">
+  <div class="w-full max-w-[800px] font-raleway text-white-txt1 flex flex-col gap-5">
+    <article
+      class="w-full bg-black-bg1 border-2 border-black-bg2 rounded-[20px] p-6 flex flex-col gap-6 box-border"
+      aria-labelledby="titulo-solicitacao-base"
+    >
       <!-- Cabeçalho -->
-      <header class="card-header">
-        <div class="card-titulo">
-          <i class="bi bi-database-exclamation icone-titulo" aria-hidden="true" />
-          <h3 id="titulo-solicitacao-base" class="titulo-texto">
+      <header class="flex justify-between items-center gap-4">
+        <div class="flex items-center gap-2.5">
+          <i class="bi bi-database-exclamation text-[20px] text-blue" aria-hidden="true" />
+          <h3 id="titulo-solicitacao-base" class="m-0 text-highlight-1 font-medium text-white-txt1">
             Solicitação de Correção de Dados
           </h3>
         </div>
 
-        <div class="selo-lana">
+        <div class="inline-flex items-center px-2.5 py-[3px] rounded-full bg-blue/15 text-blue font-inconsolata text-metadata font-normal whitespace-nowrap">
           <span>Feito com Lana</span>
         </div>
       </header>
 
       <!-- Comparação: Valor Anterior vs Valor Após Mudança -->
-      <section class="secao-comparacao" aria-label="Comparação de valores">
-        <div class="bloco-valor bloco-anterior">
-          <span class="rotulo-metadado">VALOR ANTERIOR</span>
-          <p class="texto-valor">{{ valorAnterior }}</p>
+      <section class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-4" aria-label="Comparação de valores">
+        <div class="flex flex-col gap-1">
+          <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">VALOR ANTERIOR</span>
+          <p class="m-0 text-body text-white-txt1">{{ valorAnterior }}</p>
         </div>
 
-        <div class="seta-separadora" aria-hidden="true">
-          <i class="bi bi-arrow-right icone-seta desktop" />
-          <i class="bi bi-arrow-down icone-seta mobile" />
+        <div class="flex justify-center items-center text-gray-txt3-dark text-[20px]" aria-hidden="true">
+          <i class="bi bi-arrow-right hidden sm:block" />
+          <i class="bi bi-arrow-down block sm:hidden" />
         </div>
 
-        <div class="bloco-valor bloco-depois">
-          <span class="rotulo-metadado">VALOR APÓS MUDANÇA</span>
-          <p class="texto-valor">{{ valorAposMudanca }}</p>
+        <div class="flex flex-col gap-1">
+          <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">VALOR APÓS MUDANÇA</span>
+          <p class="m-0 text-body text-white-txt1">{{ valorAposMudanca }}</p>
         </div>
       </section>
 
-      <hr class="divisor" />
+      <hr class="border-0 border-t-2 border-black-bg2 m-0" />
 
       <!-- Conteúdo detalhado: Tipo, Matrículas, Competência e Motivo -->
-      <div class="conteudo-grade">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Coluna da Esquerda: Metadados estruturados -->
-        <div class="coluna-esquerda">
+        <div class="flex flex-col gap-5">
           <!-- Tipo -->
-          <div class="campo-info">
-            <div class="rotulo-com-icone">
-              <i class="bi bi-card-text icone-campo" aria-hidden="true" />
-              <span class="rotulo-campo">TIPO</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1.5">
+              <i class="bi bi-card-text text-[15px] text-gray-txt3-dark" aria-hidden="true" />
+              <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">TIPO</span>
             </div>
-            <span class="valor-campo">{{ tipo }}</span>
+            <span class="text-body text-white-txt1">{{ tipo }}</span>
           </div>
 
           <!-- Matrículas -->
-          <div class="campo-info">
-            <div class="rotulo-com-icone">
-              <i class="bi bi-person-video icone-campo" aria-hidden="true" />
-              <span class="rotulo-campo">MATRÍCULAS</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1.5">
+              <i class="bi bi-person-video text-[15px] text-gray-txt3-dark" aria-hidden="true" />
+              <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">MATRÍCULAS</span>
             </div>
-            <div class="matriculas-tags">
+            <div class="flex flex-wrap items-center gap-4">
               <span
                 v-for="matricula in matriculas"
                 :key="matricula"
-                class="tag-matricula"
+                class="text-body text-white-txt1 font-inconsolata"
               >
                 {{ matricula }}
               </span>
@@ -122,46 +143,66 @@ function handleCancelar() {
           </div>
 
           <!-- Competência -->
-          <div class="campo-info">
-            <div class="rotulo-com-icone">
-              <i class="bi bi-card-text icone-campo" aria-hidden="true" />
-              <span class="rotulo-campo">COMPETÊNCIA</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1.5">
+              <i class="bi bi-card-text text-[15px] text-gray-txt3-dark" aria-hidden="true" />
+              <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">COMPETÊNCIA</span>
             </div>
-            <span class="valor-campo">{{ competencia }}</span>
+            <span class="text-body text-white-txt1 font-inconsolata">{{ competencia }}</span>
           </div>
         </div>
 
         <!-- Coluna da Direita: Motivo / Textarea -->
-        <div class="coluna-direita">
-          <div class="motivo-cabecalho">
-            <span class="motivo-titulo">MOTIVO</span>
-            <span class="motivo-subtitulo">Clique na caixa de texto para alterar a descrição</span>
+        <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-1">
+            <span class="text-body text-white-txt1">MOTIVO</span>
+            <span class="font-inconsolata text-body text-gray-txt3-dark">Clique na caixa de texto para alterar a descrição</span>
           </div>
 
-          <div class="motivo-entrada">
+          <div class="flex flex-col items-end gap-2">
             <textarea
               v-model="motivoEditado"
               rows="4"
-              class="textarea-motivo"
+              class="w-full box-border min-h-[110px] p-3 bg-black-bg2 rounded-[10px] font-inconsolata text-body text-gray-txt2-dark resize-y focus:outline focus:outline-gray-txt2 focus:text-white-txt1"
               aria-label="Descrição do motivo da correção"
+              :disabled="statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'"
+              @input="salvarMotivo"
+              @change="salvarMotivo"
             />
-            <button
-              type="button"
-              class="botao-salvar"
-              :class="{ 'botao-salvar--sucesso': salvoComSucesso }"
-              @click="salvarMotivo"
-            >
-              {{ salvoComSucesso ? 'Salvo!' : 'Salvar' }}
-            </button>
           </div>
         </div>
       </div>
 
+      <!-- Status da Solicitação (aparece somente depois do usuário pedir para abrir a solicitação) -->
+      <div
+        v-if="statusEfetivo === 'enviada'"
+        class="status-solicitacao status-enviada flex items-center gap-3 bg-black-bg2 px-4 py-1.5 rounded border-l-3 border-orange"
+      >
+        <i class="bi bi-clock-history text-orange text-[16px]" aria-hidden="true" />
+        <p class="text-orange text-label m-0">Solicitação enviada para a análise dos supervisores!</p>
+      </div>
+
+      <div
+        v-else-if="statusEfetivo === 'aprovada'"
+        class="status-solicitacao status-aprovada flex items-center gap-3 bg-black-bg2 px-4 py-1.5 rounded border-l-3 border-blue"
+      >
+        <i class="bi bi-check-circle-fill text-blue text-[16px]" aria-hidden="true" />
+        <p class="text-blue text-label m-0">Solicitação aprovada e aplicada!</p>
+      </div>
+
+      <div
+        v-else-if="statusEfetivo === 'erro'"
+        class="status-solicitacao status-erro flex items-center gap-3 bg-black-bg2 px-4 py-1.5 rounded border-l-3 border-red"
+      >
+        <i class="bi bi-exclamation-triangle-fill text-red text-[16px]" aria-hidden="true" />
+        <p class="text-red text-label m-0">{{ erro || 'Erro ao processar a solicitação.' }}</p>
+      </div>
+
       <!-- Rodapé com Botões de Ação -->
-      <footer class="card-acoes">
+      <footer class="flex flex-col sm:flex-row gap-5 items-center">
         <button
           type="button"
-          class="btn-acao btn-cancelar"
+          class="btn-acao btn-cancelar flex-1 w-full sm:w-auto py-2 px-5 rounded-full font-raleway text-body font-medium text-center cursor-pointer transition-colors bg-transparent border border-gray-txt2-dark text-gray-txt2-dark hover:bg-white/5 hover:border-white-txt1 hover:text-white-txt1"
           @click="handleCancelar"
         >
           Cancelar Solicitação
@@ -169,7 +210,9 @@ function handleCancelar() {
 
         <button
           type="button"
-          class="btn-acao btn-solicitar"
+          class="btn-acao btn-solicitar flex-1 w-full sm:w-auto py-2 px-5 rounded-full font-raleway text-body font-semibold text-center transition-all bg-blue border border-blue text-black-bg1"
+          :class="statusEfetivo === 'enviada' || statusEfetivo === 'aprovada' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:brightness-110'"
+          :disabled="statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'"
           @click="handleSolicitar"
         >
           Solicitar Alteração
@@ -178,312 +221,3 @@ function handleCancelar() {
     </article>
   </div>
 </template>
-
-<style scoped>
-.solicitacao-correcao-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  max-width: 800px;
-  font-family: var(--font-raleway);
-  color: var(--color-white-txt1);
-}
-
-.mensagem-intro {
-  margin: 0;
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
-  color: var(--color-white-txt1);
-  white-space: pre-wrap;
-}
-
-.card-ticket {
-  background-color: var(--color-black-bg1);
-  border: 2px solid var(--color-black-bg2);
-  border-radius: 20px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  box-sizing: border-box;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.card-titulo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.icone-titulo {
-  font-size: 20px;
-  color: var(--color-blue);
-}
-
-.titulo-texto {
-  margin: 0;
-  font-size: var(--text-highlight-1);
-  font-weight: 500;
-  line-height: var(--text-highlight-1--line-height);
-  color: var(--color-white-txt1);
-}
-
-.selo-lana {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background-color: rgba(0, 180, 241, 0.14);
-  color: var(--color-blue);
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-metadata);
-  font-weight: 400;
-  white-space: nowrap;
-}
-
-.secao-comparacao {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 16px;
-}
-
-.bloco-valor {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.rotulo-metadado {
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  color: var(--color-gray-txt3-dark);
-  text-transform: uppercase;
-}
-
-.texto-valor {
-  margin: 0;
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
-  color: var(--color-white-txt1);
-}
-
-.seta-separadora {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--color-gray-txt3-dark);
-  font-size: 20px;
-}
-
-.icone-seta.desktop {
-  display: block;
-}
-
-.icone-seta.mobile {
-  display: none;
-}
-
-.divisor {
-  border: none;
-  border-top: 2px solid var(--color-black-bg2);
-  margin: 0;
-}
-
-.conteudo-grade {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.coluna-esquerda {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.campo-info {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.rotulo-com-icone {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.icone-campo {
-  font-size: 15px;
-  color: var(--color-gray-txt3-dark);
-}
-
-.rotulo-campo {
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  color: var(--color-gray-txt3-dark);
-}
-
-.valor-campo {
-  font-size: var(--text-body);
-  color: var(--color-white-txt1);
-}
-
-.matriculas-tags {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-}
-
-.tag-matricula {
-  font-size: var(--text-body);
-  color: var(--color-white-txt1);
-}
-
-.coluna-direita {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.motivo-cabecalho {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.motivo-titulo {
-  font-size: var(--text-body);
-  color: var(--color-white-txt1);
-}
-
-.motivo-subtitulo {
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  color: var(--color-gray-txt3-dark);
-}
-
-.motivo-entrada {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.textarea-motivo {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 110px;
-  padding: 12px;
-  background-color: var(--color-black-bg2);
-  border: 1px solid var(--color-gray-txt3-dark);
-  border-radius: 10px;
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  color: var(--color-gray-txt2-dark);
-  resize: vertical;
-}
-
-.textarea-motivo:focus {
-  outline: none;
-  border-color: var(--color-blue);
-}
-
-.botao-salvar {
-  padding: 4px 14px;
-  border: none;
-  border-radius: 5px;
-  background-color: var(--color-gray-txt3-dark);
-  color: var(--color-black-bg1);
-  font-family: var(--font-inconsolata);
-  font-size: var(--text-label);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.botao-salvar:hover {
-  background-color: var(--color-gray-txt2-dark);
-}
-
-.botao-salvar--sucesso {
-  background-color: var(--color-green);
-  color: var(--color-black-bg1);
-}
-
-.card-acoes {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.btn-acao {
-  flex: 1;
-  padding: 12px 20px;
-  border-radius: 999px;
-  font-family: var(--font-raleway);
-  font-size: var(--text-body);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-
-.btn-cancelar {
-  background: transparent;
-  border: 1px solid var(--color-gray-txt2-dark);
-  color: var(--color-gray-txt2-dark);
-}
-
-.btn-cancelar:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-color: var(--color-white-txt1);
-  color: var(--color-white-txt1);
-}
-
-.btn-solicitar {
-  background-color: var(--color-blue);
-  border: 1px solid var(--color-blue);
-  color: var(--color-black-bg1);
-  font-weight: 600;
-}
-
-.btn-solicitar:hover {
-  filter: brightness(1.1);
-}
-
-@media (max-width: 640px) {
-  .secao-comparacao {
-    grid-template-columns: 1fr;
-  }
-
-  .icone-seta.desktop {
-    display: none;
-  }
-
-  .icone-seta.mobile {
-    display: block;
-  }
-
-  .conteudo-grade {
-    grid-template-columns: 1fr;
-  }
-
-  .card-acoes {
-    flex-direction: column;
-  }
-
-  .btn-acao {
-    width: 100%;
-  }
-}
-</style>

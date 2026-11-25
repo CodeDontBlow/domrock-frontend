@@ -74,7 +74,7 @@ function abrirDetalhesTabela(linha: ItemTabelaHistorico) {
       tipo: linha.tipo,
       matriculasCount: linha.matriculas.split(',').length,
       matriculas: linha.matriculas.split(',').map((m) => m.trim()),
-      impacto: 'Resolvido',
+      duracao: 'Resolvido',
       inicio: linha.periodo?.split('-')[0]?.trim() || 'Início',
       fim: linha.periodo?.split('-')[1]?.trim() || 'Fim',
       motivo: linha.motivo,
@@ -117,6 +117,7 @@ function aprovarSolicitacao(id: string | number) {
       })
     }
   }
+
   fecharDetalhes()
 }
 
@@ -148,6 +149,7 @@ function arquivarSolicitacao(id: string | number) {
       })
     }
   }
+
   fecharDetalhes()
 }
 
@@ -160,19 +162,28 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
 </script>
 
 <template>
-  <main class="page">
+  <main class="page text-white-txt1 font-raleway">
     <!-- Seção de Introdução com Título, Abas e Banner Informativo -->
     <section class="intro-section">
       <header class="page-header">
-        <h1>Solicitações de Alteração</h1>
+        <h1 class="m-0 font-forum font-normal text-header-1 max-md:text-header-2 leading-none">
+          Solicitações de Alteração
+        </h1>
       </header>
 
       <!-- Menu de Abas Superior (Figma 1009:5179 e 1009:5547) -->
-      <nav class="abas-navegacao" aria-label="Visualizações da fila de alterações">
+      <nav
+        class="abas-navegacao flex items-center gap-4 max-sm:gap-2 border-b-2 border-black-bg2"
+        aria-label="Visualizações da fila de alterações"
+      >
         <button
           type="button"
-          class="aba-btn"
-          :class="{ 'aba-btn--ativo': visualizacaoAtiva === 'correcao' }"
+          class="aba-btn py-2.5 px-5 max-sm:py-2 max-sm:px-3 bg-transparent border-0 border-b-2 -mb-[2px] font-raleway text-body max-sm:text-label cursor-pointer transition-colors duration-150"
+          :class="
+            visualizacaoAtiva === 'correcao'
+              ? 'aba-btn--ativo text-white-txt1 border-b-blue font-semibold'
+              : 'text-gray-txt2-dark border-b-transparent hover:text-white-txt1 font-medium'
+          "
           :aria-selected="visualizacaoAtiva === 'correcao'"
           @click="alternarVisualizacao('correcao')"
         >
@@ -181,8 +192,12 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
 
         <button
           type="button"
-          class="aba-btn"
-          :class="{ 'aba-btn--ativo': visualizacaoAtiva === 'intercorrencia' }"
+          class="aba-btn py-2.5 px-5 max-sm:py-2 max-sm:px-3 bg-transparent border-0 border-b-2 -mb-[2px] font-raleway text-body max-sm:text-label cursor-pointer transition-colors duration-150"
+          :class="
+            visualizacaoAtiva === 'intercorrencia'
+              ? 'aba-btn--ativo text-white-txt1 border-b-blue font-semibold'
+              : 'text-gray-txt2-dark border-b-transparent hover:text-white-txt1 font-medium'
+          "
           :aria-selected="visualizacaoAtiva === 'intercorrencia'"
           @click="alternarVisualizacao('intercorrencia')"
         >
@@ -191,34 +206,40 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
       </nav>
 
       <!-- Banner de Aviso/Notificação Informativo (Figma 1009:5180) -->
-      <aside class="aviso-banner" role="status">
-        <p v-if="visualizacaoAtiva === 'correcao'" class="aviso-texto">
-          Você está visualizando as solicitações de <strong>Correção da Base</strong>.
-          Para ver as intercorrências, navegue pelo menu acima.
-        </p>
-        <p v-else class="aviso-texto">
-          Você está visualizando as solicitações de <strong>Abertura de Intercorrência</strong>.
-          Para ver as correções da base, navegue pelo menu acima.
-        </p>
-      </aside>
+      <div class="notice-section">
+        <aside
+          class="aviso-banner flex items-center max-sm:items-start gap-2.5 max-sm:gap-2 w-full min-w-0 py-2.5 px-3.5 box-border rounded-[5px] bg-black-bg2 border-l-[3px] border-l-blue text-white-txt1 font-raleway"
+          role="status"
+        >
+          <p v-if="visualizacaoAtiva === 'correcao'" class="aviso-texto m-0 text-body max-sm:text-label leading-snug font-normal">
+            Você está visualizando as solicitações de <strong class="text-blue font-extrabold">Correção da Base</strong>.
+            Para ver as intercorrências, navegue pelo menu acima.
+          </p>
+          <p v-else class="aviso-texto m-0 text-body max-sm:text-label leading-snug font-normal">
+            Você está visualizando as solicitações de <strong class="text-blue font-extrabold">Abertura de Intercorrência</strong>.
+            Para ver as correções da base, navegue pelo menu acima.
+          </p>
+        </aside>
+      </div>
     </section>
 
     <!-- Seção da Fila de Solicitações Pendentes (Carrossel) -->
-    <section class="fila-section">
+    <section class="approvals-section">
       <header class="section-header">
-        <h2>
-          {{ visualizacaoAtiva === 'correcao' ? 'Correção da Base' : 'Abertura de Intercorrência' }}
-        </h2>
+        <div class="flex gap-3 items-center">
+          <h2 class="m-0 mb-2 font-extrabold text-header-2 max-sm:text-header-3 leading-tight text-white-txt1">
+            {{ visualizacaoAtiva === 'correcao' ? 'Correção da Base' : 'Abertura de Intercorrência' }}
+          </h2>
+          <p class="section-subtitle m-0 mb-1.5 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark">
+            {{
+              visualizacaoAtiva === 'correcao'
+                ? 'Correção de dados incorretos ou desatualizados na base de dados.'
+                : 'Solicitações de abertura de intercorrências para análise e aprovação.'
+            }}
+          </p>
+        </div>
 
-        <p class="section-subtitle">
-          {{
-            visualizacaoAtiva === 'correcao'
-              ? 'Correção de dados incorretos ou desatualizados na base de dados.'
-              : 'Solicitações de abertura de intercorrências para análise e aprovação.'
-          }}
-        </p>
-
-        <p class="section-description">
+        <p class="section-description m-0 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark">
           Clique em uma solicitação para ver mais detalhes, aprovar ou arquivar.
         </p>
       </header>
@@ -228,7 +249,7 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
         v-if="visualizacaoAtiva === 'correcao'"
         :total="filaBase.length"
       >
-        <p v-if="filaBase.length === 0" class="estado-vazio">
+        <p v-if="filaBase.length === 0" class="estado-fila flex items-center gap-3 text-body text-gray-txt2-dark m-0 py-6">
           Nenhuma solicitação de correção da base aguardando aprovação.
         </p>
         <CardFilaBase
@@ -245,7 +266,7 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
         v-else
         :total="filaIntercorrencia.length"
       >
-        <p v-if="filaIntercorrencia.length === 0" class="estado-vazio">
+        <p v-if="filaIntercorrencia.length === 0" class="estado-fila flex items-center gap-3 text-body text-gray-txt2-dark m-0 py-6">
           Nenhuma solicitação de intercorrência aguardando aprovação.
         </p>
         <CardFilaIntercorrencia
@@ -259,19 +280,22 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
     </section>
 
     <!-- Seção de Histórico de Solicitações Resolvidas -->
-    <section class="historico-section">
+    <section class="campaigns-section">
       <header class="section-header">
-        <h2>Histórico de Solicitações</h2>
+        <div class="flex gap-3 items-center mb-5">
+          <h2 class="m-0 mb-2 font-extrabold text-header-2 max-sm:text-header-3 leading-tight text-white-txt1">
+            Histórico de Solicitações
+          </h2>
+          <p class="section-subtitle m-0 mb-1.5 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark">
+            {{
+              visualizacaoAtiva === 'correcao'
+                ? 'Histórico das solicitações de correção anteriores que já foram resolvidas.'
+                : 'Histórico de solicitações de intercorrência anteriores que já foram resolvidas.'
+            }}
+          </p>
+        </div>
 
-        <p class="section-subtitle">
-          {{
-            visualizacaoAtiva === 'correcao'
-              ? 'Histórico das solicitações de correção anteriores que já foram resolvidas.'
-              : 'Histórico de solicitações de intercorrência anteriores que já foram resolvidas.'
-          }}
-        </p>
-
-        <p class="section-description">
+        <p class="section-description m-0 text-body max-sm:text-label font-normal leading-relaxed text-white-txt">
           Clique em uma solicitação na tabela abaixo para ver informações mais detalhadas
           e visualizar o chat que a gerou.
         </p>
@@ -301,142 +325,101 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
   max-width: 1440px;
   min-width: 0;
   margin: 0 auto;
-  padding: 40px 24px 32px;
+  padding: 40px 16px 32px;
   box-sizing: border-box;
-  color: var(--color-white-txt1);
-  font-family: var(--font-raleway);
 }
 
 .intro-section {
-  margin-bottom: 48px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  margin-bottom: 52px;
 }
 
-.page-header h1 {
-  margin: 0;
-  font-size: var(--text-header-1);
-  line-height: var(--text-header-1--line-height);
-  font-family: var(--font-forum);
-  font-weight: 400;
-  color: var(--color-white-txt1);
+.page-header {
+  margin-bottom: 20px;
 }
 
 .abas-navegacao {
-  display: flex;
-  align-items: center;
-  border-bottom: 2px solid var(--color-black-bg2);
-  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.aba-btn {
-  padding: 10px 20px;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  font-family: var(--font-raleway);
-  font-size: var(--text-body);
-  color: var(--color-gray-txt2-dark);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.aba-btn:hover {
-  color: var(--color-white-txt1);
-}
-
-.aba-btn--ativo {
-  color: var(--color-white-txt1);
-  border-bottom-color: var(--color-blue);
-  font-weight: 600;
-}
-
-.aviso-banner {
-  background-color: var(--color-black-bg2);
-  border-left: 3px solid var(--color-blue);
-  border-radius: 5px;
-  padding: 12px 18px;
-}
-
-.aviso-texto {
+.notice-section {
   margin: 0;
-  font-size: var(--text-body);
-  line-height: 1.5;
-  color: var(--color-white-txt1);
 }
 
-.aviso-texto strong {
-  color: var(--color-blue);
-}
-
-.fila-section {
+.approvals-section {
   margin-bottom: 56px;
 }
 
-.historico-section {
-  margin-bottom: 32px;
+.campaigns-section {
+  margin-bottom: 24px;
 }
 
 .section-header {
-  margin-bottom: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  margin-bottom: 16px;
 }
 
-.section-header h2 {
-  margin: 0;
-  font-size: var(--text-header-2);
-  line-height: var(--text-header-2--line-height);
-  font-weight: 800;
-  color: var(--color-white-txt1);
-}
-
-.section-subtitle {
-  margin: 0;
-  font-size: var(--text-body);
-  color: var(--color-gray-txt2-dark);
-}
-
-.section-description {
-  margin: 0;
-  font-size: var(--text-body);
-  color: var(--color-white-txt1);
-  line-height: 1.5;
-}
-
-.estado-vazio {
-  margin: 0;
+.estado-fila {
   padding: 24px 0;
-  color: var(--color-gray-txt2-dark);
-  font-size: var(--text-body);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1366px) {
   .page {
     padding: 32px 16px 24px;
   }
-}
 
-@media (max-width: 640px) {
-  .page {
-    padding: 24px 12px 20px;
+  .intro-section {
+    margin-bottom: 40px;
   }
 
-  .page-header h1 {
-    font-size: var(--text-header-2);
-    line-height: var(--text-header-2--line-height);
+  .approvals-section {
+    margin-bottom: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 32px 12px 24px;
+  }
+
+  .intro-section {
+    margin-bottom: 42px;
+  }
+
+  .page-header {
+    margin-bottom: 16px;
+  }
+
+  .approvals-section {
+    margin-bottom: 44px;
+  }
+
+  .section-header {
+    margin-bottom: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 26px 10px 20px;
+  }
+
+  .intro-section {
+    margin-bottom: 36px;
+  }
+
+  .page-header {
+    margin-bottom: 14px;
   }
 
   .abas-navegacao {
-    gap: 8px;
+    margin-bottom: 16px;
   }
 
-  .aba-btn {
-    padding: 8px 12px;
-    font-size: var(--text-label);
+  .approvals-section {
+    margin-bottom: 38px;
+  }
+
+  .section-header {
+    margin-bottom: 12px;
   }
 }
 </style>

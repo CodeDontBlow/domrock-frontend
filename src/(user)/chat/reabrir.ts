@@ -2,11 +2,13 @@ import { isAxiosError } from 'axios'
 import type { AcaoCampanha, CampanhaDetalhe, UltimaSimulacao } from '../campanha/types'
 import { eventosDaTrilha } from './trilha'
 import type {
+  EventoAgente,
   MensagemChat,
   MensagemGravada,
   RegraCampanha,
   ResultadoSimulacao,
   SimulacaoAndamento,
+  SolicitacaoCorrecaoChat,
 } from './types'
 
 export interface PermissoesCampanha {
@@ -29,6 +31,59 @@ export interface SimulacaoRestaurada {
   ultimaSimulacao: UltimaSimulacao
 }
 
+export function normalizarCompetenciaParaIso(comp: string): string {
+  const c = comp.trim()
+  if (c.includes('/')) {
+    const [mes, ano] = c.split('/')
+    if (mes && ano) return `${ano}-${mes.padStart(2, '0')}`
+  }
+  return c
+}
+
+export function extrairSolicitacaoDeEventos(events?: EventoAgente[]): SolicitacaoCorrecaoChat | null {
+  if (!events || !Array.isArray(events)) return null
+  for (let i = events.length - 1; i >= 0; i--) {
+    const ev = events[i]
+    if (!ev) continue
+    const evObj = ev as unknown as Record<string, unknown>
+    const isCorrecao = ev.ferramenta === 'registrar_solicitacao_correcao' || evObj.tool === 'registrar_solicitacao_correcao'
+    const isIntercorrencia = ev.ferramenta === 'registrar_intercorrencia' || evObj.tool === 'registrar_intercorrencia' || ev.ferramenta === 'solicitar_intercorrencia'
+
+    if (isCorrecao || isIntercorrencia) {
+      const res = ((ev.result as Record<string, unknown> | undefined)?.solicitacao ?? evObj.solicitacao) as Record<string, unknown> | undefined
+      if (res && typeof res === 'object') {
+        const rawMats = res.matriculas ?? res.matricula
+        const matriculas: string[] = Array.isArray(rawMats)
+          ? (rawMats as string[])
+          : rawMats ? [String(rawMats)] : []
+
+        return {
+          id: res.id as string | number | undefined,
+          tipo: (res.tipo as string) || (isIntercorrencia ? 'Licença' : 'Atualização'),
+          tipo_alteracao: res.tipo_alteracao as string | undefined,
+          tipoSolicitacao: isIntercorrencia ? 'intercorrencia' : 'correcao',
+          matricula: res.matricula as string | undefined,
+          matriculas,
+          competencia: (res.competencia as string) || '',
+          competencia_iso: res.competencia_iso as string | undefined,
+          valorAnterior: (res.antes as string) || (res.valor_antes as string) || '',
+          valorAposMudanca: (res.depois as string) || (res.valor_depois as string) || '',
+          valor_antes: res.valor_antes as string | undefined,
+          valor_depois: res.valor_depois as string | undefined,
+          dataInicio: (res.data_inicio as string) || (res.dataInicio as string) || '17/03/2026',
+          dataFim: (res.data_fim as string) || (res.dataFim as string) || '16/11/2026',
+          motivo: (res.motivo as string) || '',
+          sql: res.sql as string | undefined,
+          status: 'rascunho',
+          enviada: false,
+          statusEnvio: 'pendente',
+        }
+      }
+    }
+  }
+  return null
+}
+
 function converterUsuario(msg: MensagemGravada): MensagemChat {
   return {
     id: msg.id,
@@ -40,12 +95,16 @@ function converterUsuario(msg: MensagemGravada): MensagemChat {
 }
 
 function converterLana(msg: MensagemGravada): MensagemChat {
+  const events = eventosDaTrilha(msg.trilha)
+  const solicitacao = extrairSolicitacaoDeEventos(events)
+
   return {
     id: msg.id,
     chave: `b-${msg.id}`,
     papel: 'agente',
     texto: msg.texto,
-    events: eventosDaTrilha(msg.trilha),
+    events,
+    solicitacao,
     criada_em: msg.criada_em,
   }
 }

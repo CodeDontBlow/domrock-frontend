@@ -73,20 +73,19 @@ function avancar() {
 </script>
 
 <template>
-  <div class="carrossel-bloco">
+  <div class="carrossel-bloco flex flex-col gap-4 w-full">
     <!-- Mini cabeçalho com contador e setas -->
-    <div class="mini-header">
-      <div class="info-contador">
-        <i class="bi bi-arrows-angle-expand icone-expandir" aria-hidden="true" />
-        <span class="texto-contador">
+    <div class="mini-header flex justify-between items-center font-raleway">
+      <div class="info-contador flex items-center gap-2 text-white-txt1 text-body">
+        <span class="texto-contador text-body leading-[20px]">
           Visualizando {{ posicaoAtual }}/{{ total }} Solicitações
         </span>
       </div>
 
-      <div v-if="total > 0" class="controles-navegacao">
+      <div v-if="total > 0" class="controles-navegacao flex items-center gap-2">
         <button
           type="button"
-          class="btn-seta"
+          class="btn-seta flex items-center justify-center w-8 h-8 border border-gray-txt3-dark rounded-full bg-transparent text-white-txt1 cursor-pointer transition-all duration-150 hover:enabled:border-blue hover:enabled:text-blue hover:enabled:bg-blue/10 disabled:opacity-35 disabled:cursor-not-allowed"
           aria-label="Voltar para a solicitação anterior"
           :disabled="indiceAtual <= 0"
           @click="retroceder"
@@ -96,7 +95,7 @@ function avancar() {
 
         <button
           type="button"
-          class="btn-seta"
+          class="btn-seta flex items-center justify-center w-8 h-8 border border-gray-txt3-dark rounded-full bg-transparent text-white-txt1 cursor-pointer transition-all duration-150 hover:enabled:border-blue hover:enabled:text-blue hover:enabled:bg-blue/10 disabled:opacity-35 disabled:cursor-not-allowed"
           aria-label="Avançar para a próxima solicitação"
           :disabled="indiceAtual >= total - 1"
           @click="avancar"
@@ -109,7 +108,7 @@ function avancar() {
     <!-- Trilho de cartões com rolagem -->
     <div
       ref="carrosselRef"
-      class="trilho-carrossel"
+      class="trilho-carrossel flex items-stretch gap-6 overflow-x-auto scroll-smooth pb-3"
       @scroll.passive="atualizarPosicao"
     >
       <slot />
@@ -118,79 +117,6 @@ function avancar() {
 </template>
 
 <style scoped>
-.carrossel-bloco {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
-.mini-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--font-raleway);
-}
-
-.info-contador {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-white-txt1);
-  font-size: var(--text-body);
-}
-
-.icone-expandir {
-  font-size: 14px;
-  color: var(--color-gray-txt2-dark);
-}
-
-.texto-contador {
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
-}
-
-.controles-navegacao {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-seta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--color-gray-txt3-dark);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--color-white-txt1);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-seta:hover:not(:disabled) {
-  border-color: var(--color-blue);
-  color: var(--color-blue);
-  background-color: rgba(0, 180, 241, 0.1);
-}
-
-.btn-seta:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.trilho-carrossel {
-  display: flex;
-  align-items: stretch;
-  gap: 24px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding-bottom: 12px;
-  -webkit-overflow-scrolling: touch;
-}
-
 .trilho-carrossel::-webkit-scrollbar {
   height: 6px;
 }
