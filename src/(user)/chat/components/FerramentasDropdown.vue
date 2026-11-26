@@ -1,6 +1,6 @@
-
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { usePerfil } from '@/composables/usePerfil'
 import type { EventoAgente } from '../types'
 import TabelaDados from './TabelaDados.vue'
 
@@ -11,10 +11,7 @@ defineProps<{
 const aberto = ref(false)
 const ferramentasAbertas = ref<Record<number, boolean>>({})
 
-const isSupervisor = computed(() => {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem('perfil') === 'SUPERVISOR'
-})
+const { podeVerCodigoGerado } = usePerfil()
 
 function alternarFerramenta(index: number): void {
   ferramentasAbertas.value[index] = !ferramentasAbertas.value[index]
@@ -40,7 +37,8 @@ function formatarTempo(tempoMs?: number | null): string {
 
 // Linhas que a consulta devolveu (no máximo 50, o LIMIT do guard da Lana): a fonte do número.
 function dadosRetornados(event: EventoAgente): Record<string, unknown>[] {
-  if (typeof event.result !== 'object' || event.result === null || !('dados' in event.result)) return []
+  if (typeof event.result !== 'object' || event.result === null || !('dados' in event.result))
+    return []
   return Array.isArray(event.result.dados) ? event.result.dados : []
 }
 
@@ -64,7 +62,9 @@ function formatarJson(dado: unknown): string {
       :aria-expanded="aberto"
       @click="aberto = !aberto"
     >
-      <span class="font-medium text-gray-txt2-dark group-hover:text-white-txt1 group-hover:underline transition-colors">
+      <span
+        class="font-medium text-gray-txt2-dark group-hover:text-white-txt1 group-hover:underline transition-colors"
+      >
         Usou {{ events.length }} {{ events.length === 1 ? 'ferramenta' : 'ferramentas' }}
       </span>
       <i
@@ -107,7 +107,7 @@ function formatarJson(dado: unknown): string {
               class="bi bi-chevron-down text-[12px] text-gray-txt3-dark shrink-0 transition-transform duration-200"
               :class="[
                 { 'rotate-180': ferramentasAbertas[index] },
-                temErro(event) ? 'group-hover/tool:text-red' : 'group-hover/tool:text-white-txt1'
+                temErro(event) ? 'group-hover/tool:text-red' : 'group-hover/tool:text-white-txt1',
               ]"
               aria-hidden="true"
             ></i>
@@ -133,9 +133,11 @@ function formatarJson(dado: unknown): string {
           </div>
 
           <!-- Nome da ferramenta: visível SOMENTE para perfil SUPERVISOR -->
-          <div v-if="isSupervisor" class="flex items-center gap-2">
+          <div v-if="podeVerCodigoGerado" class="flex items-center gap-2">
             <p class="text-label text-gray-txt3-dark">Nome da ferramenta:</p>
-            <code class="px-1.5 py-0.5 rounded bg-black-bg2 text-white-txt1 font-source-code-pro text-code">
+            <code
+              class="px-1.5 py-0.5 rounded bg-black-bg2 text-white-txt1 font-source-code-pro text-code"
+            >
               {{ event.ferramenta }}
             </code>
           </div>
@@ -155,21 +157,36 @@ function formatarJson(dado: unknown): string {
           </div>
 
           <!-- Registros consultados: visível para todos -->
-          <div v-if="event.registros !== null && event.registros !== undefined" class="flex items-center gap-2">
+          <div
+            v-if="event.registros !== null && event.registros !== undefined"
+            class="flex items-center gap-2"
+          >
             <span class="text-label text-gray-txt3-dark">Registros consultados:</span>
-            <span class="text-white-txt1 font-inconsolata text-label ml-1">{{ event.registros }}</span>
+            <span class="text-white-txt1 font-inconsolata text-label ml-1">{{
+              event.registros
+            }}</span>
           </div>
 
           <!-- SQL Gerado: visível SOMENTE para perfil SUPERVISOR -->
-          <div v-if="isSupervisor && event.sql" class="flex flex-col gap-1">
+          <div v-if="podeVerCodigoGerado && event.sql" class="flex flex-col gap-1">
             <span class="text-label text-gray-txt3-dark">SQL gerado:</span>
-            <pre class="p-2.5 rounded bg-black-bg2 font-source-code-pro text-code text-white-txt1 overflow-x-auto whitespace-pre-wrap max-h-48 overflow-y-auto"><code>{{ event.sql }}</code></pre>
+            <pre
+              class="p-2.5 rounded bg-black-bg2 font-source-code-pro text-code text-white-txt1 overflow-x-auto whitespace-pre-wrap max-h-48 overflow-y-auto"
+            ><code>{{ event.sql }}</code></pre>
           </div>
 
           <!-- Filtros aplicados: visível para todos -->
-          <div v-if="event.filtros && (typeof event.filtros === 'object' ? Object.keys(event.filtros).length : true)" class="flex flex-col gap-1">
+          <div
+            v-if="
+              event.filtros &&
+              (typeof event.filtros === 'object' ? Object.keys(event.filtros).length : true)
+            "
+            class="flex flex-col gap-1"
+          >
             <span class="text-label text-gray-txt3-dark">Filtros aplicados:</span>
-            <pre class="p-2 rounded bg-black-bg2 font-source-code-pro text-label text-gray-txt2-dark overflow-x-auto whitespace-pre-wrap max-h-36 overflow-y-auto"><code>{{ formatarJson(event.filtros) }}</code></pre>
+            <pre
+              class="p-2 rounded bg-black-bg2 font-source-code-pro text-label text-gray-txt2-dark overflow-x-auto whitespace-pre-wrap max-h-36 overflow-y-auto"
+            ><code>{{ formatarJson(event.filtros) }}</code></pre>
           </div>
 
           <!-- Dados retornados: visível para todos -->
@@ -181,7 +198,9 @@ function formatarJson(dado: unknown): string {
           <!-- Parâmetros / Argumentos: visível para todos -->
           <div v-if="event.args && Object.keys(event.args).length" class="flex flex-col gap-1">
             <span class="text-label text-gray-txt3-dark">Parâmetros / Argumentos:</span>
-            <pre class="p-2 rounded bg-black-bg2 font-source-code-pro text-label text-gray-txt2-dark overflow-x-auto whitespace-pre-wrap max-h-36 overflow-y-auto"><code>{{ formatarJson(event.args) }}</code></pre>
+            <pre
+              class="p-2 rounded bg-black-bg2 font-source-code-pro text-label text-gray-txt2-dark overflow-x-auto whitespace-pre-wrap max-h-36 overflow-y-auto"
+            ><code>{{ formatarJson(event.args) }}</code></pre>
           </div>
         </div>
       </div>

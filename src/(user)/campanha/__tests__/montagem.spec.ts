@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { regraBlackFriday, resultadoBlackFriday, resultadoDoCriterio } from '../../chat/__tests__/fakes'
 import {
-  avisoDeResimulacao, cartaoDaFila, comVersao, descreverAlcance, diaMesDeData, duracaoEmDias, detalheAprovada, linhaAprovada,
+  regraBlackFriday,
+  resultadoBlackFriday,
+  resultadoDoCriterio,
+} from '../../chat/__tests__/fakes'
+import {
+  avisoDeResimulacao,
+  cartaoDaFila,
+  comVersao,
+  descreverAlcance,
+  diaMesDeData,
+  duracaoEmDias,
+  detalheAprovada,
+  linhaAprovada,
   montarJustificativa,
   usoDoOrcamento,
 } from '../montagem'
@@ -9,11 +20,15 @@ import type { CampanhaAprovada, FilaCampanha, VersaoCampanha } from '../types'
 
 function itemDaFila(sobrescrever: Partial<FilaCampanha> = {}): FilaCampanha {
   return {
-    id: 7, nome: 'Black Friday', versao: 1,
+    id: 7,
+    nome: 'Black Friday',
+    versao: 1,
     autor: { id: 1, nome: 'Gabriela' },
     submetida_em: '2026-11-16T15:00:00Z',
     periodo: { data_inicio: '2025-11-24', data_fim: '2025-11-30' },
-    custo_adicional: 1500, conflitos: 0, resimulacao_necessaria: false,
+    custo_adicional: 1500,
+    conflitos: 0,
+    resimulacao_necessaria: false,
     ...sobrescrever,
   }
 }
@@ -28,15 +43,23 @@ describe('montagem dos cards de aprovação', () => {
   it('monta o card da fila e espera a versão para o que depende da regra', () => {
     const cartao = cartaoDaFila(itemDaFila())
     expect(cartao).toMatchObject({
-      titulo: 'Black Friday', inicio: '24/11', fim: '30/11', duracaoDias: 7,
-      sugeridoPor: 'Gabriela', status: 'Sem conflitos', percentual: null, detalhe: 'carregando',
+      titulo: 'Black Friday',
+      inicio: '24/11',
+      fim: '30/11',
+      duracaoDias: 7,
+      sugeridoPor: 'Gabriela',
+      status: 'Sem conflitos',
+      percentual: null,
+      detalhe: 'carregando',
     })
     expect(cartao.custo).toContain('1.500,00')
   })
 
   it('mostra conflitos e resimulação no status', () => {
     expect(cartaoDaFila(itemDaFila({ conflitos: 2 })).status).toBe('2 conflitos')
-    expect(cartaoDaFila(itemDaFila({ conflitos: 2, resimulacao_necessaria: true })).status).toBe('Resimulação necessária')
+    expect(cartaoDaFila(itemDaFila({ conflitos: 2, resimulacao_necessaria: true })).status).toBe(
+      'Resimulação necessária',
+    )
   })
 
   it('descreve o alcance com marcas, tratando "todas"', () => {
@@ -46,10 +69,19 @@ describe('montagem dos cards de aprovação', () => {
 
   it('completa o card com a regra e o resultado da versão', () => {
     const versao = {
-      campanha_id: 7, numero: 1, status: 'AGUARDANDO_APROVACAO', autor: { id: 1, nome: 'Gabriela' },
-      submetida_em: '2026-11-16T15:00:00Z', simulacao_id: 3, resimulacao_necessaria: false, decisao: null,
-      regra: regraBlackFriday(), resultado: resultadoBlackFriday(),
-      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'], aprovadas_depois: [], resimulacao: null,
+      campanha_id: 7,
+      numero: 1,
+      status: 'AGUARDANDO_APROVACAO',
+      autor: { id: 1, nome: 'Gabriela' },
+      submetida_em: '2026-11-16T15:00:00Z',
+      simulacao_id: 3,
+      resimulacao_necessaria: false,
+      decisao: null,
+      regra: regraBlackFriday(),
+      resultado: resultadoBlackFriday(),
+      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'],
+      aprovadas_depois: [],
+      resimulacao: null,
     } satisfies VersaoCampanha
     const cartao = comVersao(cartaoDaFila(itemDaFila()), versao)
     expect(cartao.detalhe).toBe('pronto')
@@ -64,10 +96,19 @@ describe('montagem dos cards de aprovação', () => {
     const retorno = { provisorio: true, custo_pct_venda: 0.99, custo_por_real_acima_meta: 0.06 }
     const resultado = { ...resultadoDoCriterio('sem_orcamento'), retorno }
     const versao = {
-      campanha_id: 7, numero: 1, status: 'AGUARDANDO_APROVACAO', autor: { id: 1, nome: 'Gabriela' },
-      submetida_em: '2026-11-16T15:00:00Z', simulacao_id: 3, resimulacao_necessaria: false, decisao: null,
-      regra: regraBlackFriday({ orcamento_limite: null }), resultado,
-      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'], aprovadas_depois: [], resimulacao: null,
+      campanha_id: 7,
+      numero: 1,
+      status: 'AGUARDANDO_APROVACAO',
+      autor: { id: 1, nome: 'Gabriela' },
+      submetida_em: '2026-11-16T15:00:00Z',
+      simulacao_id: 3,
+      resimulacao_necessaria: false,
+      decisao: null,
+      regra: regraBlackFriday({ orcamento_limite: null }),
+      resultado,
+      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'],
+      aprovadas_depois: [],
+      resimulacao: null,
     } satisfies VersaoCampanha
 
     const cartao = comVersao(cartaoDaFila(itemDaFila()), versao)
@@ -80,16 +121,26 @@ describe('montagem dos cards de aprovação', () => {
     expect(usoDoOrcamento(1500, 20000)).toBe('7,5% do orçamento.')
     expect(usoDoOrcamento(1500, 0)).toBeNull()
     expect(montarJustificativa('  Reduzir o %  ', [])).toBe('Reduzir o %')
-    expect(montarJustificativa('Reduzir', [{ tipo: 'Campanha', descricao: '+0,25% vigente' }]))
-      .toBe('Reduzir\n\nInterferências citadas:\n- Campanha: +0,25% vigente')
+    expect(
+      montarJustificativa('Reduzir', [{ tipo: 'Campanha', descricao: '+0,25% vigente' }]),
+    ).toBe('Reduzir\n\nInterferências citadas:\n- Campanha: +0,25% vigente')
   })
 
   it('interferências vêm da versão: eventos de RH e conflitos reais, vazias sem eles', () => {
     const versao = {
-      campanha_id: 7, numero: 1, status: 'AGUARDANDO_APROVACAO', autor: { id: 1, nome: 'Gabriela' },
-      submetida_em: '2026-11-16T15:00:00Z', simulacao_id: 3, resimulacao_necessaria: false, decisao: null,
-      regra: regraBlackFriday(), resultado: { ...resultadoBlackFriday(), conflitos: [] },
-      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'], aprovadas_depois: [], resimulacao: null,
+      campanha_id: 7,
+      numero: 1,
+      status: 'AGUARDANDO_APROVACAO',
+      autor: { id: 1, nome: 'Gabriela' },
+      submetida_em: '2026-11-16T15:00:00Z',
+      simulacao_id: 3,
+      resimulacao_necessaria: false,
+      decisao: null,
+      regra: regraBlackFriday(),
+      resultado: { ...resultadoBlackFriday(), conflitos: [] },
+      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'],
+      aprovadas_depois: [],
+      resimulacao: null,
     } satisfies VersaoCampanha
     const cartao = cartaoDaFila(itemDaFila())
     expect(cartao.interferencias).toEqual([])
@@ -97,17 +148,33 @@ describe('montagem dos cards de aprovação', () => {
 
     const comDados = comVersao(cartao, {
       ...versao,
-      intercorrencias: [{
-        tipo: 'afastamento', matricula: 'MATRIC-58', cargo: '100', data_inicio: '2025-07-10',
-        data_fim: '2025-07-24', origem: 'Especificacao jul/2025 item a',
-      }],
+      intercorrencias: [
+        {
+          tipo: 'afastamento',
+          matricula: 'MATRIC-58',
+          cargo: '100',
+          data_inicio: '2025-07-10',
+          data_fim: '2025-07-24',
+          origem: 'Especificacao jul/2025 item a',
+        },
+      ],
       resultado: {
         ...resultadoBlackFriday(),
-        conflitos: [{
-          campanha_id: 12, versao: 1, tipo: 'ACRESCIMO', nome: 'Semana do Vendedor', status: 'APROVADA',
-          autor: 'Sérgio', data_inicio: '2025-11-20', data_fim: '2025-11-28',
-          sobreposicao: { data_inicio: '2025-11-20', data_fim: '2025-11-28' }, marcas: ['10'], cargos: ['100'],
-        }],
+        conflitos: [
+          {
+            campanha_id: 12,
+            versao: 1,
+            tipo: 'ACRESCIMO',
+            nome: 'Semana do Vendedor',
+            status: 'APROVADA',
+            autor: 'Sérgio',
+            data_inicio: '2025-11-20',
+            data_fim: '2025-11-28',
+            sobreposicao: { data_inicio: '2025-11-20', data_fim: '2025-11-28' },
+            marcas: ['10'],
+            cargos: ['100'],
+          },
+        ],
       },
     })
     expect(comDados.interferencias?.map((item) => `${item.tipo}: ${item.descricao}`)).toEqual([
@@ -115,52 +182,176 @@ describe('montagem dos cards de aprovação', () => {
       'Campanha: Semana do Vendedor (aprovada), 20/11 a 28/11',
     ])
   })
+
+  it('mapeia apenas alertas com status ABERTO em alertasAbertos da campanha', () => {
+    const versao = {
+      campanha_id: 7,
+      numero: 1,
+      status: 'AGUARDANDO_APROVACAO',
+      autor: { id: 1, nome: 'Gabriela' },
+      submetida_em: '2026-11-16T15:00:00Z',
+      simulacao_id: 3,
+      resimulacao_necessaria: false,
+      decisao: null,
+      regra: regraBlackFriday(),
+      resultado: resultadoBlackFriday(),
+      acoes: ['APROVAR', 'REPROVAR', 'RESIMULAR'],
+      aprovadas_depois: [],
+      resimulacao: null,
+      alertas: [
+        {
+          id: 1,
+          origem: 'AUTOMATICO',
+          tipo: 'SQL_BLOQUEADO',
+          descricao: 'Consulta bloqueada',
+          status: 'ABERTO',
+          aberto_por: 'Sistema',
+          aberto_em: '2026-11-16T15:05:00Z',
+          resolvido_por: null,
+          resolvido_em: null,
+          justificativa: null,
+        },
+        {
+          id: 2,
+          origem: 'MANUAL',
+          tipo: 'REVISAO',
+          descricao: 'Já analisado',
+          status: 'RESOLVIDO',
+          aberto_por: { id: 4, nome: 'Aline' },
+          aberto_em: '2026-11-16T15:06:00Z',
+          resolvido_por: { id: 4, nome: 'Aline' },
+          resolvido_em: '2026-11-16T15:10:00Z',
+          justificativa: 'Conferido',
+        },
+      ],
+    } satisfies VersaoCampanha
+
+    const cartao = comVersao(cartaoDaFila(itemDaFila()), versao)
+    expect(cartao.alertasAbertos).toHaveLength(1)
+    expect(cartao.alertasAbertos?.[0]?.id).toBe(1)
+  })
 })
 
-describe('linhaAprovada (Campanhas Passadas)', () => {
+describe('linhaAprovada (Campanhas aprovadas)', () => {
   const aprovada: CampanhaAprovada = {
-    id: 1, nome: 'Natal', versao: 1, autor: { id: 1, nome: 'Gabriela' },
-    periodo: { data_inicio: '2025-12-01', data_fim: '2025-12-24' }, vigencia: 'ENCERRADA',
-    pct_acrescimo: 1.5, marcas: ['10', '20'], cargos: ['100', '150'], custo_adicional: 30674.22,
-    submetida_em: '2026-10-25T13:21:33Z', simulacao_id: 23,
+    id: 1,
+    nome: 'Natal',
+    versao: 1,
+    autor: { id: 1, nome: 'Gabriela' },
+    aprovador: { id: 2, nome: 'Sérgio' },
+    periodo: { data_inicio: '2025-12-01', data_fim: '2025-12-24' },
+    vigencia: 'ENCERRADA',
+    pct_acrescimo: 1.5,
+    marcas: ['10', '20'],
+    cargos: ['100', '150'],
+    custo_adicional: 30674.22,
+    submetida_em: '2026-10-25T13:21:33Z',
+    simulacao_id: 23,
+    conflitos: [],
   }
 
-  it('mostra datas completas, nomes de marca e cargo e o acréscimo', () => {
+  it('mostra datas completas, autor, aprovador, a vigência do servidor e o acréscimo', () => {
     expect(linhaAprovada(aprovada)).toEqual({
-      id: 1, titulo: 'Natal', inicio: '01/12/2025', fim: '24/12/2025',
-      cargo: 'Vendedor loja, Gerente', marca: 'Preto, Branco', percentual: '+1,5%',
+      id: 1,
+      titulo: 'Natal',
+      inicio: '01/12/2025',
+      fim: '24/12/2025',
+      autor: 'Gabriela',
+      aprovador: 'Sérgio',
+      vigencia: 'ENCERRADA',
+      sobreposicoes: [],
+      percentual: '+1,5%',
     })
   })
 
-  it('as seis marcas viram "Todas"', () => {
-    const linha = linhaAprovada({ ...aprovada, marcas: ['10', '20', '30', '40', '50', '60'] })
+  it('repassa a vigência do servidor sem olhar a data do navegador', () => {
+    // Período já passado no calendário local, mas o servidor disse FUTURA: vale o servidor.
+    expect(linhaAprovada({ ...aprovada, vigencia: 'FUTURA' }).vigencia).toBe('FUTURA')
+  })
 
-    expect(linha.marca).toBe('Todas')
+  it('sem aprovador conhecido mostra travessão', () => {
+    expect(linhaAprovada({ ...aprovada, aprovador: null }).aprovador).toBe('—')
+  })
+
+  it('cada conflito da simulação vira um aviso de sobreposição', () => {
+    const linha = linhaAprovada({
+      ...aprovada,
+      conflitos: [
+        {
+          campanha_id: 7,
+          versao: 1,
+          tipo: 'ACRESCIMO',
+          nome: 'Esquenta Black Friday',
+          status: 'APROVADA',
+          autor: 'Roberval',
+          data_inicio: '2025-11-20',
+          data_fim: '2025-12-05',
+          sobreposicao: { data_inicio: '2025-12-01', data_fim: '2025-12-05' },
+          marcas: ['10'],
+          cargos: ['100'],
+        },
+      ],
+    })
+
+    expect(linha.sobreposicoes).toHaveLength(1)
+    expect(linha.sobreposicoes[0]!.nome).toBe('Esquenta Black Friday')
+    expect(linha.sobreposicoes[0]!.descricao).toMatch(/^Sobrepõe a Esquenta Black Friday \(.+\) em 01 a 05\/12$/)
   })
 })
 
 describe('detalheAprovada (modal de Campanhas Passadas)', () => {
   it('monta o cartão da campanha e guarda a simulação do chat', () => {
     const detalhe = detalheAprovada({
-      id: 1, nome: 'Natal', versao: 1, autor: { id: 1, nome: 'Gabriela' },
-      periodo: { data_inicio: '2025-12-01', data_fim: '2025-12-24' }, vigencia: 'ENCERRADA',
-      pct_acrescimo: 1.5, marcas: ['10', '20', '30', '40', '50', '60'], cargos: ['100', '150'],
-      custo_adicional: 30674.22, submetida_em: '2026-10-25T13:21:33Z', simulacao_id: 23,
+      id: 1,
+      nome: 'Natal',
+      versao: 1,
+      autor: { id: 1, nome: 'Gabriela' },
+      aprovador: { id: 2, nome: 'Sérgio' },
+      periodo: { data_inicio: '2025-12-01', data_fim: '2025-12-24' },
+      vigencia: 'ENCERRADA',
+      pct_acrescimo: 1.5,
+      marcas: ['10', '20', '30', '40', '50', '60'],
+      cargos: ['100', '150'],
+      custo_adicional: 30674.22,
+      submetida_em: '2026-10-25T13:21:33Z',
+      simulacao_id: 23,
+      conflitos: [],
     })
 
     expect(detalhe).toMatchObject({
-      titulo: 'Natal', inicio: '01/12', fim: '24/12', percentual: '+1,5%',
-      alcance: 'Afeta 2 cargos e todas as marcas.', sugeridoPor: 'Gabriela', status: 'Aprovada', simulacaoId: 23,
+      titulo: 'Natal',
+      inicio: '01/12',
+      fim: '24/12',
+      percentual: '+1,5%',
+      alcance: 'Afeta 2 cargos e todas as marcas.',
+      sugeridoPor: 'Gabriela',
+      status: 'Aprovada',
+      simulacaoId: 23,
     })
     expect(detalhe.custo.replace(/\u00a0/g, ' ')).toBe('R$ 30.674,22')
   })
 
   it('re-simulação pendente vira aviso com as campanhas aprovadas depois', () => {
     const versao = {
-      campanha_id: 7, numero: 1, status: 'AGUARDANDO_APROVACAO', autor: { id: 1, nome: 'Gabriela' },
-      submetida_em: '2026-11-16T15:00:00Z', simulacao_id: 3, resimulacao_necessaria: true, decisao: null,
-      regra: regraBlackFriday(), resultado: resultadoBlackFriday(), acoes: ['REPROVAR', 'RESIMULAR'],
-      aprovadas_depois: [{ campanha_id: 14, nome: 'Semana do Vendedor', aprovador: 'Sílvia', aprovada_em: '2026-11-16T16:00:00Z' }],
+      campanha_id: 7,
+      numero: 1,
+      status: 'AGUARDANDO_APROVACAO',
+      autor: { id: 1, nome: 'Gabriela' },
+      submetida_em: '2026-11-16T15:00:00Z',
+      simulacao_id: 3,
+      resimulacao_necessaria: true,
+      decisao: null,
+      regra: regraBlackFriday(),
+      resultado: resultadoBlackFriday(),
+      acoes: ['REPROVAR', 'RESIMULAR'],
+      aprovadas_depois: [
+        {
+          campanha_id: 14,
+          nome: 'Semana do Vendedor',
+          aprovador: 'Sílvia',
+          aprovada_em: '2026-11-16T16:00:00Z',
+        },
+      ],
       resimulacao: null,
     } satisfies VersaoCampanha
 

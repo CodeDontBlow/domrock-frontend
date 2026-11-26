@@ -5,7 +5,12 @@ import ParametrosPanel from '../components/ParametrosPanel.vue'
 import ResultadoSimulacao from '../components/ResultadoSimulacao.vue'
 import SecaoExpansivel from '../components/SecaoExpansivel.vue'
 import SpeechBubble from '../components/SpeechBubble.vue'
-import { regraBlackFriday, resultadoBlackFriday, resultadoDoCriterio } from './fakes'
+import {
+  regraBlackFriday,
+  resultadoBlackFriday,
+  resultadoComNaMeta,
+  resultadoDoCriterio,
+} from './fakes'
 
 const SEM_SIMULACAO = { ocupado: false } as const
 
@@ -24,13 +29,18 @@ describe('ParametroCampo', () => {
   it('escolher uma marca específica desmarca "Todas as marcas"', async () => {
     const wrapper = mount(ParametroCampo, { props: { parametro: parametro('marcas_alvo') } })
 
-    await wrapper.findAll('button').find((b) => b.text() === 'Azul')?.trigger('click')
+    await wrapper
+      .findAll('button')
+      .find((b) => b.text() === 'Azul')
+      ?.trigger('click')
 
     expect(wrapper.emitted('alterar')?.[0]).toEqual([['30']])
   })
 
   it('marca o campo obrigatório vazio', () => {
-    const wrapper = mount(ParametroCampo, { props: { parametro: parametro('orcamento_limite', { orcamento_limite: null }) } })
+    const wrapper = mount(ParametroCampo, {
+      props: { parametro: parametro('orcamento_limite', { orcamento_limite: null }) },
+    })
 
     expect(wrapper.text()).toContain('pendente')
   })
@@ -47,7 +57,13 @@ describe('ParametroCampo', () => {
 describe('ParametrosPanel', () => {
   it('mostra que a campanha está pronta quando nada falta', () => {
     const wrapper = mount(ParametrosPanel, {
-      props: { regra: regraBlackFriday(), camposVazios: [], podeSimular: true, simulando: false, ...SEM_SIMULACAO },
+      props: {
+        regra: regraBlackFriday(),
+        camposVazios: [],
+        podeSimular: true,
+        simulando: false,
+        ...SEM_SIMULACAO,
+      },
     })
 
     expect(wrapper.find('.ficha-status').text()).toBe('Pronta para simular')
@@ -56,7 +72,13 @@ describe('ParametrosPanel', () => {
 
   it('bloqueia o botão e diz quantos campos faltam', () => {
     const wrapper = mount(ParametrosPanel, {
-      props: { regra: regraBlackFriday(), camposVazios: ['meta_vendas', 'orcamento_limite'], podeSimular: false, simulando: false, ...SEM_SIMULACAO },
+      props: {
+        regra: regraBlackFriday(),
+        camposVazios: ['meta_vendas', 'orcamento_limite'],
+        podeSimular: false,
+        simulando: false,
+        ...SEM_SIMULACAO,
+      },
     })
 
     expect(wrapper.find('.ficha-status').text()).toBe('2 pendentes')
@@ -65,7 +87,13 @@ describe('ParametrosPanel', () => {
 
   it('emite simulação ao clicar em simular campanha', async () => {
     const wrapper = mount(ParametrosPanel, {
-      props: { regra: regraBlackFriday(), camposVazios: [], podeSimular: true, simulando: false, ...SEM_SIMULACAO },
+      props: {
+        regra: regraBlackFriday(),
+        camposVazios: [],
+        podeSimular: true,
+        simulando: false,
+        ...SEM_SIMULACAO,
+      },
     })
 
     await wrapper.find('.ficha-simular').trigger('click')
@@ -121,7 +149,13 @@ describe('Orçamento em Extras (A6-72, padrão do Figma do time)', () => {
 describe('Fechar o painel de simulação (protótipo 641:1848)', () => {
   it('fecha o painel com o botão X acessível', async () => {
     const wrapper = mount(ParametrosPanel, {
-      props: { regra: regraBlackFriday(), camposVazios: [], podeSimular: true, simulando: false, ...SEM_SIMULACAO },
+      props: {
+        regra: regraBlackFriday(),
+        camposVazios: [],
+        podeSimular: true,
+        simulando: false,
+        ...SEM_SIMULACAO,
+      },
     })
 
     await wrapper.find('button[aria-label="Fechar o painel de simulação"]').trigger('click')
@@ -135,8 +169,11 @@ function blocos(wrapper: VueWrapper) {
 }
 
 function bloco(wrapper: VueWrapper, titulo: string) {
-  const encontrado = wrapper.findAll('.bloco').find((b) => b.find('.bloco-titulo').text() === titulo)
-  if (!encontrado) throw new Error(`bloco ${titulo} não aparece; blocos: ${blocos(wrapper).join(', ')}`)
+  const encontrado = wrapper
+    .findAll('.bloco')
+    .find((b) => b.find('.bloco-titulo').text() === titulo)
+  if (!encontrado)
+    throw new Error(`bloco ${titulo} não aparece; blocos: ${blocos(wrapper).join(', ')}`)
   return encontrado
 }
 
@@ -145,7 +182,9 @@ const RETORNO_DA_LANA = { provisorio: true, custo_pct_venda: 0.99, custo_por_rea
 
 describe('ResultadoSimulacao (A6-72)', () => {
   it('sem orçamento: Meta e Comissão, nessa ordem, com os números do critério', () => {
-    const wrapper = mount(ResultadoSimulacao, { props: { resultado: resultadoDoCriterio('sem_orcamento') } })
+    const wrapper = mount(ResultadoSimulacao, {
+      props: { resultado: resultadoDoCriterio('sem_orcamento') },
+    })
 
     expect(blocos(wrapper)).toEqual(['Meta', 'Comissão'])
     expect(texto(bloco(wrapper, 'Meta'))).toContain('120,31%')
@@ -155,7 +194,9 @@ describe('ResultadoSimulacao (A6-72)', () => {
   })
 
   it('com orçamento de R$ 20.000: bloco Orçamento por último, com o maior acréscimo que cabe', () => {
-    const wrapper = mount(ResultadoSimulacao, { props: { resultado: resultadoDoCriterio('orcamento_20_mil') } })
+    const wrapper = mount(ResultadoSimulacao, {
+      props: { resultado: resultadoDoCriterio('orcamento_20_mil') },
+    })
 
     expect(blocos(wrapper)).toEqual(['Meta', 'Comissão', 'Orçamento'])
     const orcamento = texto(bloco(wrapper, 'Orçamento'))
@@ -165,7 +206,9 @@ describe('ResultadoSimulacao (A6-72)', () => {
   })
 
   it('meta de R$ 3 milhões: Meta abaixo, com a diferença em reais', () => {
-    const wrapper = mount(ResultadoSimulacao, { props: { resultado: resultadoDoCriterio('meta_3_milhoes') } })
+    const wrapper = mount(ResultadoSimulacao, {
+      props: { resultado: resultadoDoCriterio('meta_3_milhoes') },
+    })
 
     expect(texto(bloco(wrapper, 'Meta'))).toContain('80,20%')
     expect(texto(bloco(wrapper, 'Meta'))).toContain('R$ 593.874,07 abaixo da meta')
@@ -181,7 +224,9 @@ describe('ResultadoSimulacao (A6-72)', () => {
   })
 
   it('"Sem a marca X" continua fora dos blocos, e sem orçamento não diz se cabe', () => {
-    const wrapper = mount(ResultadoSimulacao, { props: { resultado: resultadoDoCriterio('sem_orcamento') } })
+    const wrapper = mount(ResultadoSimulacao, {
+      props: { resultado: resultadoDoCriterio('sem_orcamento') },
+    })
 
     const outros = wrapper.find('.resultado-fim')
     expect(outros.text()).toContain('Sem a marca Preto')
@@ -195,6 +240,50 @@ describe('ResultadoSimulacao (A6-72)', () => {
     expect(wrapper.text()).not.toContain('def aplicar_regra')
     expect(wrapper.text()).not.toContain('Código Python')
     expect(wrapper.html()).not.toContain(resultado.codigo)
+  })
+
+  it('mostra a linha de custo na meta quando na_meta existe, com tom de aviso quando passa do orçamento (A6-93)', () => {
+    const resultado = resultadoComNaMeta({ cabe_no_orcamento: false })
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).toContain(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo passa do orçamento.',
+    )
+    const linhas = blocoMeta.findAll('.resultado-linha')
+    expect(linhas).toHaveLength(2)
+    expect(linhas[1]!.classes()).toContain('tom--aviso')
+  })
+
+  it('mostra a linha de custo na meta sem tom de aviso quando cabe no orçamento (A6-93)', () => {
+    const resultado = resultadoComNaMeta({ cabe_no_orcamento: true })
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).toContain(
+      'Se a venda chegar à meta de R$ 3.000.000,00, o custo adicional fica em R$ 29.512,34. Esse custo cabe no orçamento.',
+    )
+    const linhas = blocoMeta.findAll('.resultado-linha')
+    expect(linhas).toHaveLength(2)
+    expect(linhas[1]!.classes()).not.toContain('tom--aviso')
+  })
+
+  it('não mostra a linha de custo na meta quando na_meta é null (A6-93)', () => {
+    const resultado = { ...resultadoDoCriterio('sem_orcamento'), na_meta: null }
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).not.toContain('Se a venda chegar à meta')
+    expect(blocoMeta.findAll('.resultado-linha')).toHaveLength(1)
+  })
+
+  it('não mostra a linha de custo na meta sem o campo na_meta de resultado antigo (A6-93)', () => {
+    const resultado = resultadoDoCriterio('sem_orcamento')
+    const wrapper = mount(ResultadoSimulacao, { props: { resultado } })
+
+    const blocoMeta = bloco(wrapper, 'Meta')
+    expect(texto(blocoMeta)).not.toContain('Se a venda chegar à meta')
+    expect(blocoMeta.findAll('.resultado-linha')).toHaveLength(1)
   })
 })
 
@@ -210,8 +299,12 @@ describe('SpeechBubble', () => {
 
   it('erro usa o texto claro do balão, e só o balão azul do usuário usa texto escuro', () => {
     // Regressão do #8: o erro saía com text-black-bg1, a mesma cor do fundo da página.
-    const erro = mount(SpeechBubble, { props: { papel: 'erro', message: 'A Lana está indisponível' } })
-    const usuario = mount(SpeechBubble, { props: { papel: 'usuario', message: 'Black Friday +1%' } })
+    const erro = mount(SpeechBubble, {
+      props: { papel: 'erro', message: 'A Lana está indisponível' },
+    })
+    const usuario = mount(SpeechBubble, {
+      props: { papel: 'usuario', message: 'Black Friday +1%' },
+    })
 
     expect(erro.find('p').classes()).not.toContain('text-black-bg1')
     expect(usuario.find('p').classes()).toContain('text-black-bg1')
@@ -229,7 +322,10 @@ describe('Resultado com impacto e cenários', () => {
     const wrapper = mount(ResultadoSimulacao, { props: { resultado: resultadoBlackFriday() } })
     expect(texto(wrapper)).not.toContain('Loja 13')
 
-    await wrapper.findAll('.detalhe-aba').find((aba) => aba.text() === 'Lojas')?.trigger('click')
+    await wrapper
+      .findAll('.detalhe-aba')
+      .find((aba) => aba.text() === 'Lojas')
+      ?.trigger('click')
 
     expect(texto(wrapper.find('.detalhe-linhas'))).toContain('Loja 13')
     expect(texto(wrapper.find('.detalhe-linhas'))).toContain('9%') // 2.140,10 de 23.736,17
@@ -246,11 +342,17 @@ describe('Resultado com impacto e cenários', () => {
 
 describe('SecaoExpansivel', () => {
   it('abre e fecha pelo botão, e fechada não deixa o conteúdo receber foco', async () => {
-    window.matchMedia = ((consulta: string) => ({ matches: true, media: consulta })) as typeof window.matchMedia
+    window.matchMedia = ((consulta: string) => ({
+      matches: true,
+      media: consulta,
+    })) as typeof window.matchMedia
     // O jsdom não implementa rolagem; só importa que abrir peça para mostrar o conteúdo.
     const rolar = vi.fn()
     Element.prototype.scrollIntoView = rolar
-    const wrapper = mount(SecaoExpansivel, { props: { titulo: 'Onde o custo pesa' }, slots: { default: '<p>Marca</p>' } })
+    const wrapper = mount(SecaoExpansivel, {
+      props: { titulo: 'Onde o custo pesa' },
+      slots: { default: '<p>Marca</p>' },
+    })
     const botao = wrapper.find('button')
     expect(botao.attributes('aria-expanded')).toBe('false')
     expect(wrapper.find('.secao-corpo').attributes('inert')).toBeDefined()

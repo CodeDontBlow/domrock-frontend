@@ -2,8 +2,17 @@
 import { computed } from 'vue'
 import { formatarMoeda, renderizarMarkdown } from '../formatacao'
 import {
-  medidorDaMeta, medidorDoOrcamento, numerosDaComissao, numerosDaMeta, pctDaMeta, seloDaMeta, seloDoOrcamento,
-  textoDiferencaMeta, vereditoDoOrcamento,
+  medidorDaMeta,
+  medidorDoOrcamento,
+  numerosDaComissao,
+  numerosDaMeta,
+  pctDaMeta,
+  seloDaMeta,
+  seloDoOrcamento,
+  textoCustoNaMeta,
+  textoDiferencaMeta,
+  tomCustoNaMeta,
+  vereditoDoOrcamento,
 } from '../resultado'
 import type { CenarioAlternativo, ResultadoSimulacao } from '../types'
 import AvisoConflitos from './AvisoConflitos.vue'
@@ -11,6 +20,7 @@ import BlocoResultado from './BlocoResultado.vue'
 import CenariosAlternativos from './CenariosAlternativos.vue'
 import ComissaoPeriodo from './ComissaoPeriodo.vue'
 import DetalhamentoCusto from './DetalhamentoCusto.vue'
+import ApuracaoPorPessoa from './ApuracaoPorPessoa.vue'
 import MedidorResultado from './MedidorResultado.vue'
 import NumerosResultado from './NumerosResultado.vue'
 import SecaoExpansivel from './SecaoExpansivel.vue'
@@ -22,9 +32,15 @@ const emit = defineEmits<{ 'aplicar-cenario': [cenario: CenarioAlternativo] }>()
 
 const meta = computed(() => props.resultado.meta)
 const orcamento = computed(() => props.resultado.orcamento)
+// Custo da campanha se a venda do período chegar à meta (A6-93).
+const naMeta = computed(() => props.resultado.na_meta)
 // O maior % que cabe fica no bloco Orçamento; "Sem a marca X" continua no fim, com os outros cenários.
-const cenariosDoOrcamento = computed(() => props.resultado.cenarios.filter((c) => c.tipo === 'ajustar_acrescimo'))
-const outrosCenarios = computed(() => props.resultado.cenarios.filter((c) => c.tipo !== 'ajustar_acrescimo'))
+const cenariosDoOrcamento = computed(() =>
+  props.resultado.cenarios.filter((c) => c.tipo === 'ajustar_acrescimo'),
+)
+const outrosCenarios = computed(() =>
+  props.resultado.cenarios.filter((c) => c.tipo !== 'ajustar_acrescimo'),
+)
 const explicacao = computed(() => renderizarMarkdown(props.resultado.explicacao))
 
 function aplicar(cenario: CenarioAlternativo): void {
@@ -38,26 +54,54 @@ function aplicar(cenario: CenarioAlternativo): void {
 
     <AvisoConflitos :conflitos="resultado.conflitos" />
 
-    <BlocoResultado titulo="Meta" :selo="seloDaMeta(meta)" :destaque="pctDaMeta(meta)" legenda="da meta">
-      <MedidorResultado :medidor="medidorDaMeta(meta)"
-        :descricao="`${pctDaMeta(meta)} da meta, ${textoDiferencaMeta(meta)}`" />
+    <BlocoResultado
+      titulo="Meta"
+      :selo="seloDaMeta(meta)"
+      :destaque="pctDaMeta(meta)"
+      legenda="da meta"
+    >
+      <MedidorResultado
+        :medidor="medidorDaMeta(meta)"
+        :descricao="`${pctDaMeta(meta)} da meta, ${textoDiferencaMeta(meta)}`"
+      />
       <p class="resultado-linha" :class="meta.atingida ? 'tom--positivo' : 'tom--aviso'">
         {{ textoDiferencaMeta(meta) }}
       </p>
       <NumerosResultado :itens="numerosDaMeta(meta)" />
+      <p
+        v-if="naMeta"
+        class="resultado-linha"
+        :class="tomCustoNaMeta(naMeta) === 'aviso' ? 'tom--aviso' : undefined"
+      >
+        {{ textoCustoNaMeta(meta, naMeta) }}
+      </p>
     </BlocoResultado>
 
-    <BlocoResultado titulo="Comissão" :destaque="formatarMoeda(resultado.totais.diferenca)" legenda="de custo adicional">
+    <BlocoResultado
+      titulo="Comissão"
+      :destaque="formatarMoeda(resultado.totais.diferenca)"
+      legenda="de custo adicional"
+    >
       <NumerosResultado :itens="numerosDaComissao(resultado.totais, resultado.impacto)" />
       <ComissaoPeriodo :linhas="resultado.comissao_periodo" />
+      <ApuracaoPorPessoa
+        :linhas="resultado.apuracao_por_pessoa"
+        :total-simulado="resultado.totais.simulado"
+      />
       <SecaoExpansivel titulo="Onde o custo pesa">
         <DetalhamentoCusto :resultado="resultado" />
       </SecaoExpansivel>
     </BlocoResultado>
 
     <BlocoResultado v-if="orcamento" titulo="Orçamento" :selo="seloDoOrcamento(orcamento)">
-      <MedidorResultado :medidor="medidorDoOrcamento(orcamento)" :descricao="vereditoDoOrcamento(orcamento)" />
-      <p class="resultado-linha" :class="orcamento.cabe_no_orcamento ? 'tom--positivo' : 'tom--negativo'">
+      <MedidorResultado
+        :medidor="medidorDoOrcamento(orcamento)"
+        :descricao="vereditoDoOrcamento(orcamento)"
+      />
+      <p
+        class="resultado-linha"
+        :class="orcamento.cabe_no_orcamento ? 'tom--positivo' : 'tom--negativo'"
+      >
         {{ vereditoDoOrcamento(orcamento) }}
       </p>
       <CenariosAlternativos :cenarios="cenariosDoOrcamento" @aplicar="aplicar" />
@@ -66,18 +110,26 @@ function aplicar(cenario: CenarioAlternativo): void {
     <div class="resultado-fim">
       <div class="resultado-explicacao" v-html="explicacao" />
 
-      <CenariosAlternativos titulo="Outros cenários, já simulados" :cenarios="outrosCenarios" @aplicar="aplicar" />
+      <CenariosAlternativos
+        titulo="Outros cenários, já simulados"
+        :cenarios="outrosCenarios"
+        @aplicar="aplicar"
+      />
 
       <SecaoExpansivel titulo="Como foi calculado">
         <p v-if="resultado.observacao" class="secao-texto">{{ resultado.observacao }}</p>
-        <ul v-if="resultado.ressalvas.length" class="secao-ressalvas" aria-label="Limites da simulação">
+        <ul
+          v-if="resultado.ressalvas.length"
+          class="secao-ressalvas"
+          aria-label="Limites da simulação"
+        >
           <li v-for="ressalva in resultado.ressalvas" :key="ressalva">{{ ressalva }}</li>
         </ul>
         <!-- Sem o código Python: nenhum perfil vê o código gerado (decisão do PO, 26/10). -->
         <p class="secao-rodape">
-          Competências {{ resultado.competencias.join(', ') }}.
-          Código {{ resultado.origem_codigo === 'llm' ? 'gerado pela Lana' : 'do modelo fixo' }}
-          em {{ resultado.tentativas }} {{ resultado.tentativas === 1 ? 'tentativa' : 'tentativas' }}.
+          Competências {{ resultado.competencias.join(', ') }}. Código
+          {{ resultado.origem_codigo === 'llm' ? 'gerado pela Lana' : 'do modelo fixo' }} em
+          {{ resultado.tentativas }} {{ resultado.tentativas === 1 ? 'tentativa' : 'tentativas' }}.
         </p>
       </SecaoExpansivel>
     </div>

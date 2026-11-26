@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import {
-  contagemPorFiltro, filtrarPendencias, filtroInicial, textoDaLinha, type FiltroPendencias,
+  contagemPorFiltro,
+  filtrarPendencias,
+  filtroInicial,
+  textoDaLinha,
+  type FiltroPendencias,
 } from '../relatorio'
 import type { PendenciaImportacao } from '../types'
 import SeveridadeTag from './SeveridadeTag.vue'
@@ -13,14 +17,20 @@ const props = defineProps<{ pendencias: PendenciaImportacao[] }>()
 
 /** Um relatório real tem dezenas de avisos (26 em out/2025): o resto abre com "Mostrar todas". */
 const LIMITE = 10
-const FILTROS: Array<[FiltroPendencias, string]> = [['TODAS', 'Todas'], ['IMPEDITIVO', 'Impeditivo'], ['AVISO', 'Aviso']]
+const FILTROS: Array<[FiltroPendencias, string]> = [
+  ['TODAS', 'Todas'],
+  ['IMPEDITIVO', 'Impeditivo'],
+  ['AVISO', 'Aviso'],
+]
 
 const filtro = ref<FiltroPendencias>(filtroInicial(props.pendencias))
 const mostrarTodas = ref(false)
 
 const contagem = computed(() => contagemPorFiltro(props.pendencias))
 const filtradas = computed(() => filtrarPendencias(props.pendencias, filtro.value))
-const visiveis = computed(() => (mostrarTodas.value ? filtradas.value : filtradas.value.slice(0, LIMITE)))
+const visiveis = computed(() =>
+  mostrarTodas.value ? filtradas.value : filtradas.value.slice(0, LIMITE),
+)
 </script>
 
 <template>
@@ -33,7 +43,11 @@ const visiveis = computed(() => (mostrarTodas.value ? filtradas.value : filtrada
           :key="valor"
           type="button"
           class="rounded-[5px] border px-[14px] py-1.5 font-label text-[14px] focus-visible:outline-2 focus-visible:outline-blue"
-          :class="filtro === valor ? 'border-blue bg-black-bg1 text-white-txt1' : 'border-gray-txt3-dark/35 text-gray-txt2-dark hover:text-white-txt1'"
+          :class="
+            filtro === valor
+              ? 'border-blue bg-black-bg1 text-white-txt1'
+              : 'border-gray-txt3-dark/35 text-gray-txt2-dark hover:text-white-txt1'
+          "
           :aria-pressed="filtro === valor"
           @click="filtro = valor"
         >
@@ -60,9 +74,15 @@ const visiveis = computed(() => (mostrarTodas.value ? filtradas.value : filtrada
             data-teste="pendencia"
             class="border-b border-gray-txt3-dark/35"
           >
-            <td class="py-3 pr-2 pl-5 font-label text-[14px] text-gray-txt2-dark">{{ pendencia.origem }}</td>
-            <td class="px-2 py-3 font-label text-[14px] text-gray-txt2-dark">{{ textoDaLinha(pendencia.linha) }}</td>
-            <td class="px-2 py-3 font-label text-[14px] text-gray-txt2-dark">{{ pendencia.campo }}</td>
+            <td class="py-3 pr-2 pl-5 font-label text-[14px] text-gray-txt2-dark">
+              {{ pendencia.origem }}
+            </td>
+            <td class="px-2 py-3 font-label text-[14px] text-gray-txt2-dark">
+              {{ textoDaLinha(pendencia.linha) }}
+            </td>
+            <td class="px-2 py-3 font-label text-[14px] text-gray-txt2-dark">
+              {{ pendencia.campo }}
+            </td>
             <td class="px-2 py-3 text-[16px] leading-5">{{ pendencia.motivo }}</td>
             <td class="py-3 pr-5 pl-2"><SeveridadeTag :severidade="pendencia.severidade" /></td>
           </tr>

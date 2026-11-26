@@ -9,7 +9,9 @@
     role="progressbar"
     aria-label="Importação em andamento"
   >
-    <div class="barra absolute top-0 left-0 h-1.5 w-[30%] rounded-[3px] bg-linear-to-r from-blue to-green"></div>
+    <div
+      class="barra absolute top-0 left-0 h-1.5 w-[30%] rounded-[3px] bg-linear-to-r from-blue to-green"
+    ></div>
   </div>
 </template>
 

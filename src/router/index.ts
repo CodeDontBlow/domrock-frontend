@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import SidebarLayout from '../layouts/SidebarLayout.vue'
-import HomeView from '../views/HomeView.vue'
+import AuditoriaPage from '../(user)/auditoria/Page.vue'
+import { lerPerfil, rotaInicial } from '@/composables/usePerfil'
 import ChatPage from '../(user)/chat/Page.vue'
 import LoginPage from '../(auth)/login/Page.vue'
 import AdminUsers from '../(admin)/users/Page.vue'
 import CampanhaPage from '../(user)/campanha/Page.vue'
 import CampanhasPage from '../(user)/campanhas/Page.vue'
 import CampanhaDetalhePage from '../(user)/campanhas/[id]/Page.vue'
-import VigentePage from '../(user)/vigente/Page.vue'
-import RelatoriosPage from '../(user)/relatorios/Page.vue'
+import SolicitacoesPage from '../(user)/solicitacoes/Page.vue'
 import ConfiguracoesPage from '../(user)/configuracoes/Page.vue'
 import ImportacaoPage from '../(user)/importacao/Page.vue'
 import RelatorioImportacaoPage from '../(user)/importacao/relatorio/Page.vue'
@@ -21,6 +21,18 @@ export const router = createRouter({
       path: '/',
       component: SidebarLayout,
       children: [
+        {
+          path: 'auditoria',
+          name: 'auditoria',
+          component: AuditoriaPage,
+          meta: { auditor: true },
+        },
+        {
+          path: 'auditoria/campanhas/:id',
+          name: 'auditoria-campanha',
+          component: AuditoriaPage,
+          meta: { auditor: true },
+        },
         {
           path: '',
           name: 'chat',
@@ -42,14 +54,9 @@ export const router = createRouter({
           component: CampanhaDetalhePage,
         },
         {
-          path: 'vigente',
-          name: 'vigente',
-          component: VigentePage,
-        },
-        {
-          path: 'relatorios',
-          name: 'relatorios',
-          component: RelatoriosPage,
+          path: 'solicitacoes',
+          name: 'solicitacoes',
+          component: SolicitacoesPage,
         },
         {
           path: 'configuracoes',
@@ -71,8 +78,8 @@ export const router = createRouter({
           alias: ['alteracoes', 'fila'],
           name: 'fila-alteracoes',
           component: FilaAlteracoesPage,
-        }
-      ]
+        },
+      ],
     },
     {
       path: '/admin',
@@ -83,8 +90,8 @@ export const router = createRouter({
           path: '',
           name: 'users',
           component: AdminUsers,
-        }
-      ]
+        },
+      ],
     },
     {
       path: '/login',
@@ -93,39 +100,24 @@ export const router = createRouter({
     },
     {
       path: '/:pathMatch(.*)',
-      redirect: '/'
-    }
+      redirect: '/',
+    },
   ],
 })
 
-// NAVIGATION GUARDS
-router.beforeEach(async (to, from) => {
-  const token = localStorage.getItem("token")
-  const perfil = localStorage.getItem("perfil")
-
-  // Sem token, só pode ficar em login
-  if (!token && to.name !== 'login') {
-    return { name: 'login' }
-  }
-
-  // Com token, não pode ir para login
-  if (token && to.name === 'login') {
-    return { name: 'chat' }
-  }
-
-  // Sem ser admin, não pode ver rotas do admin
-  if (perfil !== 'ADMIN' && to.path.startsWith('/admin')) {
-    return { name: 'chat' }
-  }
-
-  // Importar a base do mês é só do Supervisor (A6-79); o backend também recusa os outros com 403.
-  if (perfil !== 'SUPERVISOR' && to.path.startsWith('/importar')) {
-    return { name: 'chat' }
-  }
-
-  if (perfil === 'ADMIN' && to.path === '/') {
-    return { name: 'admin' }
-  }
+// A proteção da API complementa estas regras de navegação.
+router.beforeEach((to) => {
+  const token = localStorage.getItem('token')
+  const perfil = lerPerfil()
+  if (!token && to.name !== 'login') return { name: 'login' }
+  if (!token) return
+  if (to.name === 'login') return { name: rotaInicial(perfil) }
+  if (perfil === 'AUDITOR' && !to.meta.auditor) return { name: 'auditoria' }
+  if (to.meta.auditor && perfil !== 'AUDITOR') return { name: rotaInicial(perfil) }
+  if (perfil !== 'ADMIN' && to.path.startsWith('/admin')) return { name: rotaInicial(perfil) }
+  if (perfil !== 'SUPERVISOR' && to.path.startsWith('/importar'))
+    return { name: rotaInicial(perfil) }
+  if (perfil === 'ADMIN' && to.path === '/') return { name: 'users' }
 })
 
 export default router

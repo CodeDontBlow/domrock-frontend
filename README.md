@@ -2,7 +2,7 @@
 
 O desafio consiste no desenvolvimento de um sistema para gerenciamento de regras de negócio. Este repositório tem como objetivo alocar o front-end da aplicação web.
 
-Leia mais em [Repositório Principal](https://github.com/codedontblow-org/domrock-camplana)!
+Leia mais em [Repositório Principal](https://github.com/codedontblow/domrock-camplana)!
 
 
 ## 📂 **Estrutura do Projeto**
@@ -58,7 +58,7 @@ Vue 3 com Vite, TypeScript, Pinia, Vue Router, Axios, Tailwind CSS e Vitest.
 - Node.js 24 (o mesmo do CI; o `package.json` aceita `^22.18.0` ou `>=24.12.0`);
 - O backend rodando, porque toda tela, exceto o login, exige um usuário autenticado.
 
-Para subir o sistema completo (banco, backend, Lana e este front) com um comando, use o [repositório principal](https://github.com/codedontblow-org/domrock-camplana). Os passos abaixo rodam **só o front**, apontando para um backend que já esteja no ar.
+Para subir o sistema completo (banco, backend, Lana e este front) com um comando, use o [repositório principal](https://github.com/codedontblow/domrock-camplana). Os passos abaixo rodam **só o front**, apontando para um backend que já esteja no ar.
 
 ### Passo a passo
 

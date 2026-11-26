@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { custoDaCampanha, diaDaCampanha, periodoDaCampanha, valorDoParametro } from '../formatacao'
+import {
+  custoDaCampanha,
+  diaDaCampanha,
+  parametrosDaFicha,
+  periodoDaCampanha,
+  valorDoParametro,
+} from '../formatacao'
 import type { ParametroRegra, ValorParametro } from '../../chat/types'
 
 function parametro(
-  value: ValorParametro, options: ParametroRegra['options'] = null, type: ParametroRegra['type'] = 'multi_select',
+  value: ValorParametro,
+  options: ParametroRegra['options'] = null,
+  type: ParametroRegra['type'] = 'multi_select',
 ): ParametroRegra {
   return { key: 'p', label: 'P', type, categoria: 'REGRA', value, options, required: true }
 }
@@ -14,7 +22,9 @@ describe('formatação de Minhas campanhas', () => {
   })
 
   it('período da campanha, ou "—" sem período', () => {
-    expect(periodoDaCampanha({ data_inicio: '2025-11-24', data_fim: '2025-11-30' })).toBe('24/11/2025 – 30/11/2025')
+    expect(periodoDaCampanha({ data_inicio: '2025-11-24', data_fim: '2025-11-30' })).toBe(
+      '24/11/2025 – 30/11/2025',
+    )
     expect(periodoDaCampanha(null)).toBe('—')
   })
 
@@ -30,13 +40,16 @@ describe('formatação de Minhas campanhas', () => {
   })
 
   it('parâmetro de período mostra as datas; incompleto, "—"', () => {
-    expect(valorDoParametro(parametro({ data_inicio: '2025-11-24', data_fim: '2025-11-30' })))
-      .toBe('24/11/2025 – 30/11/2025')
+    expect(valorDoParametro(parametro({ data_inicio: '2025-11-24', data_fim: '2025-11-30' }))).toBe(
+      '24/11/2025 – 30/11/2025',
+    )
     expect(valorDoParametro(parametro({ data_inicio: '2025-11-24', data_fim: null }))).toBe('—')
   })
 
   it('moeda e percentual seguem o `type` do parâmetro', () => {
-    expect(valorDoParametro(parametro(2000000, null, 'currency')).replace(/ /g, ' ')).toBe('R$ 2.000.000,00')
+    expect(valorDoParametro(parametro(2000000, null, 'currency')).replace(/ /g, ' ')).toBe(
+      'R$ 2.000.000,00',
+    )
     expect(valorDoParametro(parametro(1, null, 'percentage'))).toBe('1%')
   })
 
@@ -44,5 +57,18 @@ describe('formatação de Minhas campanhas', () => {
     expect(valorDoParametro(parametro(1.5))).toBe('1,5')
     expect(valorDoParametro(parametro(null))).toBe('—')
     expect(valorDoParametro(parametro([]))).toBe('—')
+  })
+
+  it('mês de referência aparece por extenso e só quando a campanha usou (ADR-006)', () => {
+    const referencia = { ...parametro('2025-11', null, 'month'), key: 'competencia_referencia' }
+    const semReferencia = { ...referencia, value: null }
+    const meta = { ...parametro(2000000, null, 'currency'), key: 'meta_vendas' }
+
+    expect(valorDoParametro(referencia)).toBe('nov/2025')
+    expect(parametrosDaFicha([meta, referencia]).map((p) => p.key)).toEqual([
+      'meta_vendas',
+      'competencia_referencia',
+    ])
+    expect(parametrosDaFicha([meta, semReferencia]).map((p) => p.key)).toEqual(['meta_vendas'])
   })
 })

@@ -35,11 +35,23 @@ function aoTerminarTransicao(evento: TransitionEvent): void {
 
 <template>
   <section class="secao" :class="{ 'secao--aberta': aberta, 'secao--discreta': discreta }">
-    <button type="button" class="secao-titulo" :aria-expanded="aberta" :aria-controls="idCorpo" @click="alternar">
+    <button
+      type="button"
+      class="secao-titulo"
+      :aria-expanded="aberta"
+      :aria-controls="idCorpo"
+      @click="alternar"
+    >
       <span class="secao-seta" aria-hidden="true" />
       {{ titulo }}
     </button>
-    <div :id="idCorpo" class="secao-grade" role="region" :aria-label="titulo" @transitionend="aoTerminarTransicao">
+    <div
+      :id="idCorpo"
+      class="secao-grade"
+      role="region"
+      :aria-label="titulo"
+      @transitionend="aoTerminarTransicao"
+    >
       <div ref="corpo" class="secao-corpo" :inert="aberta ? undefined : true">
         <slot />
       </div>
@@ -107,7 +119,9 @@ function aoTerminarTransicao(evento: TransitionEvent): void {
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+  transition:
+    grid-template-rows 0.25s ease,
+    opacity 0.2s ease;
 }
 
 .secao--aberta > .secao-grade {

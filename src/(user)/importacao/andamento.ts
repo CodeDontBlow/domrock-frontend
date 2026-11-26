@@ -28,7 +28,10 @@ function rotuloDoEnvioUnico(mes: MesDaFila): string {
 }
 
 function resumoRodando(fila: MesDaFila[]): string {
-  const indice = Math.max(0, fila.findIndex((m) => m.situacao === 'PROCESSANDO'))
+  const indice = Math.max(
+    0,
+    fila.findIndex((m) => m.situacao === 'PROCESSANDO'),
+  )
   const atual = fila[indice]!
   if (fila.length === 1) return rotuloDoEnvioUnico(atual)
   return `Mês ${indice + 1} de ${fila.length} · ${formatarCompetencia(atual.competencia)}`

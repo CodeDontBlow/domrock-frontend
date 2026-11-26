@@ -19,8 +19,23 @@ import { useChatStore } from './stores/chat'
 
 const chat = useChatStore()
 const {
-  mensagens, regra, aguardandoLana, simulando, etapaSimulacao, camposVazios, podeSimular, etapaAprovacao, ocupado,
-  somenteLeitura, podeVoltarRascunho, editandoCampanha, simulacoesCarregando, campanha, dataInicio, erroEnvio, ultimoResultado,
+  mensagens,
+  regra,
+  aguardandoLana,
+  simulando,
+  etapaSimulacao,
+  camposVazios,
+  podeSimular,
+  etapaAprovacao,
+  ocupado,
+  somenteLeitura,
+  podeVoltarRascunho,
+  editandoCampanha,
+  simulacoesCarregando,
+  campanha,
+  dataInicio,
+  erroEnvio,
+  ultimoResultado,
 } = storeToRefs(chat)
 const rota = useRoute()
 
@@ -55,28 +70,37 @@ function abrirCompartilhar(): void {
   modalCompartilharAberto.value = true
 }
 
-watch(() => somenteLeitura.value, (leitura) => {
-  if (leitura) modalCompartilharAberto.value = false
-})
+watch(
+  () => somenteLeitura.value,
+  (leitura) => {
+    if (leitura) modalCompartilharAberto.value = false
+  },
+)
 
 const fimDaConversa = ref<HTMLElement | null>(null)
 // Saudação com o primeiro nome de quem está logado (salvo no login).
-const primeiroNome = (JSON.parse(localStorage.getItem('usuario') ?? 'null')?.nome ?? '').trim().split(/\s+/)[0]
+const primeiroNome = (JSON.parse(localStorage.getItem('usuario') ?? 'null')?.nome ?? '')
+  .trim()
+  .split(/\s+/)[0]
 
 // Painel de simulação (tab-simulacao, nó 641:1860; Leo, 28/10).
 // Abre sozinho na primeira vez que a regra aparece; depois disso vale a escolha da pessoa.
 const painelAberto = ref(false)
 const jaAbriuPelaRegra = ref(false)
 
-watch(regra, (novaRegra) => {
-  if (novaRegra && !jaAbriuPelaRegra.value) {
-    painelAberto.value = true
-    jaAbriuPelaRegra.value = true
-  } else if (!novaRegra) {
-    painelAberto.value = false
-    jaAbriuPelaRegra.value = false
-  }
-}, { immediate: true })
+watch(
+  regra,
+  (novaRegra) => {
+    if (novaRegra && !jaAbriuPelaRegra.value) {
+      painelAberto.value = true
+      jaAbriuPelaRegra.value = true
+    } else if (!novaRegra) {
+      painelAberto.value = false
+      jaAbriuPelaRegra.value = false
+    }
+  },
+  { immediate: true },
+)
 
 // Depois da primeira troca, o convite inicial some: a conversa já diz o que fazer.
 const placeholderDoCampo = computed<string>(() => {
@@ -86,17 +110,17 @@ const placeholderDoCampo = computed<string>(() => {
 const textoSaudacao = saudacao(usuarioLogado()?.nome)
 
 // Mantém a última mensagem (ou o resultado) visível quando algo novo chega.
-watch(() => mensagens.value.length, async () => {
-  await nextTick()
-  fimDaConversa.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-})
+watch(
+  () => mensagens.value.length,
+  async () => {
+    await nextTick()
+    fimDaConversa.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  },
+)
 </script>
 
 <template>
-  <div
-    class="chat-page"
-    :class="{ 'empty-state': mensagens.length === 0 }"
-  >
+  <div class="chat-page" :class="{ 'empty-state': mensagens.length === 0 }">
     <!-- Estado vazio (sem mensagens, boas-vindas): continua como está hoje, sem barra e sem painel (427:694) -->
     <div v-if="mensagens.length === 0" class="conversa-vazia">
       <div class="welcome">
@@ -136,11 +160,7 @@ watch(() => mensagens.value.length, async () => {
       <!-- Conteúdo centralizado de até 832px (AgentRes e Input do protótipo 427:694) -->
       <div class="conversa-conteudo">
         <!-- Aviso de campanha desatualizada no topo da conversa (427:694) -->
-        <p
-          v-if="etapaAprovacao === 'desatualizada'"
-          class="chat-aviso-desatualizada"
-          role="status"
-        >
+        <p v-if="etapaAprovacao === 'desatualizada'" class="chat-aviso-desatualizada" role="status">
           A campanha mudou depois da simulação: simule de novo para compartilhar.
         </p>
 
@@ -153,7 +173,11 @@ watch(() => mensagens.value.length, async () => {
             <MensagemSistema
               v-if="mensagem.papel === 'sistema'"
               :mensagem="mensagem"
-              :carregando="Boolean(mensagem.simulacao_id && simulacoesCarregando.includes(mensagem.simulacao_id))"
+              :carregando="
+                Boolean(
+                  mensagem.simulacao_id && simulacoesCarregando.includes(mensagem.simulacao_id),
+                )
+              "
               @ver-resultado="chat.carregarResultadoSimulacao"
               @aplicar-cenario="chat.aplicarCenario"
             />
@@ -201,12 +225,16 @@ watch(() => mensagens.value.length, async () => {
           </template>
           <p v-if="aguardandoLana" class="pensando">A Lana está escrevendo…</p>
           <p v-if="simulando" class="pensando">
-            <template v-if="etapaSimulacao">{{ etapaSimulacao }} · </template>A Lana está gerando o código da regra e simulando sobre os dados reais…
+            <template v-if="etapaSimulacao">{{ etapaSimulacao }} · </template>A Lana está gerando o
+            código da regra e simulando sobre os dados reais…
           </p>
 
           <div class="flex items-center gap-3 self-start">
             <i class="bi bi-info-circle text-label text-gray-txt2-dark"></i>
-            <p class="text-label text-gray-txt2-dark">Até a Lana pode cometer erros! Valide todas as informações antes de compartilhar uma campanha.</p>
+            <p class="text-label text-gray-txt2-dark">
+              Até a Lana pode cometer erros! Valide todas as informações antes de compartilhar uma
+              campanha.
+            </p>
           </div>
           <div ref="fimDaConversa" class="fim-da-conversa" />
         </div>
@@ -231,11 +259,7 @@ watch(() => mensagens.value.length, async () => {
     </div>
 
     <!-- Painel de simulação (tab-simulacao, nó 641:1860): 500px, altura inteira da janela -->
-    <aside
-      v-if="regra && painelAberto"
-      id="tab-simulacao"
-      class="tab-simulacao"
-    >
+    <aside v-if="regra && painelAberto" id="tab-simulacao" class="tab-simulacao">
       <ParametrosPanel
         :regra="regra"
         :campos-vazios="camposVazios"

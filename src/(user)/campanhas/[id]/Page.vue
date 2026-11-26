@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import { formatarMoeda } from '../../chat/formatacao'
 import { useCampanhasStore } from '../stores/campanhas'
 import { useStatusCampanha } from '../useStatusCampanha'
-import { diaDoInstante, periodoDaCampanha, valorDoParametro } from '../formatacao'
+import { diaDoInstante, parametrosDaFicha, periodoDaCampanha, valorDoParametro } from '../formatacao'
 import EtiquetaStatus from '../components/EtiquetaStatus.vue'
 import BotoesCampanha from '../components/BotoesCampanha.vue'
 import ModalRenomearCampanha from '../components/ModalRenomearCampanha.vue'
@@ -42,10 +42,14 @@ async function renomear(nome: string) {
   if (campanhaAtual.value) await store.renomear(campanhaAtual.value.id, nome)
 }
 
-watch(() => route.params.id, (id) => {
-  const numero = Number(id)
-  if (Number.isInteger(numero)) store.obter(numero)
-}, { immediate: true })
+watch(
+  () => route.params.id,
+  (id) => {
+    const numero = Number(id)
+    if (Number.isInteger(numero)) store.obter(numero)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -78,7 +82,9 @@ watch(() => route.params.id, (id) => {
               <i class="bi bi-calendar3" aria-hidden="true" />
               {{ periodoDaCampanha(campanhaAtual.periodo) }}
             </span>
-            <span v-if="campanhaAtual.versao_atual !== null" class="meta-periodo">v{{ campanhaAtual.versao_atual }}</span>
+            <span v-if="campanhaAtual.versao_atual !== null" class="meta-periodo"
+              >v{{ campanhaAtual.versao_atual }}</span
+            >
           </div>
         </div>
 
@@ -116,7 +122,11 @@ watch(() => route.params.id, (id) => {
             <section class="secao">
               <h2 class="secao-titulo">Parâmetros</h2>
               <dl class="params-lista">
-                <div v-for="p in simulacao.regra.parametros" :key="p.key" class="param-item">
+                <div
+                  v-for="p in parametrosDaFicha(simulacao.regra.parametros)"
+                  :key="p.key"
+                  class="param-item"
+                >
                   <dt class="param-label">{{ p.label }}</dt>
                   <dd class="param-valor">{{ valorDoParametro(p) }}</dd>
                 </div>
@@ -128,22 +138,30 @@ watch(() => route.params.id, (id) => {
               <div class="resultado-grid">
                 <div class="resultado-card">
                   <span class="card-label">Custo adicional</span>
-                  <span class="card-valor">{{ formatarMoeda(simulacao.resultado.totais.diferenca) }}</span>
+                  <span class="card-valor">{{
+                    formatarMoeda(simulacao.resultado.totais.diferenca)
+                  }}</span>
                 </div>
                 <!-- Orçamento é opcional (A6-72): sem ele, não há limite nem folga para mostrar. -->
                 <template v-if="simulacao.resultado.orcamento">
                   <div class="resultado-card">
                     <span class="card-label">Orçamento limite</span>
-                    <span class="card-valor">{{ formatarMoeda(simulacao.resultado.orcamento.orcamento_limite) }}</span>
+                    <span class="card-valor">{{
+                      formatarMoeda(simulacao.resultado.orcamento.orcamento_limite)
+                    }}</span>
                   </div>
                   <div class="resultado-card">
                     <span class="card-label">Folga</span>
-                    <span class="card-valor">{{ formatarMoeda(simulacao.resultado.orcamento.folga) }}</span>
+                    <span class="card-valor">{{
+                      formatarMoeda(simulacao.resultado.orcamento.folga)
+                    }}</span>
                   </div>
                 </template>
                 <div class="resultado-card">
                   <span class="card-label">Pessoas impactadas</span>
-                  <span class="card-valor">{{ simulacao.resultado.impacto.pessoas_impactadas }}</span>
+                  <span class="card-valor">{{
+                    simulacao.resultado.impacto.pessoas_impactadas
+                  }}</span>
                 </div>
               </div>
               <p class="resultado-explicacao">{{ simulacao.resultado.explicacao }}</p>
@@ -310,7 +328,9 @@ watch(() => route.params.id, (id) => {
   font-family: var(--font-raleway);
   font-size: 14px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
   margin-bottom: -1px;
 }
 
@@ -419,7 +439,6 @@ watch(() => route.params.id, (id) => {
   padding: 40px 0;
   text-align: center;
 }
-
 
 .link-conversa {
   display: inline-flex;

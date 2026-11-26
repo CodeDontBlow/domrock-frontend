@@ -1,6 +1,7 @@
 import type { ConflitoCampanha, RegraCampanha, ResultadoSimulacao } from '../chat/types'
 
-export type StatusCampanha = 'RASCUNHO' | 'AGUARDANDO_APROVACAO' | 'APROVADA' | 'REPROVADA' | 'ARQUIVADA'
+export type StatusCampanha =
+  'RASCUNHO' | 'AGUARDANDO_APROVACAO' | 'APROVADA' | 'REPROVADA' | 'ARQUIVADA'
 
 export type Decisao = 'APROVADA' | 'REPROVADA'
 
@@ -78,6 +79,25 @@ export interface IntercorrenciaVersao {
   origem: string
 }
 
+export type OrigemAlerta = 'AUTOMATICO' | 'MANUAL'
+export type StatusAlerta = 'ABERTO' | 'RESOLVIDO'
+
+/** Alerta técnico de uma versão de campanha. */
+export interface AlertaTecnico {
+  id: number
+  campanha_id?: number
+  numero_versao?: number
+  origem: OrigemAlerta
+  tipo: string
+  descricao: string
+  status: StatusAlerta
+  aberto_por: UsuarioResumo | string | null
+  aberto_em: string
+  resolvido_por: UsuarioResumo | string | null
+  resolvido_em: string | null
+  justificativa: string | null
+}
+
 /** GET /api/campanhas/{id}/versoes/{numero}: a versão congelada na submissão. */
 export interface VersaoCampanha {
   campanha_id: number
@@ -95,6 +115,8 @@ export interface VersaoCampanha {
   decisao: DecisaoCampanha | null
   /** Opcional: um backend anterior às interferências reais não manda o campo. */
   intercorrencias?: IntercorrenciaVersao[]
+  /** Alertas técnicos associados à versão. */
+  alertas?: AlertaTecnico[]
 }
 
 /** Itens de `acoes` da Campanha (contrato 5.2), na ordem dos botões: o front não deduz nada do status. */
@@ -135,21 +157,29 @@ export interface CampanhaDetalhe {
 }
 
 // A rota entra no A6-68: corpo suposto a partir dos testes do backend (decisão + justificativa).
-/** Item de GET /api/campanhas/aprovadas: a versão aprovada; `marcas` já sem "ALL". */
+/**
+ * Item de GET /api/campanhas/aprovadas: a versão aprovada; `marcas` já sem "ALL". `vigencia` vem do
+ * relógio do servidor (o front só agrupa por ela); `conflitos` são os da simulação aprovada.
+ */
 export interface CampanhaAprovada {
   id: number
   nome: string
   versao: number
   autor: UsuarioResumo
+  aprovador: UsuarioResumo | null
   periodo: PeriodoCampanha
-  vigencia: 'FUTURA' | 'VIGENTE' | 'ENCERRADA' | null
+  vigencia: Vigencia | null
   pct_acrescimo: number | null
   marcas: string[]
   cargos: string[]
   custo_adicional: number
   submetida_em: string
   simulacao_id: number
+  conflitos: ConflitoCampanha[]
 }
+
+/** Classificação da campanha aprovada pelo dia de hoje no servidor. */
+export type Vigencia = 'FUTURA' | 'VIGENTE' | 'ENCERRADA'
 
 /** Corpo de POST /api/campanhas/{id}/decidir (contrato 5.8): `versao` é a que o Supervisor viu. */
 export interface PedidoDecisao {
@@ -157,7 +187,6 @@ export interface PedidoDecisao {
   decisao: 'APROVAR' | 'REPROVAR'
   justificativa: string | null
 }
-
 
 export interface ItemDetalhe {
   rotulo: string
@@ -200,4 +229,6 @@ export interface CampanhaAprovacao {
   avisoResimulacao?: string | null
   /** Custo adicional da última re-simulação, para comparar com `custo`. */
   custoResimulado?: string | null
+  /** Alertas técnicos ainda abertos na versão (bloqueiam aprovação até resolução pelo Auditor). */
+  alertasAbertos?: AlertaTecnico[]
 }

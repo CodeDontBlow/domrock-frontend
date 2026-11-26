@@ -36,9 +36,18 @@ describe('competenciaDoNome (mesma regra do CompetenciaExtractor do backend)', (
 describe('separarPorMes', () => {
   it('separa as 13 planilhas do dataset em 6 meses, em ordem, com a Comissão no primeiro', () => {
     const dataset = planilhas(
-      'BASE_VENDAS_OUT25.xlsx', 'BASE_VENDAS_SET25.xlsx', 'BASE_COMMISS_FINAL.xlsx', 'BASE RH_SET25.xlsx',
-      'BASE_VENDAS_NOV25.xlsx', 'BASE_VENDAS_DEZ25.xlsx', 'BASE RH_AGO25.xlsx', 'BASE RH_OUT25.xlsx',
-      'BASE RH_JUL25.xlsx', 'BASE RH_NOV25.xlsx', 'BASE RH_DEZ25.xlsx', 'BASE_VENDAS_JUL25.xlsx',
+      'BASE_VENDAS_OUT25.xlsx',
+      'BASE_VENDAS_SET25.xlsx',
+      'BASE_COMMISS_FINAL.xlsx',
+      'BASE RH_SET25.xlsx',
+      'BASE_VENDAS_NOV25.xlsx',
+      'BASE_VENDAS_DEZ25.xlsx',
+      'BASE RH_AGO25.xlsx',
+      'BASE RH_OUT25.xlsx',
+      'BASE RH_JUL25.xlsx',
+      'BASE RH_NOV25.xlsx',
+      'BASE RH_DEZ25.xlsx',
+      'BASE_VENDAS_JUL25.xlsx',
       'BASE_VENDAS_AGO25.xlsx',
     )
 
@@ -51,16 +60,30 @@ describe('separarPorMes', () => {
       '2025-11': ['BASE RH_NOV25.xlsx', 'BASE_VENDAS_NOV25.xlsx'],
       '2025-12': ['BASE RH_DEZ25.xlsx', 'BASE_VENDAS_DEZ25.xlsx'],
     })
-    expect(Object.keys(nomesPorMes(dataset))).toEqual(['2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'])
+    expect(Object.keys(nomesPorMes(dataset))).toEqual([
+      '2025-07',
+      '2025-08',
+      '2025-09',
+      '2025-10',
+      '2025-11',
+      '2025-12',
+    ])
   })
 
   it('Comissão com mês no nome vai com aquele mês', () => {
     const arquivos = planilhas(
-      'BASE RH_JUL25.xlsx', 'BASE_VENDAS_JUL25.xlsx', 'BASE RH_AGO25.xlsx', 'BASE_VENDAS_AGO25.xlsx',
+      'BASE RH_JUL25.xlsx',
+      'BASE_VENDAS_JUL25.xlsx',
+      'BASE RH_AGO25.xlsx',
+      'BASE_VENDAS_AGO25.xlsx',
       'BASE_COMMISS_AGO25.xlsx',
     )
 
-    expect(nomesPorMes(arquivos)['2025-08']).toEqual(['BASE RH_AGO25.xlsx', 'BASE_VENDAS_AGO25.xlsx', 'BASE_COMMISS_AGO25.xlsx'])
+    expect(nomesPorMes(arquivos)['2025-08']).toEqual([
+      'BASE RH_AGO25.xlsx',
+      'BASE_VENDAS_AGO25.xlsx',
+      'BASE_COMMISS_AGO25.xlsx',
+    ])
   })
 
   it('Comissão enviada sozinha monta envio único sem competência', () => {
@@ -75,12 +98,20 @@ describe('separarPorMes', () => {
   it.each([
     [['BASE RH_OUT25.xlsx'], 'out/2025: falta a planilha de Vendas'],
     [['BASE_VENDAS_OUT25.xlsx'], 'out/2025: falta a planilha de RH'],
-    [['BASE RH_OUT25.xlsx', 'BASE_VENDAS_OUT25.xlsx', 'BASE RH_OUT25 (1).xlsx'], 'out/2025: mais de uma planilha de RH'],
+    [
+      ['BASE RH_OUT25.xlsx', 'BASE_VENDAS_OUT25.xlsx', 'BASE RH_OUT25 (1).xlsx'],
+      'out/2025: mais de uma planilha de RH',
+    ],
     [['BASE RH_OUT25.csv'], 'BASE RH_OUT25.csv: só planilhas .xlsx'],
     [['planilha.xlsx'], 'planilha.xlsx: o nome não diz se é RH, Vendas ou Comissão'],
     [['BASE RH.xlsx'], 'BASE RH.xlsx: o nome não diz o mês (ex.: BASE RH_OUT25.xlsx)'],
     [
-      ['BASE RH_OUT25.xlsx', 'BASE_VENDAS_OUT25.xlsx', 'BASE_COMMISS_FINAL.xlsx', 'BASE_COMISSAO_NOVA.xlsx'],
+      [
+        'BASE RH_OUT25.xlsx',
+        'BASE_VENDAS_OUT25.xlsx',
+        'BASE_COMMISS_FINAL.xlsx',
+        'BASE_COMISSAO_NOVA.xlsx',
+      ],
       'Mais de uma planilha de Comissão sem mês no nome',
     ],
   ])('%j aponta "%s"', (nomes, problema) => {

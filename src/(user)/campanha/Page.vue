@@ -95,7 +95,6 @@ async function decidir(
     await servico.decidir(campanha.id, { versao: campanha.versao, decisao, justificativa })
     campanhasAprovacao.value = campanhasAprovacao.value.filter((item) => item.id !== campanha.id)
     fecharCampanha()
-    // A aprovada passa a aparecer em Campanhas Passadas sem recarregar a página.
     if (decisao === 'APROVAR') carregarPassadas()
   } catch (erro) {
     erroDecisao.value = descreverFalha(erro)
@@ -201,11 +200,10 @@ onMounted(carregarPassadas)
 
     <section class="campaigns-section">
       <header class="section-header">
-        <h2>Campanhas Passadas</h2>
+        <h2>Campanhas aprovadas</h2>
 
         <p class="section-description">
-          Clique em uma campanha na tabela abaixo para ver informações mais detalhadas e visualizar
-          o chat que a gerou.
+          Clique em uma campanha para ver mais detalhes.
         </p>
       </header>
 
@@ -218,9 +216,6 @@ onMounted(carregarPassadas)
         </button>
       </div>
 
-      <p v-else-if="campanhasPassadas.length === 0" class="estado-fila">
-        Nenhuma campanha aprovada ainda.
-      </p>
 
       <TabelaCampanhas v-else :campanhas="campanhasPassadas" @selecionar="abrirPassada" />
     </section>

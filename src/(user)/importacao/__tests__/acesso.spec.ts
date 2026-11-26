@@ -19,11 +19,15 @@ class FakeConsultaDeMidia {
 function entrarComo(perfil: string): void {
   localStorage.setItem('token', 'token-falso')
   localStorage.setItem('perfil', perfil)
-  localStorage.setItem('usuario', JSON.stringify({ id: 2, nome: 'Sérgio', email: 'sergio@camplana.com.br' }))
+  localStorage.setItem(
+    'usuario',
+    JSON.stringify({ id: 2, nome: 'Sérgio', email: 'sergio@camplana.com.br' }),
+  )
 }
 
 beforeEach(() => {
-  window.matchMedia = ((media: string) => new FakeConsultaDeMidia(media)) as unknown as typeof window.matchMedia
+  window.matchMedia = ((media: string) =>
+    new FakeConsultaDeMidia(media)) as unknown as typeof window.matchMedia
 })
 
 afterEach(() => localStorage.clear())

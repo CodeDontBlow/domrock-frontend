@@ -19,7 +19,11 @@ export interface SeparacaoPorMes<T extends ArquivoNomeado> {
   problemas: string[]
 }
 
-const ROTULO_DO_TIPO: Record<TipoPlanilha, string> = { RH: 'RH', VENDAS: 'Vendas', COMISSAO: 'Comissão' }
+const ROTULO_DO_TIPO: Record<TipoPlanilha, string> = {
+  RH: 'RH',
+  VENDAS: 'Vendas',
+  COMISSAO: 'Comissão',
+}
 const ORDEM_NO_LOTE: TipoPlanilha[] = ['RH', 'VENDAS', 'COMISSAO']
 const MESES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
 const PADRAO_DO_MES = new RegExp(`(${MESES.join('|')})(\\d{2})`, 'i')
@@ -58,11 +62,14 @@ function problemaDoArquivo(nome: string): string | null {
   if (!nome.toLowerCase().endsWith('.xlsx')) return `${nome}: só planilhas .xlsx`
   const tipo = tipoDaPlanilha(nome)
   if (!tipo) return `${nome}: o nome não diz se é RH, Vendas ou Comissão`
-  if (tipo !== 'COMISSAO' && !competenciaDoNome(nome)) return `${nome}: o nome não diz o mês (ex.: BASE RH_OUT25.xlsx)`
+  if (tipo !== 'COMISSAO' && !competenciaDoNome(nome))
+    return `${nome}: o nome não diz o mês (ex.: BASE RH_OUT25.xlsx)`
   return null
 }
 
-function agruparPorMes<T extends ArquivoNomeado>(lidas: PlanilhaLida<T>[]): Map<string | null, PlanilhaLida<T>[]> {
+function agruparPorMes<T extends ArquivoNomeado>(
+  lidas: PlanilhaLida<T>[],
+): Map<string | null, PlanilhaLida<T>[]> {
   const meses = new Map<string | null, PlanilhaLida<T>[]>()
   for (const lida of lidas.filter((l) => l.competencia)) {
     meses.set(lida.competencia, [...(meses.get(lida.competencia) ?? []), lida])
@@ -71,7 +78,10 @@ function agruparPorMes<T extends ArquivoNomeado>(lidas: PlanilhaLida<T>[]): Map<
 }
 
 /** A Comissão sem mês no nome (BASE_COMMISS_FINAL) vai com o primeiro mês, ou vira um envio próprio se não houver mês. */
-function anexarComissaoSemMes<T extends ArquivoNomeado>(meses: Map<string | null, PlanilhaLida<T>[]>, lidas: PlanilhaLida<T>[]): string[] {
+function anexarComissaoSemMes<T extends ArquivoNomeado>(
+  meses: Map<string | null, PlanilhaLida<T>[]>,
+  lidas: PlanilhaLida<T>[],
+): string[] {
   const semMes = lidas.filter((l) => !l.competencia)
   if (semMes.length === 0) return []
   if (semMes.length > 1) return ['Mais de uma planilha de Comissão sem mês no nome']
@@ -84,19 +94,28 @@ function anexarComissaoSemMes<T extends ArquivoNomeado>(meses: Map<string | null
   return []
 }
 
-function problemasDoMes<T extends ArquivoNomeado>(competencia: string | null, planilhas: PlanilhaLida<T>[]): string[] {
+function problemasDoMes<T extends ArquivoNomeado>(
+  competencia: string | null,
+  planilhas: PlanilhaLida<T>[],
+): string[] {
   if (competencia === null) return []
   const mes = formatarCompetencia(competencia)
   return ORDEM_NO_LOTE.flatMap((tipo) => {
     const quantas = planilhas.filter((p) => p.tipo === tipo).length
     if (quantas > 1) return [`${mes}: mais de uma planilha de ${ROTULO_DO_TIPO[tipo]}`]
-    if (quantas === 0 && tipo !== 'COMISSAO') return [`${mes}: falta a planilha de ${ROTULO_DO_TIPO[tipo]}`]
+    if (quantas === 0 && tipo !== 'COMISSAO')
+      return [`${mes}: falta a planilha de ${ROTULO_DO_TIPO[tipo]}`]
     return []
   })
 }
 
-function montarLote<T extends ArquivoNomeado>(competencia: string | null, planilhas: PlanilhaLida<T>[]): LoteDoMes<T> {
-  const ordenadas = [...planilhas].sort((a, b) => ORDEM_NO_LOTE.indexOf(a.tipo) - ORDEM_NO_LOTE.indexOf(b.tipo))
+function montarLote<T extends ArquivoNomeado>(
+  competencia: string | null,
+  planilhas: PlanilhaLida<T>[],
+): LoteDoMes<T> {
+  const ordenadas = [...planilhas].sort(
+    (a, b) => ORDEM_NO_LOTE.indexOf(a.tipo) - ORDEM_NO_LOTE.indexOf(b.tipo),
+  )
   return { competencia, arquivos: ordenadas.map((p) => p.arquivo) }
 }
 
@@ -107,13 +126,24 @@ function montarLote<T extends ArquivoNomeado>(competencia: string | null, planil
  * Ex.: separarPorMes(arquivosDoDataset).lotes.map((l) => l.competencia) -> ['2025-07', ..., '2025-12']
  */
 export function separarPorMes<T extends ArquivoNomeado>(arquivos: T[]): SeparacaoPorMes<T> {
-  const problemas = arquivos.map((a) => problemaDoArquivo(a.name)).filter((p): p is string => p !== null)
+  const problemas = arquivos
+    .map((a) => problemaDoArquivo(a.name))
+    .filter((p): p is string => p !== null)
   if (problemas.length > 0) return { lotes: [], problemas }
 
-  const lidas = arquivos.map((arquivo) => ({ arquivo, tipo: tipoDaPlanilha(arquivo.name)!, competencia: competenciaDoNome(arquivo.name) }))
+  const lidas = arquivos.map((arquivo) => ({
+    arquivo,
+    tipo: tipoDaPlanilha(arquivo.name)!,
+    competencia: competenciaDoNome(arquivo.name),
+  }))
   const meses = agruparPorMes(lidas)
   problemas.push(...anexarComissaoSemMes(meses, lidas))
-  meses.forEach((planilhas, competencia) => problemas.push(...problemasDoMes(competencia, planilhas)))
+  meses.forEach((planilhas, competencia) =>
+    problemas.push(...problemasDoMes(competencia, planilhas)),
+  )
   if (problemas.length > 0) return { lotes: [], problemas }
-  return { lotes: [...meses].map(([competencia, planilhas]) => montarLote(competencia, planilhas)), problemas }
+  return {
+    lotes: [...meses].map(([competencia, planilhas]) => montarLote(competencia, planilhas)),
+    problemas,
+  }
 }

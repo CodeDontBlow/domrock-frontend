@@ -1,11 +1,16 @@
-import { formatarMoeda, formatarPercentual } from '../chat/formatacao'
-import { NOMES_CARGO, NOMES_MARCA } from '../chat/rotulos'
+import { formatarMoeda, formatarPercentual, formatarTrecho } from '../chat/formatacao'
+import { NOMES_CARGO, NOMES_MARCA, statusLegivelConflito } from '../chat/rotulos'
 import type { Periodo, RegraCampanha } from '../chat/types'
 import type { ListaCampanha } from './components/ListaCampanha.vue'
 import type { Tabela } from './components/TabelaCampanhas.vue'
 import { interferenciasDaVersao } from './interferencias'
 import type {
-  CampanhaAprovacao, CampanhaAprovada, CampanhaResumo, FilaCampanha, ItemDetalhe, PeriodoCampanha,
+  CampanhaAprovacao,
+  CampanhaAprovada,
+  CampanhaResumo,
+  FilaCampanha,
+  ItemDetalhe,
+  PeriodoCampanha,
   VersaoCampanha,
 } from './types'
 
@@ -40,7 +45,10 @@ function statusDaFila(item: FilaCampanha): string {
 }
 
 function cartaoBase(
-  campos: Pick<CampanhaAprovacao, 'id' | 'versao' | 'titulo' | 'sugeridoPor' | 'submetidoEm' | 'status'>,
+  campos: Pick<
+    CampanhaAprovacao,
+    'id' | 'versao' | 'titulo' | 'sugeridoPor' | 'submetidoEm' | 'status'
+  >,
   periodo: PeriodoCampanha | null,
   custo: number | null,
 ): CampanhaAprovacao {
@@ -56,35 +64,46 @@ function cartaoBase(
     detalhe: campos.versao === null ? 'indisponivel' : 'carregando',
     // Vêm da versão (eventos de RH e conflitos reais); até ela carregar, o bloco fica escondido.
     interferencias: [],
+    alertasAbertos: [],
   }
 }
 
 /** Card do Supervisor, a partir de GET /api/campanhas/fila. */
 export function cartaoDaFila(item: FilaCampanha): CampanhaAprovacao {
-  return cartaoBase({
-    id: item.id,
-    versao: item.versao,
-    titulo: item.nome,
-    sugeridoPor: item.autor.nome ?? 'Autor desconhecido',
-    submetidoEm: diaMesDeInstante(item.submetida_em),
-    status: statusDaFila(item),
-  }, item.periodo, item.custo_adicional)
+  return cartaoBase(
+    {
+      id: item.id,
+      versao: item.versao,
+      titulo: item.nome,
+      sugeridoPor: item.autor.nome ?? 'Autor desconhecido',
+      submetidoEm: diaMesDeInstante(item.submetida_em),
+      status: statusDaFila(item),
+    },
+    item.periodo,
+    item.custo_adicional,
+  )
 }
 
 /** Card do Gerente, a partir de "minhas" em AGUARDANDO_APROVACAO: a última atualização é a submissão. */
 export function cartaoDeMinhas(item: CampanhaResumo, autor: string): CampanhaAprovacao {
-  return cartaoBase({
-    id: item.id,
-    versao: item.versao_atual,
-    titulo: item.nome,
-    sugeridoPor: autor,
-    submetidoEm: diaMesDeInstante(item.atualizada_em),
-    status: 'Aguardando',
-  }, item.periodo, item.custo_adicional)
+  return cartaoBase(
+    {
+      id: item.id,
+      versao: item.versao_atual,
+      titulo: item.nome,
+      sugeridoPor: autor,
+      submetidoEm: diaMesDeInstante(item.atualizada_em),
+      status: 'Aguardando',
+    },
+    item.periodo,
+    item.custo_adicional,
+  )
 }
 
 function valorDe<T>(regra: RegraCampanha, key: string): T | null {
-  return (regra.parametros.find((parametro) => parametro.key === key)?.value as T | undefined) ?? null
+  return (
+    (regra.parametros.find((parametro) => parametro.key === key)?.value as T | undefined) ?? null
+  )
 }
 
 function plural(quantidade: number, singular: string, varios: string): string {
@@ -92,7 +111,9 @@ function plural(quantidade: number, singular: string, varios: string): string {
 }
 
 export function descreverAlcance(cargos: string[], marcas: string[]): string {
-  const textoMarcas = marcas.includes(TODAS_AS_MARCAS) ? 'todas as marcas' : plural(marcas.length, 'marca', 'marcas')
+  const textoMarcas = marcas.includes(TODAS_AS_MARCAS)
+    ? 'todas as marcas'
+    : plural(marcas.length, 'marca', 'marcas')
   return `Afeta ${plural(cargos.length, 'cargo', 'cargos')} e ${textoMarcas}.`
 }
 
@@ -114,16 +135,21 @@ export function comVersao(cartao: CampanhaAprovacao, versao: VersaoCampanha): Ca
     ...(percentual ? [{ rotulo: 'Acréscimo', valor: percentual }] : []),
     { rotulo: 'Comissão atual', valor: formatarMoeda(totais.baseline) },
     { rotulo: 'Com a campanha', valor: formatarMoeda(totais.simulado) },
-    { rotulo: 'Na comissão', valor: `+${formatarPercentual(totais.diferenca_pct)}`, destaque: true },
+    {
+      rotulo: 'Na comissão',
+      valor: `+${formatarPercentual(totais.diferenca_pct)}`,
+      destaque: true,
+    },
   ]
-
 
   return {
     ...cartao,
     duracaoDias: cartao.duracaoDias ?? duracaoEmDias(valorDe<Periodo>(regra, 'periodo')),
     custo: formatarMoeda(totais.diferenca),
     // Sem orçamento (A6-72), não há uso do orçamento para mostrar abaixo do custo.
-    custoDetalhe: orcamento ? usoDoOrcamento(orcamento.custo_incremental, orcamento.orcamento_limite) : null,
+    custoDetalhe: orcamento
+      ? usoDoOrcamento(orcamento.custo_incremental, orcamento.orcamento_limite)
+      : null,
     percentual,
     alcance: descreverAlcance(cargos, marcas),
     detalhe: 'pronto',
@@ -136,7 +162,10 @@ export function comVersao(cartao: CampanhaAprovacao, versao: VersaoCampanha): Ca
     interferencias: interferenciasDaVersao(versao.intercorrencias ?? [], resultado.conflitos ?? []),
     acoes: versao.acoes,
     avisoResimulacao: avisoDeResimulacao(versao),
-    custoResimulado: versao.resimulacao ? formatarMoeda(versao.resimulacao.resultado.totais.diferenca) : null,
+    custoResimulado: versao.resimulacao
+      ? formatarMoeda(versao.resimulacao.resultado.totais.diferenca)
+      : null,
+    alertasAbertos: (versao.alertas ?? []).filter((alerta) => alerta.status === 'ABERTO'),
   }
 }
 
@@ -147,7 +176,9 @@ export function comVersao(cartao: CampanhaAprovacao, versao: VersaoCampanha): Ca
  */
 export function avisoDeResimulacao(versao: VersaoCampanha): string | null {
   if (!versao.resimulacao_necessaria) return null
-  const campanhas = versao.aprovadas_depois.map((outra) => `${outra.nome} (${outra.aprovador})`).join(', ')
+  const campanhas = versao.aprovadas_depois
+    .map((outra) => `${outra.nome} (${outra.aprovador})`)
+    .join(', ')
   return `Outra campanha deste período foi aprovada depois da submissão: ${campanhas}. Simule de novo antes de aprovar.`
 }
 
@@ -156,16 +187,22 @@ function dataCompleta(iso: string): string {
   return `${dia}/${mes}/${ano}`
 }
 
-/** Linha de "Campanhas Passadas". Ex.: as seis marcas -> "Todas"; cargos ["100", "150"] -> "Vendedor loja, Gerente" */
 export function linhaAprovada(item: CampanhaAprovada): Tabela {
-  const todasAsMarcas = item.marcas.length === QUANTIDADE_DE_MARCAS
   return {
     id: item.id,
     titulo: item.nome,
     inicio: dataCompleta(item.periodo.data_inicio),
     fim: dataCompleta(item.periodo.data_fim),
-    cargo: item.cargos.map((codigo) => NOMES_CARGO[codigo] ?? codigo).join(', ') || undefined,
-    marca: todasAsMarcas ? 'Todas' : item.marcas.map((codigo) => NOMES_MARCA[codigo] ?? codigo).join(', ') || undefined,
+    autor: item.autor.nome ?? '—',
+    aprovador: item.aprovador?.nome ?? '—',
+    vigencia: item.vigencia,
+    sobreposicoes: (item.conflitos ?? []).map((conflito) => ({
+      nome: conflito.nome,
+      descricao: `Sobrepõe a ${conflito.nome} (${statusLegivelConflito(conflito.status)}) em ${formatarTrecho(
+        conflito.sobreposicao.data_inicio,
+        conflito.sobreposicao.data_fim,
+      )}`,
+    })),
     percentual: item.pct_acrescimo === null ? '—' : `+${formatarPercentual(item.pct_acrescimo)}`,
   }
 }
@@ -182,7 +219,10 @@ export function detalheAprovada(item: CampanhaAprovada): DetalheAprovada {
     inicio: diaMesDeData(item.periodo.data_inicio),
     fim: diaMesDeData(item.periodo.data_fim),
     percentual: item.pct_acrescimo === null ? null : `+${formatarPercentual(item.pct_acrescimo)}`,
-    alcance: descreverAlcance(item.cargos, item.marcas.length === QUANTIDADE_DE_MARCAS ? [TODAS_AS_MARCAS] : item.marcas),
+    alcance: descreverAlcance(
+      item.cargos,
+      item.marcas.length === QUANTIDADE_DE_MARCAS ? [TODAS_AS_MARCAS] : item.marcas,
+    ),
     custo: formatarMoeda(item.custo_adicional),
     custoDetalhe: null,
     sugeridoPor: item.autor.nome ?? 'Autor desconhecido',
@@ -192,7 +232,10 @@ export function detalheAprovada(item: CampanhaAprovada): DetalheAprovada {
   }
 }
 
-export function montarJustificativa(comentario: string, citadas: { tipo: string; descricao: string }[]): string {
+export function montarJustificativa(
+  comentario: string,
+  citadas: { tipo: string; descricao: string }[],
+): string {
   const texto = comentario.trim()
   if (citadas.length === 0) return texto
   return `${texto}\n\nInterferências citadas:\n${citadas.map((item) => `- ${item.tipo}: ${item.descricao}`).join('\n')}`

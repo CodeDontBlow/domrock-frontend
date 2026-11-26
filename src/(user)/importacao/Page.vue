@@ -12,8 +12,17 @@ import { useImportacaoStore } from './stores/importacao'
 // Tela "Importar base do mês" (A6-79, protótipo 2004:1628), só do Supervisor. Escolher, confirmar
 // (2008:2145), acompanhar (2004:1793) e o histórico; o resultado de cada envio abre em /importar/{id}.
 const store = useImportacaoStore()
-const { escolhidas, separacao, podeImportar, fila, enviando, erroDaFila, historico, carregandoHistorico, falhaNoHistorico } =
-  storeToRefs(store)
+const {
+  escolhidas,
+  separacao,
+  podeImportar,
+  fila,
+  enviando,
+  erroDaFila,
+  historico,
+  carregandoHistorico,
+  falhaNoHistorico,
+} = storeToRefs(store)
 const router = useRouter()
 const confirmando = ref(false)
 
@@ -39,12 +48,14 @@ function abrirRelatorioDoMesUnico(): void {
 </script>
 
 <template>
-  <div class="mx-auto flex w-full flex-col gap-[35px] px-4 py-10 font-raleway text-white-txt1 lg:px-32 lg:py-20">
+  <div
+    class="mx-auto flex w-full flex-col gap-[35px] px-4 py-10 font-raleway text-white-txt1 lg:px-32 lg:py-20"
+  >
     <header class="flex flex-col gap-3">
       <h1 class="font-forum text-[44px] leading-11">Importar base do mês</h1>
       <p class="text-[16px] leading-5 text-gray-txt2-dark">
-        Envie as planilhas do mês para a base das simulações. Se houver pendência impeditiva, nada é gravado e você
-        corrige a planilha e envia de novo.
+        Envie as planilhas do mês para a base das simulações. Se houver pendência impeditiva, nada é
+        gravado e você corrige a planilha e envia de novo.
       </p>
     </header>
 

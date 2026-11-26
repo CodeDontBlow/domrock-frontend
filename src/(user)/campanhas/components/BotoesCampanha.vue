@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { usePerfil } from '@/composables/usePerfil'
 import { configAcao } from '../acoes'
 import type { AcaoCampanha, StatusCampanha } from '../../campanha/types'
+
+const { ehAuditor } = usePerfil()
 
 defineProps<{
   /** As `acoes` da Campanha (contrato 5.2): um botão por item, na ordem do backend. */
@@ -15,7 +18,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="botoes-campanha">
+  <div v-if="!ehAuditor" class="botoes-campanha">
     <button
       v-for="acao in acoes"
       :key="acao"

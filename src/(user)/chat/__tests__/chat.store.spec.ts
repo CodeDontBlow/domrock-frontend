@@ -4,11 +4,22 @@ import { createPinia, setActivePinia } from 'pinia'
 import { AxiosError, AxiosHeaders } from 'axios'
 import { definirServicoCampanha, definirServicoCampanhas, useChatStore } from '../stores/chat'
 import { FakeServicoCampanhas, campanhaReprovada } from '../../campanhas/__tests__/fakes'
-import { FakeServicoCampanha, regraBlackFriday, resultadoBlackFriday, resultadoDoCriterio } from './fakes'
+import {
+  FakeServicoCampanha,
+  regraBlackFriday,
+  resultadoBlackFriday,
+  resultadoDoCriterio,
+} from './fakes'
 
 function erroHttp(status: number, data: unknown): AxiosError {
   const config = { headers: new AxiosHeaders() }
-  return new AxiosError('falhou', 'ERR', config, null, { status, statusText: '', data, headers: {}, config })
+  return new AxiosError('falhou', 'ERR', config, null, {
+    status,
+    statusText: '',
+    data,
+    headers: {},
+    config,
+  })
 }
 
 describe('useChatStore', () => {
@@ -32,7 +43,11 @@ describe('useChatStore', () => {
   })
 
   it('não deixa simular enquanto falta parâmetro obrigatório', async () => {
-    servico.respostaChat = { chat_id: 'c', response: 'Qual o orçamento?', regra: regraBlackFriday({ orcamento_limite: null }) }
+    servico.respostaChat = {
+      chat_id: 'c',
+      response: 'Qual o orçamento?',
+      regra: regraBlackFriday({ orcamento_limite: null }),
+    }
     const chat = useChatStore()
 
     await chat.enviar('Black Friday')
@@ -70,11 +85,18 @@ describe('useChatStore', () => {
   it('mostra os erros de validação que o backend devolve', async () => {
     const chat = useChatStore()
     await chat.enviar('Black Friday')
-    servico.falha = erroHttp(422, { etapa: 'validacao', mensagem: 'x', erros: ['orcamento_limite: obrigatório'] })
+    servico.falha = erroHttp(422, {
+      etapa: 'validacao',
+      mensagem: 'x',
+      erros: ['orcamento_limite: obrigatório'],
+    })
 
     await chat.simular()
 
-    expect(chat.mensagens[chat.mensagens.length - 1]).toMatchObject({ papel: 'erro', texto: 'Revise a campanha: orcamento_limite: obrigatório' })
+    expect(chat.mensagens[chat.mensagens.length - 1]).toMatchObject({
+      papel: 'erro',
+      texto: 'Revise a campanha: orcamento_limite: obrigatório',
+    })
     expect(chat.simulando).toBe(false)
   })
 
@@ -142,7 +164,9 @@ describe('enviar para aprovação', () => {
 
     await chat.enviarParaAprovacao('  Natal 2025 ')
 
-    expect(servico.salvamentos).toEqual([{ chatId: chat.chatId, simulacaoId: 346, nome: 'Natal 2025' }])
+    expect(servico.salvamentos).toEqual([
+      { chatId: chat.chatId, simulacaoId: 346, nome: 'Natal 2025' },
+    ])
     expect(servico.submissoes).toEqual([12])
     expect(chat.etapaAprovacao).toBe('enviada')
     expect(chat.mensagens[chat.mensagens.length - 1]?.texto).toContain('Aguardando Aprovação')
@@ -155,7 +179,12 @@ describe('enviar para aprovação', () => {
 
     await chat.enviarParaAprovacao('Natal 2025')
 
-    expect(chat.campanha).toEqual({ id: 12, nome: 'Natal 2025', status: 'AGUARDANDO_APROVACAO', versao_atual: 1 })
+    expect(chat.campanha).toEqual({
+      id: 12,
+      nome: 'Natal 2025',
+      status: 'AGUARDANDO_APROVACAO',
+      versao_atual: 1,
+    })
     chat.novaConversa()
     expect(chat.campanha).toBeNull()
   })
@@ -226,7 +255,10 @@ describe('enviar para aprovação', () => {
     servico.falhaSubmeter = erroHttp(409, { message: 'Campanha em AGUARDANDO_APROVACAO' })
 
     await chat.enviarParaAprovacao('Natal 2025')
-    expect(chat.mensagens[chat.mensagens.length - 1]).toMatchObject({ papel: 'erro', texto: 'Campanha em AGUARDANDO_APROVACAO' })
+    expect(chat.mensagens[chat.mensagens.length - 1]).toMatchObject({
+      papel: 'erro',
+      texto: 'Campanha em AGUARDANDO_APROVACAO',
+    })
     expect(chat.etapaAprovacao).toBe('pronta')
 
     await chat.enviarParaAprovacao('Natal 2025')
@@ -379,7 +411,9 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
     await chat.abrirCampanha(12)
 
     let resolverAgir: (() => void) | null = null
-    const promessaAgir = new Promise<void>((r) => { resolverAgir = r })
+    const promessaAgir = new Promise<void>((r) => {
+      resolverAgir = r
+    })
     const agirOriginal = servicoCampanhas.agir.bind(servicoCampanhas)
     servicoCampanhas.agir = async (id, acao) => {
       await promessaAgir
@@ -445,8 +479,11 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
   it('conversa reaberta não repete as mensagens de sistema que voltam em mensagens_sistema', async () => {
     const chat = useChatStore()
     const reprovacao = {
-      id: 7, papel: 'sistema' as const, tipo: 'STATUS' as const,
-      texto: 'Reprovado por Sérgio: custo alto', criada_em: '2026-10-28T02:19:00Z',
+      id: 7,
+      papel: 'sistema' as const,
+      tipo: 'STATUS' as const,
+      texto: 'Reprovado por Sérgio: custo alto',
+      criada_em: '2026-10-28T02:19:00Z',
     }
     servicoCampanhas.campanha = campanhaReprovada({ id: 12, acoes: ['RENOMEAR'] })
     servicoCampanha.conversaGravada = {
@@ -456,7 +493,11 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
     }
     await chat.abrirCampanha(12)
     servicoCampanha.respostaChat = {
-      chat_id: 'chat-12', response: 'Certo!', regra: null, events: [], mensagens_sistema: [reprovacao],
+      chat_id: 'chat-12',
+      response: 'Certo!',
+      regra: null,
+      events: [],
+      mensagens_sistema: [reprovacao],
     }
 
     await chat.enviar('Vamos ajustar')
@@ -511,16 +552,21 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
     expect(localStorage.getItem('chat_id')).toBe('chat-12')
   })
 
-  it.each([404, 403])('F5 em conversa inexistente ou sem acesso (%i) gera nova conversa (item B9)', async (status) => {
-    const chat = useChatStore()
-    localStorage.setItem('chat_id', 'chat-inexistente')
-    servicoCampanha.falhaBuscarMensagens = erroHttp(status, { message: 'Sem acesso ou não encontrado' })
+  it.each([404, 403])(
+    'F5 em conversa inexistente ou sem acesso (%i) gera nova conversa (item B9)',
+    async (status) => {
+      const chat = useChatStore()
+      localStorage.setItem('chat_id', 'chat-inexistente')
+      servicoCampanha.falhaBuscarMensagens = erroHttp(status, {
+        message: 'Sem acesso ou não encontrado',
+      })
 
-    await chat.restaurarSessaoSeVazio()
+      await chat.restaurarSessaoSeVazio()
 
-    expect(chat.chatId).not.toBe('chat-inexistente')
-    expect(localStorage.getItem('chat_id')).toBeNull()
-  })
+      expect(chat.chatId).not.toBe('chat-inexistente')
+      expect(localStorage.getItem('chat_id')).toBeNull()
+    },
+  )
 
   it('navegação interna não refaz a busca se a store já tiver mensagens', async () => {
     const chat = useChatStore()
@@ -594,7 +640,9 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
     const chat = useChatStore()
 
     let resolver12: (() => void) | null = null
-    const promessa12 = new Promise<void>((r) => { resolver12 = r })
+    const promessa12 = new Promise<void>((r) => {
+      resolver12 = r
+    })
 
     servicoCampanhas.abrir = async (id: number) => {
       if (id === 12) await promessa12
@@ -621,11 +669,20 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
   it('carregarResultadoSimulacao mantém simulacao_id em simulacoesCarregando até terminar (item B6)', async () => {
     const chat = useChatStore()
     chat.mensagens = [
-      { id: 10, chave: 'b-10', papel: 'sistema', tipo: 'SIMULACAO', simulacao_id: 345, texto: 'Simulação' },
+      {
+        id: 10,
+        chave: 'b-10',
+        papel: 'sistema',
+        tipo: 'SIMULACAO',
+        simulacao_id: 345,
+        texto: 'Simulação',
+      },
     ]
 
     let resolverBusca: (() => void) | null = null
-    const promessaBusca = new Promise<void>((r) => { resolverBusca = r })
+    const promessaBusca = new Promise<void>((r) => {
+      resolverBusca = r
+    })
     const buscarOriginal = servicoCampanha.buscarSimulacao.bind(servicoCampanha)
     servicoCampanha.buscarSimulacao = async (id: number) => {
       await promessaBusca

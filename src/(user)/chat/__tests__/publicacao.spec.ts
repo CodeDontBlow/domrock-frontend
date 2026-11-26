@@ -108,8 +108,16 @@ describe('Tabela de comissão no período (ComissaoPeriodo)', () => {
   })
 
   it('não renderiza a tabela quando linhas está ausente ou vazio', () => {
-    expect(mount(ComissaoPeriodo, { props: { linhas: [] } }).find('table').exists()).toBe(false)
-    expect(mount(ComissaoPeriodo, { props: { linhas: undefined } }).find('table').exists()).toBe(false)
+    expect(
+      mount(ComissaoPeriodo, { props: { linhas: [] } })
+        .find('table')
+        .exists(),
+    ).toBe(false)
+    expect(
+      mount(ComissaoPeriodo, { props: { linhas: undefined } })
+        .find('table')
+        .exists(),
+    ).toBe(false)
   })
 
   it('exibe apenas "Substituição" ou "Acréscimo" quando os percentuais forem nulos', () => {
@@ -265,8 +273,12 @@ describe('Aviso de conflitos (AvisoConflitos)', () => {
     const wrapper = mount(AvisoConflitos, { props: { conflitos } })
     const texto = wrapper.text()
 
-    expect(texto).toContain('Esta campanha se sobrepõe a Campanha A (aprovada) em 24 a 30/11 para marcas Preto, cargos Gerente (150).')
-    expect(texto).toContain('Esta campanha se sobrepõe a Campanha B (aguardando aprovação) em 25 a 30/11 para marcas Branco, cargos Vendedor loja (100).')
+    expect(texto).toContain(
+      'Esta campanha se sobrepõe a Campanha A (aprovada) em 24 a 30/11 para marcas Preto, cargos Gerente (150).',
+    )
+    expect(texto).toContain(
+      'Esta campanha se sobrepõe a Campanha B (aguardando aprovação) em 25 a 30/11 para marcas Branco, cargos Vendedor loja (100).',
+    )
     expect(texto).not.toContain('[]')
     expect(texto).not.toContain('undefined')
   })
@@ -283,42 +295,77 @@ describe('Barra superior do chat (ChatHeader)', () => {
     const wrapperPronta = mount(ChatHeader, {
       props: { data: '27/10/2026', etapaAprovacao: 'pronta', ocupado: false, painelAberto: true },
     })
-    const btnPronta = wrapperPronta.findAll('button').find((b) => b.text().includes('Compartilhar'))!
+    const btnPronta = wrapperPronta
+      .findAll('button')
+      .find((b) => b.text().includes('Compartilhar'))!
     expect(btnPronta.attributes('disabled')).toBeUndefined()
 
     // Etapa fora_do_orcamento: habilitado
     const wrapperFora = mount(ChatHeader, {
-      props: { data: '27/10/2026', etapaAprovacao: 'fora_do_orcamento', ocupado: false, painelAberto: true },
+      props: {
+        data: '27/10/2026',
+        etapaAprovacao: 'fora_do_orcamento',
+        ocupado: false,
+        painelAberto: true,
+      },
     })
     const btnFora = wrapperFora.findAll('button').find((b) => b.text().includes('Compartilhar'))!
     expect(btnFora.attributes('disabled')).toBeUndefined()
 
     // Etapa sem_simulacao: desabilitado com motivo
     const wrapperSemSimulacao = mount(ChatHeader, {
-      props: { data: '27/10/2026', etapaAprovacao: 'sem_simulacao', ocupado: false, painelAberto: true },
+      props: {
+        data: '27/10/2026',
+        etapaAprovacao: 'sem_simulacao',
+        ocupado: false,
+        painelAberto: true,
+      },
     })
-    const btnSemSimulacao = wrapperSemSimulacao.findAll('button').find((b) => b.text().includes('Compartilhar'))!
+    const btnSemSimulacao = wrapperSemSimulacao
+      .findAll('button')
+      .find((b) => b.text().includes('Compartilhar'))!
     expect(btnSemSimulacao.attributes('disabled')).toBeDefined()
     expect(btnSemSimulacao.attributes('title')).toBe('Simule a campanha para compartilhar.')
 
     // Etapa desatualizada: desabilitado com motivo (o aviso migrou para o topo da conversa, 427:694)
     const wrapperDesatualizada = mount(ChatHeader, {
-      props: { data: '27/10/2026', etapaAprovacao: 'desatualizada', ocupado: false, painelAberto: true },
+      props: {
+        data: '27/10/2026',
+        etapaAprovacao: 'desatualizada',
+        ocupado: false,
+        painelAberto: true,
+      },
     })
-    const btnDesatualizada = wrapperDesatualizada.findAll('button').find((b) => b.text().includes('Compartilhar'))!
+    const btnDesatualizada = wrapperDesatualizada
+      .findAll('button')
+      .find((b) => b.text().includes('Compartilhar'))!
     expect(btnDesatualizada.attributes('disabled')).toBeDefined()
-    expect(btnDesatualizada.attributes('title')).toBe('A campanha mudou depois da simulação: simule de novo para compartilhar.')
+    expect(btnDesatualizada.attributes('title')).toBe(
+      'A campanha mudou depois da simulação: simule de novo para compartilhar.',
+    )
   })
 
   it('controla a habilitação do botão de parâmetros pela presença de regra (427:713)', () => {
     const semRegra = mount(ChatHeader, {
-      props: { data: '27/10/2026', etapaAprovacao: 'pronta', ocupado: false, painelAberto: false, temRegra: false },
+      props: {
+        data: '27/10/2026',
+        etapaAprovacao: 'pronta',
+        ocupado: false,
+        painelAberto: false,
+        temRegra: false,
+      },
     })
     const btnSemRegra = semRegra.find('button[aria-label="Parâmetros da simulação"]')
     expect(btnSemRegra.attributes('disabled')).toBeDefined()
 
     const comRegra = mount(ChatHeader, {
-      props: { data: '27/10/2026', etapaAprovacao: 'pronta', ocupado: false, painelAberto: false, temRegra: true },
+      props: {
+        data: '27/10/2026',
+        etapaAprovacao: 'pronta',
+        ocupado: false,
+        painelAberto: false,
+        temRegra: true,
+      },
     })
     const btnComRegra = comRegra.find('button[aria-label="Parâmetros da simulação"]')
     expect(btnComRegra.attributes('disabled')).toBeUndefined()
@@ -326,20 +373,34 @@ describe('Barra superior do chat (ChatHeader)', () => {
 
   it('oculta o botão em somente_leitura e enviada', () => {
     const wrapperLeitura = mount(ChatHeader, {
-      props: { data: '27/10/2026', etapaAprovacao: 'somente_leitura', ocupado: false, painelAberto: true },
+      props: {
+        data: '27/10/2026',
+        etapaAprovacao: 'somente_leitura',
+        ocupado: false,
+        painelAberto: true,
+      },
     })
-    expect(wrapperLeitura.findAll('button').some((b) => b.text().includes('Compartilhar'))).toBe(false)
+    expect(wrapperLeitura.findAll('button').some((b) => b.text().includes('Compartilhar'))).toBe(
+      false,
+    )
 
     const wrapperEnviada = mount(ChatHeader, {
       props: { data: '27/10/2026', etapaAprovacao: 'enviada', ocupado: false, painelAberto: true },
     })
-    expect(wrapperEnviada.findAll('button').some((b) => b.text().includes('Compartilhar'))).toBe(false)
+    expect(wrapperEnviada.findAll('button').some((b) => b.text().includes('Compartilhar'))).toBe(
+      false,
+    )
   })
 
   it('mostra status e versão quando há campanha salva', () => {
     const wrapper = mount(ChatHeader, {
       props: {
-        campanha: { id: 5, nome: 'Campanha de Páscoa', status: 'AGUARDANDO_APROVACAO', versao_atual: 2 },
+        campanha: {
+          id: 5,
+          nome: 'Campanha de Páscoa',
+          status: 'AGUARDANDO_APROVACAO',
+          versao_atual: 2,
+        },
         data: '27/10/2026',
         etapaAprovacao: 'pronta',
         ocupado: false,
@@ -354,7 +415,12 @@ describe('Barra superior do chat (ChatHeader)', () => {
 
   it('mostra "Nova campanha" quando a conversa ainda não virou campanha', () => {
     const wrapper = mount(ChatHeader, {
-      props: { data: '27/10/2026', etapaAprovacao: 'sem_simulacao', ocupado: false, painelAberto: true },
+      props: {
+        data: '27/10/2026',
+        etapaAprovacao: 'sem_simulacao',
+        ocupado: false,
+        painelAberto: true,
+      },
     })
 
     expect(wrapper.text()).toContain('Nova campanha')

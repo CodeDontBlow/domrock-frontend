@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
-  alertaDoEnvio, contagemPorFiltro, filtrarPendencias, filtroInicial, metaDoEnvio, numerosDoResultado, textoDaLinha,
+  alertaDoEnvio,
+  contagemPorFiltro,
+  filtrarPendencias,
+  filtroInicial,
+  metaDoEnvio,
+  numerosDoResultado,
+  textoDaLinha,
   tituloDoEnvio,
 } from '../relatorio'
 import { job, pendencia } from './fakes'
@@ -11,7 +17,11 @@ const aviso = pendencia('AVISO', 'matrícula sem vendas no mês')
 
 describe('relatório de pendências', () => {
   it('conta por severidade para os filtros Todas, Impeditivo e Aviso', () => {
-    expect(contagemPorFiltro([impeditivo, aviso, aviso])).toEqual({ TODAS: 3, IMPEDITIVO: 1, AVISO: 2 })
+    expect(contagemPorFiltro([impeditivo, aviso, aviso])).toEqual({
+      TODAS: 3,
+      IMPEDITIVO: 1,
+      AVISO: 2,
+    })
   })
 
   it('abre no filtro Impeditivo quando há impeditivo; senão em Todas', () => {
@@ -47,8 +57,12 @@ describe('cabeçalho e resultado do envio', () => {
   })
 
   it('alerta vermelho só quando nada foi gravado', () => {
-    expect(alertaDoEnvio('PENDENTE')).toBe('Planilha com pendências: corrija e envie novamente. Nada foi gravado.')
-    expect(alertaDoEnvio('FALHA')).toBe('A importação falhou e nada foi gravado. Veja o motivo abaixo e envie de novo.')
+    expect(alertaDoEnvio('PENDENTE')).toBe(
+      'Planilha com pendências: corrija e envie novamente. Nada foi gravado.',
+    )
+    expect(alertaDoEnvio('FALHA')).toBe(
+      'A importação falhou e nada foi gravado. Veja o motivo abaixo e envie de novo.',
+    )
     expect(alertaDoEnvio('CONCLUIDO')).toBeNull()
   })
 

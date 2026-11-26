@@ -32,9 +32,7 @@ function atualizarPosicao() {
 
   if (!elemento) return
 
-  const primeiroCard = elemento.querySelector(
-    '.campanha-card',
-  ) as HTMLElement | null
+  const primeiroCard = elemento.querySelector('.campanha-card') as HTMLElement | null
 
   if (!primeiroCard) return
 
@@ -50,9 +48,7 @@ function avancar() {
 
   if (!elemento || totalCampanhas.value === 0) return
 
-  const primeiroCard = elemento.querySelector(
-    '.campanha-card',
-  ) as HTMLElement | null
+  const primeiroCard = elemento.querySelector('.campanha-card') as HTMLElement | null
 
   if (!primeiroCard) return
 
@@ -60,9 +56,7 @@ function avancar() {
   const gap = Number.parseFloat(estilos.columnGap) || 0
   const larguraCard = primeiroCard.offsetWidth + gap
 
-  const chegouAoFim =
-    elemento.scrollLeft + elemento.clientWidth >=
-    elemento.scrollWidth - 5
+  const chegouAoFim = elemento.scrollLeft + elemento.clientWidth >= elemento.scrollWidth - 5
 
   if (chegouAoFim) {
     elemento.scrollTo({
@@ -75,7 +69,6 @@ function avancar() {
       behavior: 'smooth',
     })
   }
-
 }
 </script>
 
@@ -84,9 +77,7 @@ function avancar() {
     <header class="carrossel-header">
       <div class="carrossel-info">
 
-        <span>
-          Visualizando {{ posicaoAtual }}/{{ totalCampanhas }} campanhas
-        </span>
+        <span> Visualizando {{ posicaoAtual }}/{{ totalCampanhas }} campanhas </span>
       </div>
 
       <button
@@ -105,11 +96,7 @@ function avancar() {
       </button>
     </header>
 
-    <div
-      ref="carrossel"
-      class="carrossel-lista"
-      @scroll="atualizarPosicao"
-    >
+    <div ref="carrossel" class="carrossel-lista" @scroll="atualizarPosicao">
       <article
         v-for="campanha in campanhas"
         :key="campanha.id"

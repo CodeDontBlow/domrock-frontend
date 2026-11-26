@@ -2,7 +2,13 @@ import type { AxiosInstance } from 'axios'
 import { acompanharSimulacao } from '../../chat/services/campanha'
 import type { SimulacaoConcluida, SimulacaoCriada } from '../../chat/types'
 import type {
-  AcaoCampanha, CampanhaAprovada, CampanhaDetalhe, CampanhaResumo, FilaCampanha, PedidoDecisao, StatusCampanha,
+  AcaoCampanha,
+  CampanhaAprovada,
+  CampanhaDetalhe,
+  CampanhaResumo,
+  FilaCampanha,
+  PedidoDecisao,
+  StatusCampanha,
   VersaoCampanha,
 } from '../types'
 
@@ -15,7 +21,10 @@ const ROTA_DA_ACAO: Record<AcaoSemCorpo, string> = {
   ARQUIVAR: 'arquivar',
 }
 
-export function criarServicoCampanhas(http: AxiosInstance, esperar?: (ms: number) => Promise<void>) {
+export function criarServicoCampanhas(
+  http: AxiosInstance,
+  esperar?: (ms: number) => Promise<void>,
+) {
   return {
     async fila(): Promise<FilaCampanha[]> {
       const { data } = await http.get<FilaCampanha[]>('/api/campanhas/fila')
@@ -23,7 +32,9 @@ export function criarServicoCampanhas(http: AxiosInstance, esperar?: (ms: number
     },
 
     async minhas(status?: StatusCampanha): Promise<CampanhaResumo[]> {
-      const { data } = await http.get<CampanhaResumo[]>('/api/campanhas/minhas', { params: { status } })
+      const { data } = await http.get<CampanhaResumo[]>('/api/campanhas/minhas', {
+        params: { status },
+      })
       return data
     },
 
@@ -39,7 +50,9 @@ export function criarServicoCampanhas(http: AxiosInstance, esperar?: (ms: number
 
     /** Ex.: agir(12, 'EDITAR') faz POST /api/campanhas/12/editar e devolve a Campanha atualizada (5.7). */
     async agir(id: number, acao: AcaoSemCorpo): Promise<CampanhaDetalhe> {
-      const { data } = await http.post<CampanhaDetalhe>(`/api/campanhas/${id}/${ROTA_DA_ACAO[acao]}`)
+      const { data } = await http.post<CampanhaDetalhe>(
+        `/api/campanhas/${id}/${ROTA_DA_ACAO[acao]}`,
+      )
       return data
     },
 
@@ -59,8 +72,14 @@ export function criarServicoCampanhas(http: AxiosInstance, esperar?: (ms: number
     },
 
     /** Re-simula a ficha congelada com a % vigente de hoje (contrato 5.9) e espera o job (4.2) concluir. */
-    async resimular(id: number, numero: number, aoMudarEtapa: (etapa: string) => void): Promise<SimulacaoConcluida> {
-      const { data } = await http.post<SimulacaoCriada>(`/api/campanhas/${id}/versoes/${numero}/resimular`)
+    async resimular(
+      id: number,
+      numero: number,
+      aoMudarEtapa: (etapa: string) => void,
+    ): Promise<SimulacaoConcluida> {
+      const { data } = await http.post<SimulacaoCriada>(
+        `/api/campanhas/${id}/versoes/${numero}/resimular`,
+      )
       aoMudarEtapa(data.etapa)
       return acompanharSimulacao(http, data.id, aoMudarEtapa, esperar)
     },
