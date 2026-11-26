@@ -106,7 +106,7 @@ export interface RespostaChat {
   events?: EventoAgente[]
   trilha?: TrilhaChat | null
   mensagens_sistema?: MensagemGravada[]
-  solicitacao?: unknown | null
+  solicitacao?: Solicitacao | null
 }
 
 export interface QuebraDimensao {
@@ -278,6 +278,38 @@ export const ETAPAS_DE_ENVIO: readonly EtapaAprovacao[] = ['pronta', 'fora_do_or
 
 export type PapelMensagem = 'usuario' | 'agente' | 'resultado' | 'erro' | 'sistema'
 
+export type StatusSolicitacaoChat =
+  'rascunho' | 'enviada' | 'aprovada' | 'reprovada' | 'erro' | string
+
+export type CategoriaSolicitacao = 'CORRECAO' | 'INTERCORRENCIA'
+
+export interface SolicitacaoPeriodoDepois {
+  data_inicio: string
+  data_fim?: string
+  cod_loja?: string
+}
+
+export interface Solicitacao {
+  categoria: CategoriaSolicitacao
+  tipo: string
+  tipo_rotulo?: string | null
+  matricula?: string
+  competencia: string
+  antes?: string | null
+  depois?: string | SolicitacaoPeriodoDepois | null
+  antes_rotulo?: string | null
+  depois_rotulo?: string | null
+  motivo: string
+}
+
+export interface SolicitacaoCorrecaoChat extends Solicitacao {
+  id?: string | number
+  status?: StatusSolicitacaoChat
+  statusEnvio?: 'pendente' | 'enviando' | 'sucesso' | 'erro'
+  erroEnvio?: string | null
+  enviada?: boolean
+}
+
 export interface MensagemChat {
   id: number | string
   chave: string
@@ -288,6 +320,7 @@ export interface MensagemChat {
   criada_em?: string
   resultado?: ResultadoSimulacao
   events?: EventoAgente[]
+  solicitacao?: SolicitacaoCorrecaoChat | null
 }
 
 // Contrato 2.3 (A6-74 e A6-75): histórico de campanhas e sobreposição no período simulado.

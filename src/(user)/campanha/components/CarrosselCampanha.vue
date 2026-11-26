@@ -76,8 +76,6 @@ function avancar() {
   <section class="carrossel-campanhas">
     <header class="carrossel-header">
       <div class="carrossel-info">
-        <i class="bi bi-arrows-angle-expand carrossel-header-icon"></i>
-
         <span> Visualizando {{ posicaoAtual }}/{{ totalCampanhas }} campanhas </span>
       </div>
 

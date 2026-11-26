@@ -87,6 +87,7 @@ async function decidir(
   decisao: PedidoDecisao['decisao'],
   justificativa: string | null,
 ) {
+  // Sem versão carregada não há o que decidir: o painel já deixa os botões inativos.
   if (campanha.versao === null) return
   decidindo.value = true
   erroDecisao.value = null
@@ -201,9 +202,7 @@ onMounted(carregarPassadas)
       <header class="section-header">
         <h2>Campanhas aprovadas</h2>
 
-        <p class="section-description">
-          Clique em uma campanha para ver mais detalhes.
-        </p>
+        <p class="section-description">Clique em uma campanha para ver mais detalhes.</p>
       </header>
 
       <p v-if="carregandoPassadas" class="estado-fila">Carregando campanhas…</p>
@@ -214,7 +213,6 @@ onMounted(carregarPassadas)
           Tentar de novo
         </button>
       </div>
-
 
       <TabelaCampanhas v-else :campanhas="campanhasPassadas" @selecionar="abrirPassada" />
     </section>

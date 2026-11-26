@@ -18,6 +18,7 @@ import type {
   SimulacaoConcluida,
   SimulacaoCriada,
   SimulacaoNaMeta,
+  Solicitacao,
 } from '../types'
 
 export function regraBlackFriday(
@@ -203,7 +204,12 @@ export function resultadoComNaMeta(
 
 /** Serviço de campanha em memória: registra as chamadas e devolve respostas programadas. */
 export class FakeServicoCampanha implements ServicoCampanha {
-  conversas: Array<{ chatId: string; mensagem: string; regra: RegraCampanha | null }> = []
+  conversas: Array<{
+    chatId: string
+    mensagem: string
+    regra: RegraCampanha | null
+    solicitacao?: Solicitacao | null
+  }> = []
   simulacoes: RegraCampanha[] = []
   respostaChat: RespostaChat = { chat_id: 'c', response: 'Anotado!', regra: regraBlackFriday() }
   resultado: ResultadoSimulacao = resultadoBlackFriday()
@@ -250,11 +256,13 @@ export class FakeServicoCampanha implements ServicoCampanha {
     chatId: string,
     mensagem: string,
     regra: RegraCampanha | null,
+    solicitacao?: Solicitacao | null,
   ): Promise<RespostaChat> {
     this.conversas.push({
       chatId,
       mensagem,
       regra: regra ? JSON.parse(JSON.stringify(regra)) : null,
+      solicitacao: solicitacao ? JSON.parse(JSON.stringify(solicitacao)) : null,
     })
     if (this.segurarConversar)
       await new Promise<void>((resolve) => {

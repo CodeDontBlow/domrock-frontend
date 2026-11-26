@@ -74,7 +74,7 @@ const mostrarBotao = computed<boolean>(
       <!-- Botão de parâmetros (IconButton, 427:713): 40x40, sem fundo, ícone bi-sliders 20px -->
       <button
         type="button"
-        class="chat-header-btn chat-header-btn--sliders"
+        class="chat-header-btn chat-header-btn--sliders text-body"
         aria-label="Parâmetros da simulação"
         :aria-expanded="painelAberto"
         aria-controls="tab-simulacao"
@@ -88,12 +88,12 @@ const mostrarBotao = computed<boolean>(
       <button
         v-if="mostrarBotao"
         type="button"
-        class="chat-header-btn chat-header-btn--compartilhar"
+        class="chat-header-btn chat-header-btn--compartilhar text-body!"
         :disabled="!podeCompartilhar"
         :title="!podeCompartilhar ? motivoDesabilitado : undefined"
         @click="emit('compartilhar')"
       >
-        <i class="bi bi-share-fill" aria-hidden="true" />
+        <i class="bi bi-share-fill text-body" aria-hidden="true" />
         Compartilhar Campanha
       </button>
     </div>
@@ -109,9 +109,8 @@ const mostrarBotao = computed<boolean>(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 82px;
   box-sizing: border-box;
-  padding: 20px;
+  padding: 15px 24px;
   gap: 10px;
   background-color: var(--color-black-bg1);
   border-bottom: 2px solid var(--color-black-bg2);
@@ -193,7 +192,6 @@ const mostrarBotao = computed<boolean>(
   border-radius: 100px;
   background: transparent;
   color: var(--color-white-txt1);
-  font-size: 20px;
   padding: 0;
 }
 
@@ -210,19 +208,11 @@ const mostrarBotao = computed<boolean>(
 .chat-header-btn--compartilhar {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
   padding: 10px 15px;
   border-radius: 5px;
   background-color: var(--color-black-bg2);
   color: var(--color-white-txt1);
-  font-family: var(--font-raleway);
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 20px;
-}
-
-.chat-header-btn--compartilhar i {
-  font-size: 20px;
 }
 
 .chat-header-btn--compartilhar:hover:not(:disabled) {

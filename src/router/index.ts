@@ -8,10 +8,10 @@ import AdminUsers from '../(admin)/users/Page.vue'
 import CampanhaPage from '../(user)/campanha/Page.vue'
 import CampanhasPage from '../(user)/campanhas/Page.vue'
 import CampanhaDetalhePage from '../(user)/campanhas/[id]/Page.vue'
-import SolicitacoesPage from '../(user)/solicitacoes/Page.vue'
 import ConfiguracoesPage from '../(user)/configuracoes/Page.vue'
 import ImportacaoPage from '../(user)/importacao/Page.vue'
 import RelatorioImportacaoPage from '../(user)/importacao/relatorio/Page.vue'
+import FilaAlteracoesPage from '../(user)/fila-alteracoes/Page.vue'
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -55,7 +55,7 @@ export const router = createRouter({
         {
           path: 'solicitacoes',
           name: 'solicitacoes',
-          component: SolicitacoesPage,
+          component: FilaAlteracoesPage,
         },
         {
           path: 'configuracoes',

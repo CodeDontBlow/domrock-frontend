@@ -12,6 +12,7 @@ import ResultadoSimulacao from './components/ResultadoSimulacao.vue'
 import FerramentasDropdown from './components/FerramentasDropdown.vue'
 import ChatHeader from './components/ChatHeader.vue'
 import CompartilharCampanhaModal from './components/CompartilharCampanhaModal.vue'
+import CartaoPedido from './components/CartaoPedido.vue'
 import { montarConferencia } from './conferencia'
 import { useChatStore } from './stores/chat'
 
@@ -184,7 +185,20 @@ watch(
               :resultado="mensagem.resultado"
               @aplicar-cenario="chat.aplicarCenario"
             />
-            <SpeechBubble v-else :message="mensagem.texto" :papel="mensagem.papel" />
+            <div v-else class="mensagem-item">
+              <SpeechBubble :message="mensagem.texto" :papel="mensagem.papel" />
+
+              <!-- Card do Pedido (escolhe entre correção e intercorrência) -->
+              <CartaoPedido
+                v-if="mensagem.solicitacao"
+                :solicitacao="mensagem.solicitacao"
+                @confirmar="(motivo) => chat.enviarSolicitacaoCorrecao(mensagem, motivo)"
+                @desistir="() => chat.cancelarSolicitacaoCorrecao(mensagem)"
+                @salvar-motivo="
+                  (novoMotivo) => chat.atualizarMotivoSolicitacao(mensagem, novoMotivo)
+                "
+              />
+            </div>
           </template>
           <p v-if="aguardandoLana" class="pensando">A Lana está escrevendo…</p>
           <p v-if="simulando" class="pensando">
@@ -302,7 +316,8 @@ watch(
   width: 100%;
   max-width: 832px;
   margin: 0 auto;
-  padding: 24px 24px 0;
+  padding: 25px;
+  padding-bottom: 0;
   box-sizing: border-box;
   display: flex;
   flex: 1;
@@ -396,12 +411,13 @@ watch(
   position: sticky;
   top: 0;
   height: 100vh;
-  width: 500px;
+  width: 350px;
   flex-shrink: 0;
-  background-color: var(--color-black-bg2);
+  background-color: var(--color-black-bg1);
+  border-left: 2px solid var(--color-black-bg2);
   display: flex;
   flex-direction: column;
-  padding: 40px 42px;
+  padding: 25px;
   box-sizing: border-box;
   z-index: 20;
 }
@@ -435,5 +451,12 @@ watch(
   font-family: var(--font-raleway);
   font-size: 14px;
   font-style: italic;
+}
+
+.mensagem-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 </style>

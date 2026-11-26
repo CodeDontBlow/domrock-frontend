@@ -2,6 +2,7 @@ import { isAxiosError } from 'axios'
 import type { AcaoCampanha, CampanhaDetalhe, UltimaSimulacao } from '../campanha/types'
 import { eventosDaTrilha } from './trilha'
 import type {
+  EventoAgente,
   MensagemChat,
   MensagemGravada,
   RegraCampanha,
@@ -40,12 +41,15 @@ function converterUsuario(msg: MensagemGravada): MensagemChat {
 }
 
 function converterLana(msg: MensagemGravada): MensagemChat {
+  const events = eventosDaTrilha(msg.trilha)
+
   return {
     id: msg.id,
     chave: `b-${msg.id}`,
     papel: 'agente',
     texto: msg.texto,
-    events: eventosDaTrilha(msg.trilha),
+    events,
+    solicitacao: null,
     criada_em: msg.criada_em,
   }
 }

@@ -18,6 +18,13 @@ import { criarServicoCampanha, descreverFalha, type ServicoCampanha } from '../s
 import { dataLocal } from '../formatacao'
 import { CHAVE_CRESCIMENTO, CHAVE_REFERENCIA, referenciaParaOPeriodo } from '../referencia'
 import {
+  acharRascunhoPendente,
+  atualizarMotivoSolicitacao,
+  cancelarSolicitacaoCorrecao,
+  criarSolicitacaoRascunho,
+  executarEnvioSolicitacao,
+} from '../solicitacao'
+import {
   ETAPAS_DE_ENVIO,
   type CampanhaSalva,
   type CenarioAlternativo,
@@ -153,10 +160,12 @@ export const useChatStore = defineStore('chat', () => {
     const gen = geracao.value
     aguardandoLana.value = true
     try {
-      const resposta = await servicoCampanha.conversar(chatId.value, texto, regra.value)
+      const rascunho = acharRascunhoPendente(mensagens.value)
+      const resposta = await servicoCampanha.conversar(chatId.value, texto, regra.value, rascunho)
       if (geracao.value !== gen) return
       adicionarMensagensSistema(resposta.mensagens_sistema)
-      adicionar('agente', resposta.response, { events: resposta.events })
+      const solicitacao = criarSolicitacaoRascunho(resposta.solicitacao)
+      adicionar('agente', resposta.response, { events: resposta.events, solicitacao })
       if (resposta.regra) regra.value = resposta.regra
     } catch (erro) {
       if (geracao.value !== gen) return
@@ -172,7 +181,8 @@ export const useChatStore = defineStore('chat', () => {
     if (!parametro) return
     const anterior = parametro.value as Periodo | null
     parametro.value = valor
-    if (key === 'periodo' && valor && !estaVazio(valor)) ajustarReferencia(anterior, valor as Periodo)
+    if (key === 'periodo' && valor && !estaVazio(valor))
+      ajustarReferencia(anterior, valor as Periodo)
   }
 
   /** Período futuro calcula sobre um mês histórico (ADR-006): sugere a referência e 0% de crescimento. */
@@ -431,6 +441,12 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  async function enviarSolicitacao(mensagem: MensagemChat, motivo: string): Promise<void> {
+    await executarEnvioSolicitacao(api, chatId.value, mensagem, motivo, adicionar)
+  }
+
+  const enviarSolicitacaoCorrecao = enviarSolicitacao
+
   return {
     geracao,
     dataInicio,
@@ -460,6 +476,10 @@ export const useChatStore = defineStore('chat', () => {
     aplicarCenario,
     simular,
     enviarParaAprovacao,
+    enviarSolicitacao,
+    enviarSolicitacaoCorrecao,
+    cancelarSolicitacaoCorrecao,
+    atualizarMotivoSolicitacao,
     novaConversa,
     abrirCampanha,
     restaurarSessaoSeVazio,
