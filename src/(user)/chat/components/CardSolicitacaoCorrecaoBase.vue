@@ -4,10 +4,13 @@ import { ref, computed, watch } from 'vue'
 export type StatusSolicitacao = 'rascunho' | 'enviada' | 'aprovada' | 'erro'
 
 export interface SolicitacaoCorrecaoBaseProps {
-  valorAnterior?: string
-  valorAposMudanca?: string
+  antes?: string | null
+  depois?: string | null
+  antes_rotulo?: string | null
+  depois_rotulo?: string | null
   tipo?: string
-  matriculas?: string[]
+  tipo_rotulo?: string | null
+  matricula?: string
   competencia?: string
   motivo?: string
   status?: StatusSolicitacao | string
@@ -16,12 +19,15 @@ export interface SolicitacaoCorrecaoBaseProps {
 }
 
 const props = withDefaults(defineProps<SolicitacaoCorrecaoBaseProps>(), {
-  valorAnterior: 'MAT-102, MAT-63 e MAT-42 na loja LOJA-3 somente em Novembro.',
-  valorAposMudanca: 'MAT-102, MAT-63 e MAT-42 na loja LOJA-5 a partir de Julho.',
-  tipo: 'Atualização',
-  matriculas: () => ['MAT-102', 'MAT-63', 'MAT-42'],
-  competencia: '11/2025',
-  motivo: 'Os funcionários especificados foram transferidos de loja desde Julho.',
+  antes: '',
+  depois: '',
+  antes_rotulo: '',
+  depois_rotulo: '',
+  tipo: '',
+  tipo_rotulo: '',
+  matricula: '',
+  competencia: '',
+  motivo: '',
   status: 'rascunho',
   enviada: false,
   erro: null,
@@ -36,6 +42,18 @@ const emit = defineEmits<{
 const motivoEditado = ref(props.motivo)
 let ultimoMotivoEmitido = props.motivo
 const solicitadoLocalmente = ref(false)
+
+const valorAnteriorExibicao = computed(() => {
+  return props.antes_rotulo || props.antes || ''
+})
+
+const valorDepoisExibicao = computed(() => {
+  return props.depois_rotulo || props.depois || ''
+})
+
+const tipoExibicao = computed(() => {
+  return props.tipo_rotulo || props.tipo || ''
+})
 
 const statusEfetivo = computed<'enviada' | 'aprovada' | 'erro' | null>(() => {
   if (props.erro) return 'erro'
@@ -52,10 +70,13 @@ function salvarMotivo() {
   }
 }
 
-watch(() => props.motivo, (novo) => {
-  motivoEditado.value = novo
-  ultimoMotivoEmitido = novo
-})
+watch(
+  () => props.motivo,
+  (novo) => {
+    motivoEditado.value = novo
+    ultimoMotivoEmitido = novo
+  },
+)
 
 watch(motivoEditado, () => {
   salvarMotivo()
@@ -87,26 +108,38 @@ function handleCancelar() {
           </h3>
         </div>
 
-        <div class="inline-flex items-center px-2.5 py-[3px] rounded-full bg-blue/15 text-blue font-inconsolata text-metadata font-normal whitespace-nowrap">
+        <div
+          class="inline-flex items-center px-2.5 py-[3px] rounded-full bg-blue/15 text-blue font-inconsolata text-metadata font-normal whitespace-nowrap"
+        >
           <span>Feito com Lana</span>
         </div>
       </header>
 
       <!-- Comparação: Valor Anterior vs Valor Após Mudança -->
-      <section class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-4" aria-label="Comparação de valores">
+      <section
+        class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-4"
+        aria-label="Comparação de valores"
+      >
         <div class="flex flex-col gap-1">
-          <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">VALOR ANTERIOR</span>
-          <p class="m-0 text-body text-white-txt1">{{ valorAnterior }}</p>
+          <span class="font-inconsolata text-label text-gray-txt3-dark uppercase"
+            >VALOR ANTERIOR</span
+          >
+          <p class="m-0 text-body text-white-txt1">{{ valorAnteriorExibicao }}</p>
         </div>
 
-        <div class="flex justify-center items-center text-gray-txt3-dark text-[20px]" aria-hidden="true">
+        <div
+          class="flex justify-center items-center text-gray-txt3-dark text-[20px]"
+          aria-hidden="true"
+        >
           <i class="bi bi-arrow-right hidden sm:block" />
           <i class="bi bi-arrow-down block sm:hidden" />
         </div>
 
         <div class="flex flex-col gap-1">
-          <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">VALOR APÓS MUDANÇA</span>
-          <p class="m-0 text-body text-white-txt1">{{ valorAposMudanca }}</p>
+          <span class="font-inconsolata text-label text-gray-txt3-dark uppercase"
+            >VALOR APÓS MUDANÇA</span
+          >
+          <p class="m-0 text-body text-white-txt1">{{ valorDepoisExibicao }}</p>
         </div>
       </section>
 
@@ -122,21 +155,19 @@ function handleCancelar() {
               <i class="bi bi-card-text text-[15px] text-gray-txt3-dark" aria-hidden="true" />
               <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">TIPO</span>
             </div>
-            <span class="text-body text-white-txt1">{{ tipo }}</span>
+            <span class="text-body text-white-txt1">{{ tipoExibicao }}</span>
           </div>
 
-          <!-- Matrículas -->
+          <!-- Matrícula -->
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-1.5">
               <i class="bi bi-person-video text-[15px] text-gray-txt3-dark" aria-hidden="true" />
-              <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">MATRÍCULAS</span>
+              <span class="font-inconsolata text-label text-gray-txt3-dark uppercase"
+                >MATRÍCULA</span
+              >
             </div>
             <div class="flex flex-wrap items-center gap-4">
-              <span
-                v-for="matricula in matriculas"
-                :key="matricula"
-                class="text-body text-white-txt1 font-inconsolata"
-              >
+              <span v-if="matricula" class="text-body text-white-txt1 font-inconsolata">
                 {{ matricula }}
               </span>
             </div>
@@ -146,7 +177,9 @@ function handleCancelar() {
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-1.5">
               <i class="bi bi-card-text text-[15px] text-gray-txt3-dark" aria-hidden="true" />
-              <span class="font-inconsolata text-label text-gray-txt3-dark uppercase">COMPETÊNCIA</span>
+              <span class="font-inconsolata text-label text-gray-txt3-dark uppercase"
+                >COMPETÊNCIA</span
+              >
             </div>
             <span class="text-body text-white-txt1 font-inconsolata">{{ competencia }}</span>
           </div>
@@ -156,7 +189,9 @@ function handleCancelar() {
         <div class="flex flex-col gap-2">
           <div class="flex flex-col gap-1">
             <span class="text-body text-white-txt1">MOTIVO</span>
-            <span class="font-inconsolata text-body text-gray-txt3-dark">Clique na caixa de texto para alterar a descrição</span>
+            <span class="font-inconsolata text-body text-gray-txt3-dark"
+              >Clique na caixa de texto para alterar a descrição</span
+            >
           </div>
 
           <div class="flex flex-col items-end gap-2">
@@ -179,7 +214,9 @@ function handleCancelar() {
         class="status-solicitacao status-enviada flex items-center gap-3 bg-black-bg2 px-4 py-1.5 rounded border-l-3 border-orange"
       >
         <i class="bi bi-clock-history text-orange text-[16px]" aria-hidden="true" />
-        <p class="text-orange text-label m-0">Solicitação enviada para a análise dos supervisores!</p>
+        <p class="text-orange text-label m-0">
+          Solicitação enviada para a análise dos supervisores!
+        </p>
       </div>
 
       <div
@@ -205,17 +242,21 @@ function handleCancelar() {
           class="btn-acao btn-cancelar flex-1 w-full sm:w-auto py-2 px-5 rounded-full font-raleway text-body font-medium text-center cursor-pointer transition-colors bg-transparent border border-gray-txt2-dark text-gray-txt2-dark hover:bg-white/5 hover:border-white-txt1 hover:text-white-txt1"
           @click="handleCancelar"
         >
-          Cancelar Solicitação
+          Desistir
         </button>
 
         <button
           type="button"
           class="btn-acao btn-solicitar flex-1 w-full sm:w-auto py-2 px-5 rounded-full font-raleway text-body font-semibold text-center transition-all bg-blue border border-blue text-black-bg1"
-          :class="statusEfetivo === 'enviada' || statusEfetivo === 'aprovada' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:brightness-110'"
+          :class="
+            statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'
+              ? 'opacity-50 cursor-not-allowed'
+              : 'cursor-pointer hover:brightness-110'
+          "
           :disabled="statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'"
           @click="handleSolicitar"
         >
-          Solicitar Alteração
+          Confirmar
         </button>
       </footer>
     </article>

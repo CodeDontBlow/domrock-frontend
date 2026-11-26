@@ -145,11 +145,12 @@ describe('página do chat', () => {
         papel: 'agente',
         texto: 'Abri o ticket para você revisar.',
         solicitacao: {
+          categoria: 'CORRECAO',
           tipo: 'Transferência de loja',
-          matriculas: ['MATRIC-38'],
+          matricula: 'MATRIC-38',
           competencia: '10/2025',
-          valorAnterior: 'MATRIC-38 na loja 5',
-          valorAposMudanca: 'MATRIC-38 na loja 8',
+          antes: 'MATRIC-38 na loja 5',
+          depois: 'MATRIC-38 na loja 8',
           motivo: 'Transferência aprovada',
           enviada: false,
         },
@@ -163,5 +164,39 @@ describe('página do chat', () => {
     expect(pagina.text()).toContain('MATRIC-38 na loja 8')
     expect(pagina.text()).toContain('Transferência de loja')
     expect(pagina.text()).toContain('MATRIC-38')
+  })
+
+  it('renderiza CardSolicitacaoIntercorrencia quando mensagem possui solicitacao com categoria INTERCORRENCIA', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const chat = useChatStore()
+    chat.mensagens = [
+      { id: 1, chave: 'l-1', papel: 'usuario', texto: 'ferias' },
+      {
+        id: 2,
+        chave: 'l-2',
+        papel: 'agente',
+        texto: 'Abri a intercorrência.',
+        solicitacao: {
+          categoria: 'INTERCORRENCIA',
+          tipo: 'FERIAS',
+          tipo_rotulo: 'Férias',
+          matricula: 'MATRIC-12',
+          competencia: '2025-12',
+          depois: { data_inicio: '2025-12-01', data_fim: '2025-12-15' },
+          depois_rotulo: 'Férias de 01/12/2025 a 15/12/2025',
+          motivo: 'Férias programadas',
+          status: 'rascunho',
+        },
+      },
+    ]
+
+    const pagina = mount(ChatPage, { global: { plugins: [pinia] } })
+
+    expect(pagina.text()).toContain('Solicitação de Abertura de Intercorrência')
+    expect(pagina.text()).toContain('Férias')
+    expect(pagina.text()).toContain('MATRIC-12')
+    expect(pagina.text()).toContain('2025-12-01')
+    expect(pagina.text()).toContain('2025-12-15')
   })
 })

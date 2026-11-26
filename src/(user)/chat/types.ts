@@ -106,7 +106,7 @@ export interface RespostaChat {
   events?: EventoAgente[]
   trilha?: TrilhaChat | null
   mensagens_sistema?: MensagemGravada[]
-  solicitacao?: unknown | null
+  solicitacao?: Solicitacao | null
 }
 
 export interface QuebraDimensao {
@@ -278,35 +278,36 @@ export const ETAPAS_DE_ENVIO: readonly EtapaAprovacao[] = ['pronta', 'fora_do_or
 
 export type PapelMensagem = 'usuario' | 'agente' | 'resultado' | 'erro' | 'sistema'
 
+export type StatusSolicitacaoChat =
+  'rascunho' | 'enviada' | 'aprovada' | 'reprovada' | 'erro' | string
 
-export type StatusSolicitacaoChat = 'rascunho' | 'enviada' | 'aprovada' | 'arquivada' | 'erro'
+export type CategoriaSolicitacao = 'CORRECAO' | 'INTERCORRENCIA'
 
-export interface SolicitacaoCorrecaoChat {
-  id?: string | number
+export interface SolicitacaoPeriodoDepois {
+  data_inicio: string
+  data_fim?: string
+  cod_loja?: string
+}
+
+export interface Solicitacao {
+  categoria: CategoriaSolicitacao
   tipo: string
-  tipo_alteracao?: string
-  tipoSolicitacao?: 'correcao' | 'intercorrencia'
+  tipo_rotulo?: string | null
   matricula?: string
-  matriculas: string[]
-  competencia?: string
-  competencia_iso?: string
-  valorAnterior?: string
-  valorAposMudanca?: string
-  valor_antes?: string
-  valor_depois?: string
-  dataInicio?: string
-  dataFim?: string
+  competencia: string
+  antes?: string | null
+  depois?: string | SolicitacaoPeriodoDepois | null
+  antes_rotulo?: string | null
+  depois_rotulo?: string | null
   motivo: string
-  sql?: string
+}
+
+export interface SolicitacaoCorrecaoChat extends Solicitacao {
+  id?: string | number
   status?: StatusSolicitacaoChat
-  enviada?: boolean
-  enviadaEm?: string
-  aprovadaEm?: string
-  arquivadaEm?: string
   statusEnvio?: 'pendente' | 'enviando' | 'sucesso' | 'erro'
   erroEnvio?: string | null
-  temConflito?: boolean
-  conflitoMensagem?: string
+  enviada?: boolean
 }
 
 export interface MensagemChat {

@@ -698,7 +698,6 @@ describe('reabrir conversa da campanha no chat (A6-92)', () => {
     expect(chat.simulacoesCarregando).not.toContain(345)
     expect(chat.mensagens[0]?.resultado).toBeDefined()
   })
-
 })
 
 describe('solicitação de correção na base de dados (HITL)', () => {
@@ -710,57 +709,80 @@ describe('solicitação de correção na base de dados (HITL)', () => {
     definirServicoCampanha(servico)
   })
 
-  it('extrai solicitação de correção retornada pela Lana e anexa ao card na mensagem', async () => {
+  it('cartão aparece a partir de resposta.solicitacao (correção e intercorrência)', async () => {
+    const chat = useChatStore()
+
+    // Teste para Correção da base
     servico.respostaChat = {
-      chat_id: 'chat-correcao-teste',
-      response: 'Abri a solicitação para avaliação.',
+      chat_id: 'chat-correcao-1',
+      response: 'Aqui está a proposta de transferência.',
       regra: null,
-      events: [
-        {
-          ferramenta: 'registrar_solicitacao_correcao',
-          descricao_legivel: 'Registrando proposta de correção',
-          tempo: 100,
-          situacao: 'ok',
-          result: {
-            situacao: 'ok',
-            solicitacao: {
-              id: 'solic-123',
-              tipo: 'Transferência de loja',
-              tipo_alteracao: 'TRANSFERENCIA_LOJA',
-              matricula: 'MATRIC-38',
-              competencia: '10/2025',
-              competencia_iso: '2025-10',
-              antes: 'MATRIC-38 na loja 5',
-              depois: 'MATRIC-38 na loja 8',
-              valor_antes: '5',
-              valor_depois: '8',
-              motivo: 'Transferência solicitada pelo chat',
-              origem: 'LANA',
-              status: 'PENDENTE_APROVACAO',
-              sql: 'UPDATE funcionario_loja...',
-            },
-          },
-        },
-      ],
+      solicitacao: {
+        categoria: 'CORRECAO',
+        tipo: 'TRANSFERENCIA_LOJA',
+        tipo_rotulo: 'Transferência de loja',
+        matricula: 'MATRIC-38',
+        competencia: '2025-10',
+        antes: '33',
+        depois: '8',
+        antes_rotulo: 'MATRIC-38 na loja 33',
+        depois_rotulo: 'MATRIC-38 na loja 8',
+        motivo: 'Transferida para a loja 8 em outubro',
+      },
     }
 
-    const chat = useChatStore()
     await chat.enviar('transfira a MATRIC-38 para a loja 8')
 
-    const msgLana = chat.mensagens.find((m) => m.papel === 'agente')
-    expect(msgLana).toBeDefined()
-    expect(msgLana?.solicitacao).toBeDefined()
-    expect(msgLana?.solicitacao?.tipo).toBe('Transferência de loja')
-    expect(msgLana?.solicitacao?.matriculas).toEqual(['MATRIC-38'])
-    expect(msgLana?.solicitacao?.valorAnterior).toBe('MATRIC-38 na loja 5')
-    expect(msgLana?.solicitacao?.valorAposMudanca).toBe('MATRIC-38 na loja 8')
-    expect(msgLana?.solicitacao?.enviada).toBe(false)
+    const msgCorrecao = chat.mensagens.find((m) => m.papel === 'agente')
+    expect(msgCorrecao?.solicitacao).toBeDefined()
+    expect(msgCorrecao?.solicitacao?.categoria).toBe('CORRECAO')
+    expect(msgCorrecao?.solicitacao?.tipo).toBe('TRANSFERENCIA_LOJA')
+    expect(msgCorrecao?.solicitacao?.tipo_rotulo).toBe('Transferência de loja')
+    expect(msgCorrecao?.solicitacao?.matricula).toBe('MATRIC-38')
+    expect(msgCorrecao?.solicitacao?.antes).toBe('33')
+    expect(msgCorrecao?.solicitacao?.depois).toBe('8')
+    expect(msgCorrecao?.solicitacao?.status).toBe('rascunho')
+
+    // Teste para Intercorrência de RH
+    servico.respostaChat = {
+      chat_id: 'chat-intercorrencia-1',
+      response: 'Planejei as férias.',
+      regra: null,
+      solicitacao: {
+        categoria: 'INTERCORRENCIA',
+        tipo: 'FERIAS',
+        tipo_rotulo: 'Férias',
+        matricula: 'MATRIC-12',
+        competencia: '2025-12',
+        antes: null,
+        depois: { data_inicio: '2025-12-01', data_fim: '2025-12-15' },
+        antes_rotulo: null,
+        depois_rotulo: 'Férias de 01/12/2025 a 15/12/2025',
+        motivo: 'Férias programadas',
+      },
+    }
+
+    await chat.enviar('coloque férias para MATRIC-12')
+
+    const msgIntercorrencia = chat.mensagens[chat.mensagens.length - 1]
+    expect(msgIntercorrencia?.solicitacao).toBeDefined()
+    expect(msgIntercorrencia?.solicitacao?.categoria).toBe('INTERCORRENCIA')
+    expect(msgIntercorrencia?.solicitacao?.tipo).toBe('FERIAS')
+    expect(msgIntercorrencia?.solicitacao?.tipo_rotulo).toBe('Férias')
+    expect(msgIntercorrencia?.solicitacao?.depois).toEqual({
+      data_inicio: '2025-12-01',
+      data_fim: '2025-12-15',
+    })
+    expect(msgIntercorrencia?.solicitacao?.status).toBe('rascunho')
   })
 
-  it('enviarSolicitacaoCorrecao chama a rota /api/correcoes e marca como enviada', async () => {
-    const postSpy = vi.spyOn(api, 'post').mockResolvedValue({ data: { id: 1, status: 'PENDENTE' } })
+  it('confirmar chama POST /api/chat/{chat_id}/correcoes com só os campos do backend e avisa sucesso', async () => {
+    const postSpy = vi
+      .spyOn(api, 'post')
+      .mockResolvedValue({ data: { id: 77, status: 'PENDENTE' } })
 
     const chat = useChatStore()
+    chat.chatId = 'chat-teste-123'
     chat.mensagens = [
       {
         id: 1,
@@ -768,20 +790,17 @@ describe('solicitação de correção na base de dados (HITL)', () => {
         papel: 'agente',
         texto: 'Aqui está a proposta',
         solicitacao: {
-          id: 'solic-123',
-          tipo: 'Transferência de loja',
-          tipo_alteracao: 'TRANSFERENCIA_LOJA',
+          categoria: 'CORRECAO',
+          tipo: 'TRANSFERENCIA_LOJA',
+          tipo_rotulo: 'Transferência de loja',
           matricula: 'MATRIC-38',
-          matriculas: ['MATRIC-38'],
-          competencia: '10/2025',
-          competencia_iso: '2025-10',
-          valorAnterior: 'MATRIC-38 na loja 5',
-          valorAposMudanca: 'MATRIC-38 na loja 8',
-          valor_antes: '5',
-          valor_depois: '8',
+          competencia: '2025-10',
+          antes: '33',
+          depois: '8',
+          antes_rotulo: 'MATRIC-38 na loja 33',
+          depois_rotulo: 'MATRIC-38 na loja 8',
           motivo: 'Motivo inicial',
-          enviada: false,
-          statusEnvio: 'pendente',
+          status: 'rascunho',
         },
       },
     ]
@@ -789,24 +808,128 @@ describe('solicitação de correção na base de dados (HITL)', () => {
     const msg = chat.mensagens[0]!
     await chat.enviarSolicitacaoCorrecao(msg, 'Novo motivo aprovado pelo gerente')
 
-    expect(postSpy).toHaveBeenCalledWith('/api/correcoes', {
+    expect(postSpy).toHaveBeenCalledWith('/api/chat/chat-teste-123/correcoes', {
       tipo: 'TRANSFERENCIA_LOJA',
       matricula: 'MATRIC-38',
       competencia: '2025-10',
-      antes: '5',
+      antes: '33',
       depois: '8',
       motivo: 'Novo motivo aprovado pelo gerente',
-      origem: 'USUARIO',
     })
 
+    expect(msg.solicitacao?.id).toBe(77)
+    expect(msg.solicitacao?.status).toBe('PENDENTE')
     expect(msg.solicitacao?.enviada).toBe(true)
     expect(msg.solicitacao?.statusEnvio).toBe('sucesso')
-    expect(chat.mensagens.some((m) => m.papel === 'sistema' && m.texto.includes('enviada com sucesso'))).toBe(true)
+    expect(
+      chat.mensagens.some(
+        (m) =>
+          m.papel === 'sistema' &&
+          m.texto === 'Abri o pedido; ele vale depois que um Supervisor aprovar',
+      ),
+    ).toBe(true)
 
     postSpy.mockRestore()
   })
 
-  it('cancelarSolicitacaoCorrecao e atualizarMotivoSolicitacao alteram a solicitacao da mensagem', () => {
+  it('erro no confirmar deixa cartão em erro e nunca exibe mensagem de sucesso', async () => {
+    const postSpy = vi.spyOn(api, 'post').mockRejectedValue({
+      response: { data: { message: 'Conversa chat-erro não encontrada' } },
+    })
+
+    const chat = useChatStore()
+    chat.chatId = 'chat-erro'
+    chat.mensagens = [
+      {
+        id: 1,
+        chave: 'm-1',
+        papel: 'agente',
+        texto: 'Aqui está a proposta',
+        solicitacao: {
+          categoria: 'CORRECAO',
+          tipo: 'TRANSFERENCIA_LOJA',
+          matricula: 'MATRIC-38',
+          competencia: '2025-10',
+          antes: '33',
+          depois: '8',
+          motivo: 'Motivo inicial',
+          status: 'rascunho',
+        },
+      },
+    ]
+
+    const msg = chat.mensagens[0]!
+    await chat.enviarSolicitacaoCorrecao(msg, 'Motivo')
+
+    expect(msg.solicitacao?.statusEnvio).toBe('erro')
+    expect(msg.solicitacao?.status).toBe('erro')
+    expect(msg.solicitacao?.erroEnvio).toBe('Conversa chat-erro não encontrada')
+
+    // NUNCA exibe mensagem de sucesso
+    expect(
+      chat.mensagens.some((m) => m.papel === 'sistema' && m.texto.includes('Abri o pedido')),
+    ).toBe(false)
+    expect(
+      chat.mensagens.some(
+        (m) => m.papel === 'erro' && m.texto.includes('Conversa chat-erro não encontrada'),
+      ),
+    ).toBe(true)
+
+    postSpy.mockRestore()
+  })
+
+  it('rascunho pendente vai no próximo POST /api/chat e sem rascunho não vai', async () => {
+    const chat = useChatStore()
+    chat.chatId = 'chat-refinar'
+    chat.mensagens = [
+      {
+        id: 1,
+        chave: 'm-1',
+        papel: 'agente',
+        texto: 'Aqui está a proposta',
+        solicitacao: {
+          categoria: 'CORRECAO',
+          tipo: 'TRANSFERENCIA_LOJA',
+          tipo_rotulo: 'Transferência de loja',
+          matricula: 'MATRIC-38',
+          competencia: '2025-10',
+          antes: '33',
+          depois: '8',
+          motivo: 'Motivo do rascunho',
+          status: 'rascunho',
+          statusEnvio: 'pendente',
+        },
+      },
+    ]
+
+    await chat.enviar('troque a loja de destino para 12')
+
+    // O rascunho limpo (sem estado local) deve ter sido enviado
+    const ultimaConversa = servico.conversas[servico.conversas.length - 1]
+    expect(ultimaConversa?.solicitacao).toEqual({
+      categoria: 'CORRECAO',
+      tipo: 'TRANSFERENCIA_LOJA',
+      tipo_rotulo: 'Transferência de loja',
+      matricula: 'MATRIC-38',
+      competencia: '2025-10',
+      antes: '33',
+      depois: '8',
+      antes_rotulo: undefined,
+      depois_rotulo: undefined,
+      motivo: 'Motivo do rascunho',
+    })
+
+    // Se a solicitação já foi enviada, não deve mandar o campo
+    chat.mensagens[0]!.solicitacao!.enviada = true
+    chat.mensagens[0]!.solicitacao!.status = 'enviada'
+    chat.mensagens[0]!.solicitacao!.statusEnvio = 'sucesso'
+
+    await chat.enviar('obrigado')
+    const conversaSemRascunho = servico.conversas[servico.conversas.length - 1]
+    expect(conversaSemRascunho?.solicitacao).toBeNull()
+  })
+
+  it('cancelarSolicitacaoCorrecao descarta o rascunho e atualizarMotivoSolicitacao altera o motivo', () => {
     const chat = useChatStore()
     chat.mensagens = [
       {
@@ -815,13 +938,14 @@ describe('solicitação de correção na base de dados (HITL)', () => {
         papel: 'agente',
         texto: 'Proposta',
         solicitacao: {
-          tipo: 'Atualização',
-          matriculas: ['MAT-1'],
-          competencia: '10/2025',
-          valorAnterior: 'antes',
-          valorAposMudanca: 'depois',
+          categoria: 'CORRECAO',
+          tipo: 'TRANSFERENCIA_LOJA',
+          matricula: 'MATRIC-1',
+          competencia: '2025-10',
+          antes: '1',
+          depois: '2',
           motivo: 'motivo antigo',
-          enviada: false,
+          status: 'rascunho',
         },
       },
     ]

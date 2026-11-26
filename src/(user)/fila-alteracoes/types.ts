@@ -1,64 +1,65 @@
+import type { SolicitacaoDetalheResponse } from './services/correcoes'
+
+export type { SolicitacaoDetalheResponse }
+
 export type VisualizacaoFila = 'correcao' | 'intercorrencia'
 
-export type StatusSolicitacao = 'PENDENTE' | 'Aprovado' | 'Arquivado'
+export type StatusSolicitacao =
+  'PENDENTE' | 'APROVADA' | 'REPROVADA' | 'Aprovado' | 'Arquivado' | 'Reprovado' | 'Pendente'
 
 /**
  * Item de solicitação de correção de base exibido nos cards da fila superior.
- * Baseado no componente solicitacao-base-card do Figma (984:3544).
  */
 export interface SolicitacaoBaseCard {
   id: number | string
   tipo: string
   competencia: string
-  matriculasCount: number
-  matriculas: string[]
+  matriculasCount?: number
+  matriculas?: string[]
+  matricula?: string
   motivo: string
-  valorAnterior: string
-  valorAposMudanca: string
-  solicitante: string
-  submetidoEm: string
+  valorAnterior?: string
+  valorAposMudanca?: string
+  antes?: unknown
+  depois?: unknown
+  origem?: string
+  autor?: { id: number | string; nome: string }
+  solicitante?: string
+  submetidoEm?: string
+  criada_em?: string
   status: StatusSolicitacao
 }
 
 /**
  * Item de solicitação de abertura de intercorrência exibido nos cards da fila superior.
- * Baseado no componente solicitacao-intercorrencia-card do Figma (996:4945).
  */
 export interface SolicitacaoIntercorrenciaCard {
   id: number | string
   tipo: string
-  matriculasCount: number
-  matriculas: string[]
+  matriculasCount?: number
+  matriculas?: string[]
+  matricula?: string
   duracao?: string
   impacto?: string
-  inicio: string
-  fim: string
+  inicio?: string
+  fim?: string
+  depois?: unknown
   motivo: string
-  solicitante: string
-  submetidoEm: string
+  origem?: string
+  autor?: { id: number | string; nome: string }
+  solicitante?: string
+  submetidoEm?: string
+  criada_em?: string
   status: StatusSolicitacao
 }
 
-/**
- * Linha da tabela de Histórico de Solicitações para Correção da Base.
- */
-export interface HistoricoCorrecaoLinha {
-  id: number | string
+export interface ItemTabelaHistorico {
+  id: string | number
   motivo: string
   tipo: string
-  competencia: string
+  competencia?: string
+  periodo?: string
   matriculas: string
-  status: 'Aprovado' | 'Arquivado'
-}
-
-/**
- * Linha da tabela de Histórico de Solicitações para Abertura de Intercorrência.
- */
-export interface HistoricoIntercorrenciaLinha {
-  id: number | string
-  motivo: string
-  tipo: string
-  periodo: string
-  matriculas: string
-  status: 'Aprovado' | 'Arquivado'
+  status: string
+  justificativa?: string | null
 }

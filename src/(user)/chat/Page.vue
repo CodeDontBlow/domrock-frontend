@@ -12,8 +12,7 @@ import ResultadoSimulacao from './components/ResultadoSimulacao.vue'
 import FerramentasDropdown from './components/FerramentasDropdown.vue'
 import ChatHeader from './components/ChatHeader.vue'
 import CompartilharCampanhaModal from './components/CompartilharCampanhaModal.vue'
-import CardSolicitacaoCorrecaoBase from './components/CardSolicitacaoCorrecaoBase.vue'
-import CardSolicitacaoIntercorrencia from './components/CardSolicitacaoIntercorrencia.vue'
+import CartaoPedido from './components/CartaoPedido.vue'
 import { montarConferencia } from './conferencia'
 import { useChatStore } from './stores/chat'
 
@@ -189,37 +188,15 @@ watch(
             <div v-else class="mensagem-item">
               <SpeechBubble :message="mensagem.texto" :papel="mensagem.papel" />
 
-              <!-- Card de Intercorrência -->
-              <CardSolicitacaoIntercorrencia
-                v-if="mensagem.solicitacao && mensagem.solicitacao.tipoSolicitacao === 'intercorrencia'"
-                :tipo="mensagem.solicitacao.tipo"
-                :data-inicio="mensagem.solicitacao.dataInicio"
-                :data-fim="mensagem.solicitacao.dataFim"
-                :matriculas="mensagem.solicitacao.matriculas"
-                :motivo="mensagem.solicitacao.motivo"
-                :status="mensagem.solicitacao.status"
-                :enviada="mensagem.solicitacao.enviada"
-                :erro="mensagem.solicitacao.erroEnvio"
-                @solicitar="(motivo) => chat.enviarSolicitacaoCorrecao(mensagem, motivo)"
-                @cancelar="() => chat.cancelarSolicitacaoCorrecao(mensagem)"
-                @salvar-motivo="(novoMotivo) => chat.atualizarMotivoSolicitacao(mensagem, novoMotivo)"
-              />
-
-              <!-- Card de Correção da Base -->
-              <CardSolicitacaoCorrecaoBase
-                v-else-if="mensagem.solicitacao"
-                :valor-anterior="mensagem.solicitacao.valorAnterior"
-                :valor-apos-mudanca="mensagem.solicitacao.valorAposMudanca"
-                :tipo="mensagem.solicitacao.tipo"
-                :matriculas="mensagem.solicitacao.matriculas"
-                :competencia="mensagem.solicitacao.competencia"
-                :motivo="mensagem.solicitacao.motivo"
-                :status="mensagem.solicitacao.status"
-                :enviada="mensagem.solicitacao.enviada"
-                :erro="mensagem.solicitacao.erroEnvio"
-                @solicitar="(motivo) => chat.enviarSolicitacaoCorrecao(mensagem, motivo)"
-                @cancelar="() => chat.cancelarSolicitacaoCorrecao(mensagem)"
-                @salvar-motivo="(novoMotivo) => chat.atualizarMotivoSolicitacao(mensagem, novoMotivo)"
+              <!-- Card do Pedido (escolhe entre correção e intercorrência) -->
+              <CartaoPedido
+                v-if="mensagem.solicitacao"
+                :solicitacao="mensagem.solicitacao"
+                @confirmar="(motivo) => chat.enviarSolicitacaoCorrecao(mensagem, motivo)"
+                @desistir="() => chat.cancelarSolicitacaoCorrecao(mensagem)"
+                @salvar-motivo="
+                  (novoMotivo) => chat.atualizarMotivoSolicitacao(mensagem, novoMotivo)
+                "
               />
             </div>
           </template>
@@ -482,6 +459,4 @@ watch(
   flex-direction: column;
   gap: 16px;
 }
-
-
 </style>

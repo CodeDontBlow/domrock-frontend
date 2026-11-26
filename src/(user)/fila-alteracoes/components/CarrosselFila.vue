@@ -55,8 +55,7 @@ function avancar() {
   const gap = Number.parseFloat(estilos.columnGap) || 24
   const larguraCard = primeiroCard.offsetWidth + gap
 
-  const chegouAoFim =
-    elemento.scrollLeft + elemento.clientWidth >= elemento.scrollWidth - 10
+  const chegouAoFim = elemento.scrollLeft + elemento.clientWidth >= elemento.scrollWidth - 10
 
   if (chegouAoFim) {
     elemento.scrollTo({

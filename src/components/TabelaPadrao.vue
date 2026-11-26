@@ -39,16 +39,11 @@ const emit = defineEmits<{
 }>()
 
 // Colunas ordenáveis (por padrão, toda coluna é ordenável a menos que ordenavel === false)
-const colunasOrdenaveis = computed(() =>
-  props.colunas.filter((col) => col.ordenavel !== false),
-)
+const colunasOrdenaveis = computed(() => props.colunas.filter((col) => col.ordenavel !== false))
 
 // Coluna ativa no select de "Ordenando por"
 const ordenarPor = ref(
-  props.colunaOrdenacaoPadrao ||
-    colunasOrdenaveis.value[0]?.chave ||
-    props.colunas[0]?.chave ||
-    '',
+  props.colunaOrdenacaoPadrao || colunasOrdenaveis.value[0]?.chave || props.colunas[0]?.chave || '',
 )
 
 // Ordem (crescente / decrescente)
@@ -118,11 +113,19 @@ const dadosOrdenados = computed(() => {
     const numA =
       typeof valA === 'number'
         ? valA
-        : Number.parseFloat(String(valA ?? '').replace('%', '').replace(',', '.'))
+        : Number.parseFloat(
+            String(valA ?? '')
+              .replace('%', '')
+              .replace(',', '.'),
+          )
     const numB =
       typeof valB === 'number'
         ? valB
-        : Number.parseFloat(String(valB ?? '').replace('%', '').replace(',', '.'))
+        : Number.parseFloat(
+            String(valB ?? '')
+              .replace('%', '')
+              .replace(',', '.'),
+          )
     if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
       const diff = numA - numB
       return ordem.value === 'crescente' ? diff : -diff
@@ -198,7 +201,9 @@ function proximaPagina() {
   <section class="campaign-section w-full min-w-0 text-white-txt1 font-raleway">
     <!-- Header: Filtros de Ordenação -->
     <div class="table-filters flex items-center flex-wrap gap-3 mb-4">
-      <div class="filter-group flex items-center gap-2 text-gray-txt2-dark font-inconsolata text-label">
+      <div
+        class="filter-group flex items-center gap-2 text-gray-txt2-dark font-inconsolata text-label"
+      >
         <label for="ordenar-por">Ordenando por</label>
 
         <select
@@ -217,7 +222,9 @@ function proximaPagina() {
         </select>
       </div>
 
-      <div class="filter-group flex items-center gap-2 text-gray-txt2-dark font-inconsolata text-label">
+      <div
+        class="filter-group flex items-center gap-2 text-gray-txt2-dark font-inconsolata text-label"
+      >
         <label for="ordem">em ordem</label>
 
         <select
@@ -233,23 +240,29 @@ function proximaPagina() {
 
     <!-- Tabela de Dados -->
     <div class="table-container w-full min-w-0 overflow-x-auto bg-black-bg1 text-white-txt1">
-      <table class="campaign-table w-full border-collapse text-left text-body leading-[20px]" :aria-label="ariaLabel">
+      <table
+        class="campaign-table w-full border-collapse text-left text-body leading-[20px]"
+        :aria-label="ariaLabel"
+      >
         <thead>
           <tr>
             <th
               v-for="col in colunas"
               :key="col.chave"
               class="py-3.5 px-3 max-md:p-2.5 border-b border-gray-txt3-dark text-white-txt1 font-extrabold whitespace-nowrap"
-              :class="[
-                col.align === 'right' ? 'text-right' : '',
-                col.classe || '',
-              ]"
+              :class="[col.align === 'right' ? 'text-right' : '', col.classe || '']"
             >
               <div
                 class="th-content flex items-center gap-2"
                 :class="{ 'justify-end': col.align === 'right' }"
               >
-                <i v-if="col.icone" :class="[col.icone, 'header-icon shrink-0 text-gray-txt2-dark text-[16px] leading-none']"></i>
+                <i
+                  v-if="col.icone"
+                  :class="[
+                    col.icone,
+                    'header-icon shrink-0 text-gray-txt2-dark text-[16px] leading-none',
+                  ]"
+                ></i>
                 <span class="font-raleway font-black">{{ col.titulo }}</span>
               </div>
             </th>
@@ -269,10 +282,7 @@ function proximaPagina() {
               v-for="col in colunas"
               :key="col.chave"
               class="py-4 px-3.5 max-md:p-2.5 overflow-hidden text-ellipsis align-middle whitespace-nowrap text-gray-txt2-dark font-inconsolata text-label leading-[15px]"
-              :class="[
-                col.align === 'right' ? 'text-right' : '',
-                col.classe || '',
-              ]"
+              :class="[col.align === 'right' ? 'text-right' : '', col.classe || '']"
             >
               <slot
                 :name="`cell-${col.chave}`"
@@ -288,7 +298,10 @@ function proximaPagina() {
           </tr>
 
           <tr v-if="dadosOrdenados.length === 0">
-            <td :colspan="colunas.length" class="empty-state py-6 px-4 text-gray-txt2-dark text-center whitespace-normal">
+            <td
+              :colspan="colunas.length"
+              class="empty-state py-6 px-4 text-gray-txt2-dark text-center whitespace-normal"
+            >
               {{ mensagemVazia }}
             </td>
           </tr>
@@ -313,10 +326,7 @@ function proximaPagina() {
       </button>
 
       <div class="pagination-pages flex items-center gap-1.5 max-sm:gap-1">
-        <template
-          v-for="(pagina, index) in paginasVisiveis"
-          :key="`${pagina}-${index}`"
-        >
+        <template v-for="(pagina, index) in paginasVisiveis" :key="`${pagina}-${index}`">
           <span
             v-if="pagina === '...'"
             class="pagination-ellipsis inline-flex items-center justify-center min-w-[14px] text-gray-txt2-dark text-label"

@@ -10,7 +10,8 @@ export interface ItemTabelaHistorico {
   competencia?: string
   periodo?: string
   matriculas: string
-  status: 'Aprovado' | 'Arquivado'
+  status: string
+  justificativa?: string | null
 }
 
 const props = withDefaults(
@@ -18,10 +19,12 @@ const props = withDefaults(
     itens: ItemTabelaHistorico[]
     tipoVisualizacao?: VisualizacaoFila
     itensPorPagina?: number
+    mensagemVazia?: string
   }>(),
   {
     tipoVisualizacao: 'correcao',
     itensPorPagina: 5,
+    mensagemVazia: 'Nenhum pedido encontrado em Meus pedidos.',
   },
 )
 
@@ -57,6 +60,11 @@ const colunas = computed<ColunaTabela[]>(() => {
         titulo: 'Status',
         icone: 'bi bi-activity',
       },
+      {
+        chave: 'justificativa',
+        titulo: 'Justificativa',
+        icone: 'bi bi-chat-left-text',
+      },
     ]
   }
 
@@ -86,6 +94,11 @@ const colunas = computed<ColunaTabela[]>(() => {
       titulo: 'Status',
       icone: 'bi bi-activity',
     },
+    {
+      chave: 'justificativa',
+      titulo: 'Justificativa',
+      icone: 'bi bi-chat-left-text',
+    },
   ]
 })
 </script>
@@ -97,19 +110,7 @@ const colunas = computed<ColunaTabela[]>(() => {
     :itens-por-pagina="itensPorPagina"
     :coluna-ordenacao-padrao="tipoVisualizacao === 'correcao' ? 'competencia' : 'periodo'"
     ordem-padrao="decrescente"
-    mensagem-vazia="Nenhuma solicitação encontrada no histórico."
-    aria-label="Histórico de Solicitações"
-    aria-label-paginacao="Paginação do histórico de solicitações"
-    @selecionar="(item) => emit('selecionar', item)"
-  >
-    <!-- Slot customizado para renderizar a tag/badge do Status -->
-    <template #cell-status="{ valor }">
-      <span
-        class="selo-status inline-flex items-center px-3 py-[3px] rounded-full font-inconsolata text-label font-medium whitespace-nowrap"
-        :class="valor === 'Aprovado' ? 'bg-blue/15 text-blue' : 'bg-gray-txt2-dark/15 text-gray-txt2-dark'"
-      >
-        {{ valor }}
-      </span>
-    </template>
-  </TabelaPadrao>
+    :mensagem-vazia="mensagemVazia"
+    @selecionar="(item) => emit('selecionar', item as unknown as ItemTabelaHistorico)"
+  />
 </template>

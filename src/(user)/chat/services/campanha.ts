@@ -8,6 +8,7 @@ import type {
   SimulacaoAndamento,
   SimulacaoConcluida,
   SimulacaoCriada,
+  Solicitacao,
 } from '../types'
 
 /** O contrato 4 combina a consulta do status a cada 2 segundos. */
@@ -65,12 +66,17 @@ export function criarServicoCampanha(
       chatId: string,
       mensagem: string,
       regra: RegraCampanha | null,
+      solicitacao?: Solicitacao | null,
     ): Promise<RespostaChat> {
-      const { data } = await http.post<RespostaChat>('/api/chat', {
+      const payload: Record<string, unknown> = {
         chat_id: chatId,
         message: mensagem,
         regra,
-      })
+      }
+      if (solicitacao) {
+        payload.solicitacao = solicitacao
+      }
+      const { data } = await http.post<RespostaChat>('/api/chat', payload)
       return data
     },
 

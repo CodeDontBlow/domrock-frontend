@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type {
-  VisualizacaoFila,
-  SolicitacaoBaseCard,
-  SolicitacaoIntercorrenciaCard,
-} from './types'
+import { ref, computed, onMounted } from 'vue'
+import { usePerfil, lerPerfil } from '@/composables/usePerfil'
+import type { VisualizacaoFila, SolicitacaoBaseCard, SolicitacaoIntercorrenciaCard } from './types'
 import {
-  solicitacoesBaseMock,
-  solicitacoesIntercorrenciaMock,
-  historicoCorrecaoMock,
-  historicoIntercorrenciaMock,
-} from './mocks'
+  listarFila,
+  listarMinhas,
+  decidir,
+  type SolicitacaoDetalheResponse,
+} from './services/correcoes'
+import {
+  ehIntercorrencia,
+  extrairMensagemErroDecisao,
+  formatarData,
+  formatarPeriodoIntercorrencia,
+  rotuloStatus,
+  rotuloTipo,
+} from './formatacao'
 import CardFilaBase from './components/CardFilaBase.vue'
 import CardFilaIntercorrencia from './components/CardFilaIntercorrencia.vue'
 import CarrosselFila from './components/CarrosselFila.vue'
@@ -19,145 +24,149 @@ import TabelaHistoricoSolicitacoes, {
 } from './components/TabelaHistoricoSolicitacoes.vue'
 import ModalDetalheSolicitacao from './components/ModalDetalheSolicitacao.vue'
 
+const { ehSupervisor, perfil } = usePerfil()
+const isSupervisor = computed(
+  () => ehSupervisor.value || perfil.value === 'SUPERVISOR' || lerPerfil() === 'SUPERVISOR',
+)
+
 // Estado da aba selecionada ('correcao' ou 'intercorrencia')
 const visualizacaoAtiva = ref<VisualizacaoFila>('correcao')
 
-// Listas de cartões da fila
-const filaBase = ref<SolicitacaoBaseCard[]>([...solicitacoesBaseMock])
-const filaIntercorrencia = ref<SolicitacaoIntercorrenciaCard[]>([...solicitacoesIntercorrenciaMock])
+// Estados de carregamento e erro
+const carregando = ref(true)
+const erroCarregamento = ref<string | null>(null)
+const decidindo = ref(false)
+const erroDecisao = ref<string | null>(null)
 
-// Listas do histórico
-const historicoBase = ref([...historicoCorrecaoMock])
-const historicoIntercorrencia = ref([...historicoIntercorrenciaMock])
+// Listas vindas da API
+const filaPendentes = ref<SolicitacaoDetalheResponse[]>([])
+const minhasSolicitacoes = ref<SolicitacaoDetalheResponse[]>([])
 
 // Item selecionado para exibição do modal de detalhes
-const itemSelecionado = ref<SolicitacaoBaseCard | SolicitacaoIntercorrenciaCard | null>(null)
+const itemSelecionado = ref<
+  SolicitacaoDetalheResponse | SolicitacaoBaseCard | SolicitacaoIntercorrenciaCard | null
+>(null)
+
+async function carregarDados() {
+  carregando.value = true
+  erroCarregamento.value = null
+  try {
+    const promises: [
+      Promise<SolicitacaoDetalheResponse[]>,
+      Promise<SolicitacaoDetalheResponse[]>?,
+    ] = [listarMinhas()]
+    if (isSupervisor.value) {
+      promises.push(listarFila())
+    }
+    const [minhas, fila] = await Promise.all(promises)
+    minhasSolicitacoes.value = minhas || []
+    if (fila) {
+      filaPendentes.value = fila
+    } else {
+      filaPendentes.value = []
+    }
+  } catch (erro: unknown) {
+    const msg = (erro as { response?: { data?: { message?: string } } })?.response?.data?.message
+    erroCarregamento.value = msg || 'Erro ao carregar solicitações.'
+  } finally {
+    carregando.value = false
+  }
+}
+
+onMounted(carregarDados)
+
+// Separação por tipo / categoria
+const filaCorrecao = computed(() =>
+  filaPendentes.value.filter((item) => !ehIntercorrencia(item.tipo)),
+)
+
+const filaIntercorrencia = computed(() =>
+  filaPendentes.value.filter((item) => ehIntercorrencia(item.tipo)),
+)
+
+const minhasCorrecao = computed(() =>
+  minhasSolicitacoes.value.filter((item) => !ehIntercorrencia(item.tipo)),
+)
+
+const minhasIntercorrencia = computed(() =>
+  minhasSolicitacoes.value.filter((item) => ehIntercorrencia(item.tipo)),
+)
 
 function alternarVisualizacao(tipo: VisualizacaoFila) {
   visualizacaoAtiva.value = tipo
   itemSelecionado.value = null
+  erroDecisao.value = null
 }
 
-function abrirDetalhes(item: SolicitacaoBaseCard | SolicitacaoIntercorrenciaCard) {
+function abrirDetalhes(
+  item: SolicitacaoDetalheResponse | SolicitacaoBaseCard | SolicitacaoIntercorrenciaCard,
+) {
   itemSelecionado.value = item
+  erroDecisao.value = null
 }
 
 function abrirDetalhesTabela(linha: ItemTabelaHistorico) {
-  if (visualizacaoAtiva.value === 'correcao') {
-    const encontrado = filaBase.value.find((b) => b.id === linha.id)
-    if (encontrado) {
-      itemSelecionado.value = encontrado
-      return
-    }
-    // Cria item a partir da linha do histórico para visualização
-    itemSelecionado.value = {
-      id: linha.id,
-      tipo: linha.tipo,
-      competencia: linha.competencia || '11/2025',
-      matriculasCount: linha.matriculas.split(',').length,
-      matriculas: linha.matriculas.split(',').map((m) => m.trim()),
-      motivo: linha.motivo,
-      valorAnterior: 'Valor anterior arquivado na base de dados.',
-      valorAposMudanca: 'Valor homologado após processamento.',
-      solicitante: 'Sistema',
-      submetidoEm: 'Arquivo',
-      status: linha.status,
-    }
-  } else {
-    const encontrado = filaIntercorrencia.value.find((i) => i.id === linha.id)
-    if (encontrado) {
-      itemSelecionado.value = encontrado
-      return
-    }
-    itemSelecionado.value = {
-      id: linha.id,
-      tipo: linha.tipo,
-      matriculasCount: linha.matriculas.split(',').length,
-      matriculas: linha.matriculas.split(',').map((m) => m.trim()),
-      duracao: 'Resolvido',
-      inicio: linha.periodo?.split('-')[0]?.trim() || 'Início',
-      fim: linha.periodo?.split('-')[1]?.trim() || 'Fim',
-      motivo: linha.motivo,
-      solicitante: 'Sistema',
-      submetidoEm: 'Arquivo',
-      status: linha.status,
-    }
+  const item = minhasSolicitacoes.value.find((m) => String(m.id) === String(linha.id))
+  if (item) {
+    itemSelecionado.value = item
+    erroDecisao.value = null
   }
 }
 
 function fecharDetalhes() {
   itemSelecionado.value = null
+  erroDecisao.value = null
 }
 
-function aprovarSolicitacao(id: string | number) {
-  if (visualizacaoAtiva.value === 'correcao') {
-    const item = filaBase.value.find((b) => b.id === id)
-    if (item) {
-      filaBase.value = filaBase.value.filter((b) => b.id !== id)
-      historicoBase.value.unshift({
-        id: item.id,
-        motivo: item.motivo,
-        tipo: item.tipo,
-        competencia: item.competencia,
-        matriculas: item.matriculas.join(', '),
-        status: 'Aprovado',
-      })
-    }
-  } else {
-    const item = filaIntercorrencia.value.find((i) => i.id === id)
-    if (item) {
-      filaIntercorrencia.value = filaIntercorrencia.value.filter((i) => i.id !== id)
-      historicoIntercorrencia.value.unshift({
-        id: item.id,
-        motivo: item.motivo,
-        tipo: item.tipo,
-        periodo: `${item.inicio} - ${item.fim}`,
-        matriculas: item.matriculas.join(', '),
-        status: 'Aprovado',
-      })
-    }
+async function aprovarSolicitacao(id: string | number) {
+  decidindo.value = true
+  erroDecisao.value = null
+  try {
+    await decidir(id, 'APROVAR')
+    fecharDetalhes()
+    await carregarDados()
+  } catch (erro: unknown) {
+    erroDecisao.value = extrairMensagemErroDecisao(erro)
+  } finally {
+    decidindo.value = false
   }
-
-  fecharDetalhes()
 }
 
-function arquivarSolicitacao(id: string | number) {
-  if (visualizacaoAtiva.value === 'correcao') {
-    const item = filaBase.value.find((b) => b.id === id)
-    if (item) {
-      filaBase.value = filaBase.value.filter((b) => b.id !== id)
-      historicoBase.value.unshift({
-        id: item.id,
-        motivo: item.motivo,
-        tipo: item.tipo,
-        competencia: item.competencia,
-        matriculas: item.matriculas.join(', '),
-        status: 'Arquivado',
-      })
-    }
-  } else {
-    const item = filaIntercorrencia.value.find((i) => i.id === id)
-    if (item) {
-      filaIntercorrencia.value = filaIntercorrencia.value.filter((i) => i.id !== id)
-      historicoIntercorrencia.value.unshift({
-        id: item.id,
-        motivo: item.motivo,
-        tipo: item.tipo,
-        periodo: `${item.inicio} - ${item.fim}`,
-        matriculas: item.matriculas.join(', '),
-        status: 'Arquivado',
-      })
-    }
+async function reprovarSolicitacao(id: string | number, justificativa: string) {
+  decidindo.value = true
+  erroDecisao.value = null
+  try {
+    await decidir(id, 'REPROVAR', justificativa)
+    fecharDetalhes()
+    await carregarDados()
+  } catch (erro: unknown) {
+    erroDecisao.value = extrairMensagemErroDecisao(erro)
+  } finally {
+    decidindo.value = false
   }
+}
 
-  fecharDetalhes()
+function formatarLinhaTabela(item: SolicitacaoDetalheResponse): ItemTabelaHistorico {
+  const periodoInfo = ehIntercorrencia(item.tipo)
+    ? formatarPeriodoIntercorrencia(item.tipo, item.depois).texto
+    : undefined
+
+  return {
+    id: item.id,
+    motivo: item.motivo,
+    tipo: rotuloTipo(item.tipo),
+    competencia: item.competencia,
+    periodo: periodoInfo,
+    matriculas: item.matricula,
+    status: rotuloStatus(item.status),
+    justificativa: item.decisao?.justificativa || '—',
+  }
 }
 
 const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
-  if (visualizacaoAtiva.value === 'correcao') {
-    return historicoBase.value
-  }
-  return historicoIntercorrencia.value
+  const lista =
+    visualizacaoAtiva.value === 'correcao' ? minhasCorrecao.value : minhasIntercorrencia.value
+  return lista.map(formatarLinhaTabela)
 })
 </script>
 
@@ -211,110 +220,148 @@ const itensTabelaAtual = computed<ItemTabelaHistorico[]>(() => {
           class="aviso-banner flex items-center max-sm:items-start gap-2.5 max-sm:gap-2 w-full min-w-0 py-2.5 px-3.5 box-border rounded-[5px] bg-black-bg2 border-l-[3px] border-l-blue text-white-txt1 font-raleway"
           role="status"
         >
-          <p v-if="visualizacaoAtiva === 'correcao'" class="aviso-texto m-0 text-body max-sm:text-label leading-snug font-normal">
-            Você está visualizando as solicitações de <strong class="text-blue font-extrabold">Correção da Base</strong>.
-            Para ver as intercorrências, navegue pelo menu acima.
+          <p
+            v-if="visualizacaoAtiva === 'correcao'"
+            class="aviso-texto m-0 text-body max-sm:text-label leading-snug font-normal"
+          >
+            Você está visualizando as solicitações de
+            <strong class="text-blue font-extrabold">Correção da Base</strong>. Para ver as
+            intercorrências, navegue pelo menu acima.
           </p>
           <p v-else class="aviso-texto m-0 text-body max-sm:text-label leading-snug font-normal">
-            Você está visualizando as solicitações de <strong class="text-blue font-extrabold">Abertura de Intercorrência</strong>.
-            Para ver as correções da base, navegue pelo menu acima.
+            Você está visualizando as solicitações de
+            <strong class="text-blue font-extrabold">Abertura de Intercorrência</strong>. Para ver
+            as correções da base, navegue pelo menu acima.
           </p>
         </aside>
       </div>
     </section>
 
-    <!-- Seção da Fila de Solicitações Pendentes (Carrossel) -->
-    <section class="approvals-section">
-      <header class="section-header">
-        <div class="flex gap-3 items-center">
-          <h2 class="m-0 mb-2 font-extrabold text-header-2 max-sm:text-header-3 leading-tight text-white-txt1">
-            {{ visualizacaoAtiva === 'correcao' ? 'Correção da Base' : 'Abertura de Intercorrência' }}
-          </h2>
-          <p class="section-subtitle m-0 mb-1.5 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark">
-            {{
-              visualizacaoAtiva === 'correcao'
-                ? 'Correção de dados incorretos ou desatualizados na base de dados.'
-                : 'Solicitações de abertura de intercorrências para análise e aprovação.'
-            }}
-          </p>
-        </div>
+    <!-- Estado de Carregamento Geral -->
+    <p v-if="carregando" class="estado-fila text-gray-txt2-dark py-6">Carregando solicitações…</p>
 
-        <p class="section-description m-0 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark">
-          Clique em uma solicitação para ver mais detalhes, aprovar ou arquivar.
-        </p>
-      </header>
-
-      <!-- Visualização 1: Correção da Base -->
-      <CarrosselFila
-        v-if="visualizacaoAtiva === 'correcao'"
-        :total="filaBase.length"
+    <!-- Estado de Erro de Carga Geral -->
+    <div
+      v-else-if="erroCarregamento"
+      class="estado-fila estado-fila--erro flex flex-col gap-3 py-6"
+      role="alert"
+    >
+      <span class="text-red">{{ erroCarregamento }}</span>
+      <button
+        type="button"
+        class="w-fit px-4 py-2 bg-blue text-black-bg1 font-semibold rounded-full hover:brightness-110 cursor-pointer"
+        @click="carregarDados"
       >
-        <p v-if="filaBase.length === 0" class="estado-fila flex items-center gap-3 text-body text-gray-txt2-dark m-0 py-6">
-          Nenhuma solicitação de correção da base aguardando aprovação.
-        </p>
-        <CardFilaBase
-          v-for="item in filaBase"
-          :key="item.id"
-          :solicitacao="item"
-          :selecionavel="true"
-          @selecionar="abrirDetalhes"
-        />
-      </CarrosselFila>
+        Tentar novamente
+      </button>
+    </div>
 
-      <!-- Visualização 2: Abertura de Intercorrência -->
-      <CarrosselFila
-        v-else
-        :total="filaIntercorrencia.length"
-      >
-        <p v-if="filaIntercorrencia.length === 0" class="estado-fila flex items-center gap-3 text-body text-gray-txt2-dark m-0 py-6">
-          Nenhuma solicitação de intercorrência aguardando aprovação.
-        </p>
-        <CardFilaIntercorrencia
-          v-for="item in filaIntercorrencia"
-          :key="item.id"
-          :solicitacao="item"
-          :selecionavel="true"
-          @selecionar="abrirDetalhes"
-        />
-      </CarrosselFila>
-    </section>
+    <template v-else>
+      <!-- Seção da Fila de Solicitações Pendentes (Supervisor apenas) -->
+      <section v-if="isSupervisor" class="approvals-section">
+        <header class="section-header">
+          <div class="flex gap-3 items-center">
+            <h2
+              class="m-0 mb-2 font-extrabold text-header-2 max-sm:text-header-3 leading-tight text-white-txt1"
+            >
+              {{
+                visualizacaoAtiva === 'correcao' ? 'Correção da Base' : 'Abertura de Intercorrência'
+              }}
+            </h2>
+            <p
+              class="section-subtitle m-0 mb-1.5 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark"
+            >
+              {{
+                visualizacaoAtiva === 'correcao'
+                  ? 'Correção de dados incorretos ou desatualizados na base de dados.'
+                  : 'Solicitações de abertura de intercorrências para análise e aprovação.'
+              }}
+            </p>
+          </div>
 
-    <!-- Seção de Histórico de Solicitações Resolvidas -->
-    <section class="campaigns-section">
-      <header class="section-header">
-        <div class="flex gap-3 items-center mb-5">
-          <h2 class="m-0 mb-2 font-extrabold text-header-2 max-sm:text-header-3 leading-tight text-white-txt1">
-            Histórico de Solicitações
-          </h2>
-          <p class="section-subtitle m-0 mb-1.5 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark">
-            {{
-              visualizacaoAtiva === 'correcao'
-                ? 'Histórico das solicitações de correção anteriores que já foram resolvidas.'
-                : 'Histórico de solicitações de intercorrência anteriores que já foram resolvidas.'
-            }}
+          <p
+            class="section-description m-0 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark"
+          >
+            Clique em uma solicitação para ver mais detalhes, aprovar ou reprovar.
           </p>
-        </div>
+        </header>
 
-        <p class="section-description m-0 text-body max-sm:text-label font-normal leading-relaxed text-white-txt">
-          Clique em uma solicitação na tabela abaixo para ver informações mais detalhadas
-          e visualizar o chat que a gerou.
-        </p>
-      </header>
+        <!-- Visualização 1: Correção da Base -->
+        <CarrosselFila v-if="visualizacaoAtiva === 'correcao'" :total="filaCorrecao.length">
+          <p
+            v-if="filaCorrecao.length === 0"
+            class="estado-fila flex items-center gap-3 text-body text-gray-txt2-dark m-0 py-6"
+          >
+            Nenhuma solicitação de correção da base aguardando aprovação.
+          </p>
+          <CardFilaBase
+            v-for="item in filaCorrecao"
+            :key="item.id"
+            :solicitacao="item"
+            :selecionavel="true"
+            @selecionar="abrirDetalhes"
+          />
+        </CarrosselFila>
 
-      <TabelaHistoricoSolicitacoes
-        :itens="itensTabelaAtual"
-        :tipo-visualizacao="visualizacaoAtiva"
-        @selecionar="abrirDetalhesTabela"
-      />
-    </section>
+        <!-- Visualização 2: Abertura de Intercorrência -->
+        <CarrosselFila v-else :total="filaIntercorrencia.length">
+          <p
+            v-if="filaIntercorrencia.length === 0"
+            class="estado-fila flex items-center gap-3 text-body text-gray-txt2-dark m-0 py-6"
+          >
+            Nenhuma solicitação de intercorrência aguardando aprovação.
+          </p>
+          <CardFilaIntercorrencia
+            v-for="item in filaIntercorrencia"
+            :key="item.id"
+            :solicitacao="item"
+            :selecionavel="true"
+            @selecionar="abrirDetalhes"
+          />
+        </CarrosselFila>
+      </section>
+
+      <!-- Seção "Meus pedidos" (Gerente e Supervisor) -->
+      <section class="campaigns-section meus-pedidos-section">
+        <header class="section-header">
+          <div class="flex gap-3 items-center mb-5">
+            <h2
+              class="m-0 mb-2 font-extrabold text-header-2 max-sm:text-header-3 leading-tight text-white-txt1"
+            >
+              Meus pedidos
+            </h2>
+            <p
+              class="section-subtitle m-0 mb-1.5 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark"
+            >
+              Acompanhe as solicitações que você abriu e o status de aprovação.
+            </p>
+          </div>
+
+          <p
+            class="section-description m-0 text-body max-sm:text-label font-normal leading-relaxed text-gray-txt2-dark"
+          >
+            Clique em uma solicitação na tabela abaixo para ver informações mais detalhadas.
+          </p>
+        </header>
+
+        <TabelaHistoricoSolicitacoes
+          :itens="itensTabelaAtual"
+          :tipo-visualizacao="visualizacaoAtiva"
+          mensagem-vazia="Nenhum pedido encontrado em Meus pedidos."
+          @selecionar="abrirDetalhesTabela"
+        />
+      </section>
+    </template>
 
     <!-- Modal com detalhes completos da solicitação selecionada -->
     <ModalDetalheSolicitacao
       :solicitacao="itemSelecionado"
       :tipo-visualizacao="visualizacaoAtiva"
+      :erro-decisao="erroDecisao"
+      :decidindo="decidindo"
       @fechar="fecharDetalhes"
       @aprovar="aprovarSolicitacao"
-      @arquivar="arquivarSolicitacao"
+      @reprovar="reprovarSolicitacao"
     />
   </main>
 </template>

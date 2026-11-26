@@ -1,5 +1,3 @@
-
-export { normalizarCompetenciaParaIso, extrairSolicitacaoDeEventos } from '../reabrir'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { api } from '@/services/api'
@@ -12,29 +10,32 @@ import {
   determinarPermissoesCampanha,
   extrairFichaEEstadoSimulacao,
   extrairSimulacaoConcluida,
-  extrairSolicitacaoDeEventos,
   extrairStatusHttp,
   guardarChatId,
   lerChatIdGuardado,
-  normalizarCompetenciaParaIso,
 } from '../reabrir'
 import { criarServicoCampanha, descreverFalha, type ServicoCampanha } from '../services/campanha'
 import { dataLocal } from '../formatacao'
 import { CHAVE_CRESCIMENTO, CHAVE_REFERENCIA, referenciaParaOPeriodo } from '../referencia'
+import {
+  acharRascunhoPendente,
+  atualizarMotivoSolicitacao,
+  cancelarSolicitacaoCorrecao,
+  criarSolicitacaoRascunho,
+  executarEnvioSolicitacao,
+} from '../solicitacao'
 import {
   ETAPAS_DE_ENVIO,
   type CampanhaSalva,
   type CenarioAlternativo,
   type ConversaGravada,
   type EtapaAprovacao,
-  type EventoAgente,
   type MensagemChat,
   type MensagemGravada,
   type PapelMensagem,
   type Periodo,
   type RegraCampanha,
   type ResultadoSimulacao,
-  type SolicitacaoCorrecaoChat,
   type ValorParametro,
 } from '../types'
 
@@ -159,10 +160,11 @@ export const useChatStore = defineStore('chat', () => {
     const gen = geracao.value
     aguardandoLana.value = true
     try {
-      const resposta = await servicoCampanha.conversar(chatId.value, texto, regra.value)
+      const rascunho = acharRascunhoPendente(mensagens.value)
+      const resposta = await servicoCampanha.conversar(chatId.value, texto, regra.value, rascunho)
       if (geracao.value !== gen) return
       adicionarMensagensSistema(resposta.mensagens_sistema)
-      const solicitacao = extrairSolicitacaoDeEventos(resposta.events)
+      const solicitacao = criarSolicitacaoRascunho(resposta.solicitacao)
       adicionar('agente', resposta.response, { events: resposta.events, solicitacao })
       if (resposta.regra) regra.value = resposta.regra
     } catch (erro) {
@@ -179,7 +181,8 @@ export const useChatStore = defineStore('chat', () => {
     if (!parametro) return
     const anterior = parametro.value as Periodo | null
     parametro.value = valor
-    if (key === 'periodo' && valor && !estaVazio(valor)) ajustarReferencia(anterior, valor as Periodo)
+    if (key === 'periodo' && valor && !estaVazio(valor))
+      ajustarReferencia(anterior, valor as Periodo)
   }
 
   /** Período futuro calcula sobre um mês histórico (ADR-006): sugere a referência e 0% de crescimento. */
@@ -439,65 +442,10 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function enviarSolicitacao(mensagem: MensagemChat, motivo: string): Promise<void> {
-    if (!mensagem.solicitacao) return
-    mensagem.solicitacao.motivo = motivo
-    mensagem.solicitacao.statusEnvio = 'enviando'
-    const id = mensagem.solicitacao.id || mensagem.chave
-
-    try {
-      if (mensagem.solicitacao.tipoSolicitacao === 'intercorrencia') {
-        try {
-          await api.post('/api/intercorrencias', {
-            tipo: mensagem.solicitacao.tipo,
-            matriculas: mensagem.solicitacao.matriculas,
-            data_inicio: mensagem.solicitacao.dataInicio,
-            data_fim: mensagem.solicitacao.dataFim,
-            motivo,
-          })
-        } catch {
-          // Fallback gracioso caso a rota ainda não exista no backend
-        }
-      } else {
-        const payload = {
-          tipo: mensagem.solicitacao.tipo_alteracao || 'TRANSFERENCIA_LOJA',
-          matricula: mensagem.solicitacao.matricula || mensagem.solicitacao.matriculas[0] || '',
-          competencia: mensagem.solicitacao.competencia_iso || normalizarCompetenciaParaIso(mensagem.solicitacao.competencia || ''),
-          antes: mensagem.solicitacao.valor_antes || mensagem.solicitacao.valorAnterior,
-          depois: mensagem.solicitacao.valor_depois || mensagem.solicitacao.valorAposMudanca,
-          motivo,
-          origem: 'USUARIO',
-        }
-        await api.post('/api/correcoes', payload)
-      }
-
-      mensagem.solicitacao.enviada = true
-      mensagem.solicitacao.status = 'enviada'
-      mensagem.solicitacao.statusEnvio = 'sucesso'
-
-      const tipoLegivel = mensagem.solicitacao.tipoSolicitacao === 'intercorrencia' ? 'intercorrência' : 'correção na base de dados'
-      adicionar('sistema', `Solicitação de ${tipoLegivel} enviada com sucesso para aprovação dos supervisores.`)
-    } catch (erro: unknown) {
-      mensagem.solicitacao.statusEnvio = 'erro'
-      mensagem.solicitacao.status = 'erro'
-      const falha = descreverFalha(erro)
-      mensagem.solicitacao.erroEnvio = falha
-      adicionar('erro', `Erro ao enviar solicitação: ${falha}`)
-    }
+    await executarEnvioSolicitacao(api, chatId.value, mensagem, motivo, adicionar)
   }
 
-  async function enviarSolicitacaoCorrecao(mensagem: MensagemChat, motivo: string): Promise<void> {
-    return enviarSolicitacao(mensagem, motivo)
-  }
-
-  function cancelarSolicitacaoCorrecao(mensagem: MensagemChat): void {
-    mensagem.solicitacao = null
-  }
-
-  function atualizarMotivoSolicitacao(mensagem: MensagemChat, novoMotivo: string): void {
-    if (mensagem.solicitacao) {
-      mensagem.solicitacao.motivo = novoMotivo
-    }
-  }
+  const enviarSolicitacaoCorrecao = enviarSolicitacao
 
   return {
     geracao,
