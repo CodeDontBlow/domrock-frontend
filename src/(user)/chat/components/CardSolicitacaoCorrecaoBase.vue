@@ -235,8 +235,11 @@ function handleCancelar() {
         <p class="text-red text-label m-0">{{ erro || 'Erro ao processar a solicitação.' }}</p>
       </div>
 
-      <!-- Rodapé com Botões de Ação -->
-      <footer class="flex flex-col sm:flex-row gap-5 items-center">
+      <!-- Rodapé com Botões de Ação. Depois de enviado, o pedido segue na fila: não há mais o que confirmar ou desistir. -->
+      <footer
+        v-if="statusEfetivo !== 'enviada' && statusEfetivo !== 'aprovada'"
+        class="flex flex-col sm:flex-row gap-5 items-center"
+      >
         <button
           type="button"
           class="btn-acao btn-cancelar flex-1 w-full sm:w-auto py-2 px-5 rounded-full font-raleway text-body font-medium text-center cursor-pointer transition-colors bg-transparent border border-gray-txt2-dark text-gray-txt2-dark hover:bg-white/5 hover:border-white-txt1 hover:text-white-txt1"
@@ -247,13 +250,7 @@ function handleCancelar() {
 
         <button
           type="button"
-          class="btn-acao btn-solicitar flex-1 w-full sm:w-auto py-2 px-5 rounded-full font-raleway text-body font-semibold text-center transition-all bg-blue border border-blue text-black-bg1"
-          :class="
-            statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'
-              ? 'opacity-50 cursor-not-allowed'
-              : 'cursor-pointer hover:brightness-110'
-          "
-          :disabled="statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'"
+          class="btn-acao btn-solicitar flex-1 w-full sm:w-auto py-2 px-5 rounded-full font-raleway text-body font-semibold text-center transition-all bg-blue border border-blue text-black-bg1 cursor-pointer hover:brightness-110"
           @click="handleSolicitar"
         >
           Confirmar

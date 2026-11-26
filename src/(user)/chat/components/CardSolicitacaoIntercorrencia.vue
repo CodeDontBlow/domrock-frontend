@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { SolicitacaoPeriodoDepois } from '../types'
+import { formatarData } from '../../fila-alteracoes/formatacao'
 
 export type StatusSolicitacao = 'rascunho' | 'enviada' | 'aprovada' | 'erro'
 
@@ -178,12 +179,14 @@ function handleCancelar() {
               <div class="flex flex-col gap-0.5">
                 <span class="font-inconsolata text-metadata text-gray-txt2-dark">Início</span>
                 <span class="text-body text-white-txt1 font-inconsolata">{{
-                  dataInicioEditada
+                  formatarData(dataInicioEditada)
                 }}</span>
               </div>
               <div v-if="dataFimEditada" class="flex flex-col gap-0.5">
                 <span class="font-inconsolata text-metadata text-gray-txt2-dark">Fim</span>
-                <span class="text-body text-white-txt1 font-inconsolata">{{ dataFimEditada }}</span>
+                <span class="text-body text-white-txt1 font-inconsolata">{{
+                  formatarData(dataFimEditada)
+                }}</span>
               </div>
             </div>
             <p v-if="depois_rotulo" class="text-label text-gray-txt2-dark m-0 mt-1">
@@ -260,8 +263,11 @@ function handleCancelar() {
         <p class="text-red text-label m-0">{{ erro || 'Erro ao processar a solicitação.' }}</p>
       </div>
 
-      <!-- Rodapé com Botões de Ação -->
-      <footer class="flex flex-col sm:flex-row gap-5 items-center">
+      <!-- Rodapé com Botões de Ação. Depois de enviado, o pedido segue na fila: não há mais o que confirmar ou desistir. -->
+      <footer
+        v-if="statusEfetivo !== 'enviada' && statusEfetivo !== 'aprovada'"
+        class="flex flex-col sm:flex-row gap-5 items-center"
+      >
         <button
           type="button"
           class="btn-acao btn-cancelar flex-1 w-full sm:w-auto py-3 px-5 rounded-full font-raleway text-body font-medium text-center cursor-pointer transition-colors bg-transparent border border-gray-txt2-dark text-gray-txt2-dark hover:bg-white/5 hover:border-white-txt1 hover:text-white-txt1"
@@ -274,13 +280,9 @@ function handleCancelar() {
           type="button"
           class="btn-acao btn-solicitar flex-1 w-full sm:w-auto py-3 px-5 rounded-full font-raleway text-body font-semibold text-center transition-all bg-blue border border-blue text-black-bg1"
           :class="
-            Boolean(erroData) || statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'
-              ? 'opacity-50 cursor-not-allowed'
-              : 'cursor-pointer hover:brightness-110'
+            erroData ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:brightness-110'
           "
-          :disabled="
-            Boolean(erroData) || statusEfetivo === 'enviada' || statusEfetivo === 'aprovada'
-          "
+          :disabled="Boolean(erroData)"
           @click="handleSolicitar"
         >
           Confirmar

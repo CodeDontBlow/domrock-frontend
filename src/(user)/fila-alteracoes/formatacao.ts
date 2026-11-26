@@ -28,6 +28,8 @@ export function rotuloTipo(tipo: string): string {
 
 export function formatarData(dataStr?: string | null): string {
   if (!dataStr) return ''
+  // Já em dd/mm/aaaa: o Date leria como mm/dd e trocaria dia e mês.
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dataStr)) return dataStr
   if (/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) {
     const [ano, mes, dia] = dataStr.split('-')
     return `${dia}/${mes}/${ano}`

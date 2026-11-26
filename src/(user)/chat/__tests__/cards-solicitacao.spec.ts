@@ -46,11 +46,11 @@ describe('CardSolicitacaoCorrecaoBase (Figma 968:3323)', () => {
       },
     })
 
-    await wrapper.find('.btn-solicitar').trigger('click')
-    expect(wrapper.emitted('solicitar')).toEqual([['Meu motivo']])
-
     await wrapper.find('.btn-cancelar').trigger('click')
     expect(wrapper.emitted('cancelar')).toBeDefined()
+
+    await wrapper.find('.btn-solicitar').trigger('click')
+    expect(wrapper.emitted('solicitar')).toEqual([['Meu motivo']])
   })
 
   it('não exibe caixa de status em estado de rascunho', () => {
@@ -77,7 +77,8 @@ describe('CardSolicitacaoCorrecaoBase (Figma 968:3323)', () => {
     expect(statusBox.classes()).toContain('border-orange')
     expect(statusBox.find('.bi-clock-history').exists()).toBe(true)
     expect(statusBox.text()).toContain('Solicitação enviada para a análise dos supervisores!')
-    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+    // Depois de enviado/aprovado o rodapé some: não há mais o que confirmar.
+    expect(wrapper.find('.btn-solicitar').exists()).toBe(false)
   })
 
   it('exibe status azul de aprovação quando status é aprovada', () => {
@@ -92,7 +93,8 @@ describe('CardSolicitacaoCorrecaoBase (Figma 968:3323)', () => {
     expect(statusBox.classes()).toContain('border-blue')
     expect(statusBox.find('.bi-check-circle-fill').exists()).toBe(true)
     expect(statusBox.text()).toContain('Solicitação aprovada e aplicada!')
-    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+    // Depois de enviado/aprovado o rodapé some: não há mais o que confirmar.
+    expect(wrapper.find('.btn-solicitar').exists()).toBe(false)
   })
 
   it('exibe status vermelho com mensagem de erro quando há erro', () => {
@@ -183,11 +185,11 @@ describe('CardSolicitacaoIntercorrencia (Figma 964:3251)', () => {
       },
     })
 
-    await wrapper.find('.btn-solicitar').trigger('click')
-    expect(wrapper.emitted('solicitar')).toEqual([['Motivo de teste']])
-
     await wrapper.find('.btn-cancelar').trigger('click')
     expect(wrapper.emitted('cancelar')).toBeDefined()
+
+    await wrapper.find('.btn-solicitar').trigger('click')
+    expect(wrapper.emitted('solicitar')).toEqual([['Motivo de teste']])
   })
 
   it('não exibe caixa de status em estado de rascunho', () => {
@@ -214,7 +216,8 @@ describe('CardSolicitacaoIntercorrencia (Figma 964:3251)', () => {
     expect(statusBox.classes()).toContain('border-orange')
     expect(statusBox.find('.bi-clock-history').exists()).toBe(true)
     expect(statusBox.text()).toContain('Solicitação enviada para a análise dos supervisores!')
-    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+    // Depois de enviado/aprovado o rodapé some: não há mais o que confirmar.
+    expect(wrapper.find('.btn-solicitar').exists()).toBe(false)
   })
 
   it('exibe status azul de aprovação quando status é aprovada', () => {
@@ -229,7 +232,8 @@ describe('CardSolicitacaoIntercorrencia (Figma 964:3251)', () => {
     expect(statusBox.classes()).toContain('border-blue')
     expect(statusBox.find('.bi-check-circle-fill').exists()).toBe(true)
     expect(statusBox.text()).toContain('Solicitação aprovada e aplicada!')
-    expect(wrapper.find('.btn-solicitar').attributes('disabled')).toBeDefined()
+    // Depois de enviado/aprovado o rodapé some: não há mais o que confirmar.
+    expect(wrapper.find('.btn-solicitar').exists()).toBe(false)
   })
 
   it('exibe status vermelho com mensagem de erro quando há erro', () => {
