@@ -145,7 +145,7 @@ const dataTexto = computed(() => {
 
     <!-- Rodapé -->
     <footer
-      class="flex justify-between items-center py-2.5 px-4 border-t border-gray-txt3-dark font-inconsolata text-metadata text-white-txt1"
+      class="flex flex-wrap justify-between items-center gap-x-4 gap-y-1 py-2.5 px-4 border-t border-gray-txt3-dark font-inconsolata text-metadata text-white-txt1"
     >
       <span class="whitespace-nowrap">{{ solicitanteTexto }}</span>
       <span v-if="dataTexto" class="whitespace-nowrap">Submetido em {{ dataTexto }}</span>
